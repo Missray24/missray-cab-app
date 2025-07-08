@@ -48,6 +48,7 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const chartData = [
   { month: 'Jan', reservations: 186, revenue: 4230 },
@@ -72,7 +73,16 @@ const chartConfig = {
 export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Statistiques" />
+      <PageHeader title="Dashboard">
+        <Button>Nouvelle Réservation</Button>
+      </PageHeader>
+       <Tabs defaultValue="week">
+          <TabsList>
+            <TabsTrigger value="today">Aujourd'hui</TabsTrigger>
+            <TabsTrigger value="week">Cette semaine</TabsTrigger>
+            <TabsTrigger value="month">Ce mois-ci</TabsTrigger>
+          </TabsList>
+        </Tabs>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

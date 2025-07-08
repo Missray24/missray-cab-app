@@ -38,7 +38,7 @@ import {
 import { useActivePath } from '@/hooks/use-active-path';
 
 const navItems = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Statistiques' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/reservations', icon: CalendarCheck, label: 'Réservations' },
   { href: '/clients', icon: Users, label: 'Clients' },
   { href: '/drivers', icon: Car, label: 'Chauffeurs' },
