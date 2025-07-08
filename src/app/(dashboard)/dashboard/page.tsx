@@ -43,6 +43,7 @@ import {
 import { PageHeader } from '@/components/page-header';
 import { reservations } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   ChartContainer,
   ChartTooltipContent,
