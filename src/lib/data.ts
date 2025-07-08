@@ -1,0 +1,39 @@
+import type { Reservation, Client, Driver, ServiceTier, Zone } from './types';
+import { Car, CarTaxiFront, Rocket } from "lucide-react";
+
+export const reservations: Reservation[] = [
+  { id: 'RES-001', clientName: 'Alice Johnson', driverName: 'Bob Williams', date: '2023-10-26', pickup: '123 Main St', dropoff: '456 Oak Ave', status: 'Completed', amount: 25.50 },
+  { id: 'RES-002', clientName: 'Charlie Brown', driverName: 'Diana Prince', date: '2023-10-26', pickup: '789 Pine Ln', dropoff: '101 Maple Dr', status: 'Pending', amount: 18.75 },
+  { id: 'RES-003', clientName: 'Eve Adams', driverName: 'Frank White', date: '2023-10-25', pickup: '212 Birch Rd', dropoff: '333 Cedar Blvd', status: 'Completed', amount: 32.00 },
+  { id: 'RES-004', clientName: 'Grace Lee', driverName: 'Henry Green', date: '2023-10-27', pickup: '444 Elm Ct', dropoff: '555 Spruce Way', status: 'Cancelled', amount: 22.10 },
+  { id: 'RES-005', clientName: 'Ivy Chen', driverName: 'Jack Black', date: '2023-10-28', pickup: '666 Willow Ave', dropoff: '777 Redwood Pkwy', status: 'Pending', amount: 45.30 },
+];
+
+export const clients: Client[] = [
+  { id: 'CLI-001', name: 'Alice Johnson', email: 'alice@example.com', phone: '555-0101', joinDate: '2023-01-15', status: 'Active' },
+  { id: 'CLI-002', name: 'Charlie Brown', email: 'charlie@example.com', phone: '555-0102', joinDate: '2023-02-20', status: 'Active' },
+  { id: 'CLI-003', name: 'Eve Adams', email: 'eve@example.com', phone: '555-0103', joinDate: '2023-03-10', status: 'Blocked' },
+  { id: 'CLI-004', name: 'Grace Lee', email: 'grace@example.com', phone: '555-0104', joinDate: '2023-04-05', status: 'Active' },
+  { id: 'CLI-005', name: 'Ivy Chen', email: 'ivy@example.com', phone: '555-0105', joinDate: '2023-05-21', status: 'Active' },
+];
+
+export const drivers: Driver[] = [
+  { id: 'DRV-001', name: 'Bob Williams', email: 'bob@example.com', phone: '555-0201', vehicle: 'Toyota Camry', licensePlate: 'DRV-123', status: 'Active' },
+  { id: 'DRV-002', name: 'Diana Prince', email: 'diana@example.com', phone: '555-0202', vehicle: 'Honda Accord', licensePlate: 'DRV-456', status: 'Active' },
+  { id: 'DRV-003', name: 'Frank White', email: 'frank@example.com', phone: '555-0203', vehicle: 'Ford Fusion', licensePlate: 'DRV-789', status: 'Suspended' },
+  { id: 'DRV-004', name: 'Henry Green', email: 'henry@example.com', phone: '555-0204', vehicle: 'Chevrolet Malibu', licensePlate: 'DRV-101', status: 'Active' },
+  { id: 'DRV-005', name: 'Jack Black', email: 'jack@example.com', phone: '555-0205', vehicle: 'Tesla Model 3', licensePlate: 'DRV-212', status: 'Active' },
+];
+
+export const serviceTiers: ServiceTier[] = [
+    { id: 'tier-1', name: 'Economy', description: 'Affordable and efficient rides.', baseFare: 2.50, perKm: 0.90, icon: Car },
+    { id: 'tier-2', name: 'Premium', description: 'Comfort and luxury combined.', baseFare: 5.00, perKm: 1.50, icon: CarTaxiFront },
+    { id: 'tier-3', name: 'XL', description: 'More space for more passengers.', baseFare: 7.00, perKm: 2.00, icon: Rocket },
+];
+
+export const zones: Zone[] = [
+    { id: 'zone-1', name: 'Downtown Core', region: 'Metropolis Central', activeDrivers: 45 },
+    { id: 'zone-2', name: 'North Suburbs', region: 'Metropolis North', activeDrivers: 23 },
+    { id: 'zone-3', name: 'Airport District', region: 'Metropolis South', activeDrivers: 67 },
+    { id: 'zone-4', name: 'Western Industrial', region: 'Metropolis West', activeDrivers: 12 },
+]
