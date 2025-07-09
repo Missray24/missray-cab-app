@@ -40,15 +40,15 @@ export default function LandingPage() {
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input type="text" placeholder="Adresse d'arrivée" className="pl-10 h-12 text-base w-full" />
                       </div>
-                      <Button size="icon" aria-label="Ajouter un arrêt" className="h-12 w-12 shrink-0 text-primary-foreground bg-gradient-to-r from-[#223aff] to-[#1697ff] transition-opacity hover:opacity-90">
+                      <Button size="icon" aria-label="Ajouter un arrêt" className="h-12 w-12 shrink-0">
                         <Plus className="h-6 w-6" />
                       </Button>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button size="lg" className="flex-1 h-12 text-base text-primary-foreground bg-gradient-to-r from-[#223aff] to-[#1697ff] transition-opacity hover:opacity-90">
+                      <Button size="lg" className="flex-1 h-12 text-base">
                         Voir les véhicules
                       </Button>
-                      <Button size="icon" aria-label="Programmer une course" className="h-12 w-12 shrink-0 text-primary-foreground bg-gradient-to-r from-[#223aff] to-[#1697ff] transition-opacity hover:opacity-90">
+                      <Button size="icon" aria-label="Programmer une course" className="h-12 w-12 shrink-0">
                           <Calendar className="h-6 w-6" />
                       </Button>
                     </div>
