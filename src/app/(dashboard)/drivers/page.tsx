@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { MoreHorizontal, FileText, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
@@ -18,6 +18,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -36,6 +37,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/page-header";
 import { drivers as initialDrivers } from "@/lib/data";
 import type { Driver, DocumentStatus } from '@/lib/types';
@@ -44,6 +47,35 @@ import { cn } from '@/lib/utils';
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
   const [viewingDriver, setViewingDriver] = useState<Driver | null>(null);
+  const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
+  const [editFormData, setEditFormData] = useState({ name: '', vehicle: '', licensePlate: '' });
+
+  useEffect(() => {
+    if (editingDriver) {
+      setEditFormData({
+        name: editingDriver.name,
+        vehicle: editingDriver.vehicle,
+        licensePlate: editingDriver.licensePlate,
+      });
+    }
+  }, [editingDriver]);
+
+  const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setEditFormData(prev => ({ ...prev, [id]: value }));
+  };
+
+  const handleSaveChanges = () => {
+    if (!editingDriver) return;
+    setDrivers(prevDrivers =>
+      prevDrivers.map(driver =>
+        driver.id === editingDriver.id
+          ? { ...driver, ...editFormData }
+          : driver
+      )
+    );
+    setEditingDriver(null);
+  };
 
   const handleStatusToggle = (driverId: string) => {
     setDrivers(prevDrivers =>
@@ -125,7 +157,9 @@ export default function DriversPage() {
                           <DropdownMenuItem onSelect={() => setViewingDriver(driver)}>
                             View Documents
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => setEditingDriver(driver)}>
+                            Edit
+                          </DropdownMenuItem>
                           <DropdownMenuItem onSelect={() => handleStatusToggle(driver.id)}>
                             {driver.status === 'Active' ? 'Suspend' : 'Reactivate'}
                           </DropdownMenuItem>
@@ -206,6 +240,56 @@ export default function DriversPage() {
               <p className="text-muted-foreground text-center col-span-full">No documents uploaded.</p>
             )}
           </div>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={!!editingDriver} onOpenChange={(isOpen) => !isOpen && setEditingDriver(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Driver: {editingDriver?.name}</DialogTitle>
+            <DialogDescription>
+              Update the driver's details below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="name"
+                value={editFormData.name}
+                onChange={handleEditFormChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="vehicle" className="text-right">
+                Vehicle
+              </Label>
+              <Input
+                id="vehicle"
+                value={editFormData.vehicle}
+                onChange={handleEditFormChange}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="licensePlate" className="text-right">
+                License Plate
+              </Label>
+              <Input
+                id="licensePlate"
+                value={editFormData.licensePlate}
+                onChange={handleEditFormChange}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingDriver(null)}>Cancel</Button>
+            <Button onClick={handleSaveChanges}>Save Changes</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </>
