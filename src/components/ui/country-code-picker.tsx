@@ -1,6 +1,7 @@
 'use client'
 
 import * as React from "react"
+import Image from "next/image"
 import { Check, ChevronsUpDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -20,15 +21,8 @@ import {
 } from "@/components/ui/popover"
 import { countries } from "@/lib/countries"
 
-function countryCodeToEmoji(code: string) {
-  if (!code) return ''
-  const OFFSET = 127397
-  const codePoints = code.toUpperCase().split('').map(char => char.charCodeAt(0) + OFFSET)
-  return String.fromCodePoint(...codePoints)
-}
-
 interface CountryCodePickerProps {
-  value: string;
+  value?: string; // Expects 2-letter country code, e.g. "FR"
   onValueChange: (value: string) => void;
   className?: string;
 }
@@ -36,9 +30,9 @@ interface CountryCodePickerProps {
 export function CountryCodePicker({ value, onValueChange, className }: CountryCodePickerProps) {
   const [open, setOpen] = React.useState(false)
 
-  const selectedCountry = countries.find(
-    (country) => country.dial_code === value
-  )
+  const selectedCountry = React.useMemo(() => {
+    return countries.find((country) => country.code.toUpperCase() === value?.toUpperCase())
+  }, [value])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -49,9 +43,14 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
           aria-expanded={open}
           className={cn("w-full justify-between", className)}
         >
-          {value && selectedCountry ? (
+          {selectedCountry ? (
             <div className="flex items-center gap-2">
-              <span>{countryCodeToEmoji(selectedCountry.code)}</span>
+              <Image
+                src={`https://flagcdn.com/w20/${selectedCountry.code.toLowerCase()}.png`}
+                alt={`${selectedCountry.name} flag`}
+                width={20}
+                height={15}
+              />
               <span>{selectedCountry.dial_code}</span>
             </div>
            ) : (
@@ -71,17 +70,23 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
                   key={country.code}
                   value={`${country.name} (${country.dial_code})`}
                   onSelect={() => {
-                    onValueChange(country.dial_code)
+                    onValueChange(country.code)
                     setOpen(false)
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === country.dial_code ? "opacity-100" : "opacity-0"
+                      value === country.code ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  <span className="mr-2">{countryCodeToEmoji(country.code)}</span>
+                  <Image
+                      src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                      alt={`${country.name} flag`}
+                      width={20}
+                      height={15}
+                      className="mr-2"
+                  />
                   <span className="truncate">{country.name}</span>
                   <span className="ml-auto text-muted-foreground">{country.dial_code}</span>
                 </CommandItem>

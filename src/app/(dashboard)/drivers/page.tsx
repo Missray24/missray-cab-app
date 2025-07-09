@@ -51,12 +51,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { CountryCodePicker } from "@/components/ui/country-code-picker";
+import { countries } from "@/lib/countries";
 
 const initialFormState = {
   firstName: '',
   lastName: '',
   email: '',
-  phone: { countryCode: '+33', number: '' },
+  phone: { country: 'FR', countryCode: '+33', number: '' },
   company: {
     name: '',
     address: '',
@@ -115,7 +116,7 @@ export default function DriversPage() {
         firstName: modalState.driver.firstName || '',
         lastName: modalState.driver.lastName || '',
         email: modalState.driver.email || '',
-        phone: modalState.driver.phone || { countryCode: '+33', number: '' },
+        phone: modalState.driver.phone || { country: 'FR', countryCode: '+33', number: '' },
         company: { ...modalState.driver.company, commission: String(modalState.driver.company?.commission || '') } || {},
         vehicle: modalState.driver.vehicle || {},
       });
@@ -147,11 +148,14 @@ export default function DriversPage() {
     }
   };
 
-  const handleCountryCodeChange = (value: string) => {
-    setEditFormData(prev => ({
-        ...prev,
-        phone: { ...prev.phone, countryCode: value }
-    }));
+  const handleCountryChange = (countryShortCode: string) => {
+    const country = countries.find(c => c.code === countryShortCode);
+    if (country) {
+      setEditFormData(prev => ({
+          ...prev,
+          phone: { ...prev.phone, country: country.code, countryCode: country.dial_code }
+      }));
+    }
   }
   
   const handleVatSubjectedChange = (checked: boolean | 'indeterminate') => {
@@ -423,8 +427,8 @@ export default function DriversPage() {
                   <div className="flex gap-2">
                     <CountryCodePicker
                       className="w-[150px]"
-                      value={editFormData.phone.countryCode}
-                      onValueChange={handleCountryCodeChange}
+                      value={editFormData.phone.country}
+                      onValueChange={handleCountryChange}
                     />
                     <Input id="phone.number" value={editFormData.phone.number} onChange={handleEditFormChange} className="flex-1" />
                   </div>

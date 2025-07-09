@@ -34,7 +34,7 @@ const formSchema = z
     }),
     firstName: z.string().min(1, 'Le prénom est requis'),
     lastName: z.string().min(1, 'Le nom est requis'),
-    countryCode: z.string().min(1, "L'indicatif est requis"),
+    country: z.string().min(1, "Le pays est requis"),
     phoneNumber: z.string().min(1, 'Le numéro de téléphone est requis'),
     email: z.string().email("L'email est invalide"),
     password: z
@@ -53,7 +53,7 @@ export default function SignupPage() {
     defaultValues: {
       firstName: '',
       lastName: '',
-      countryCode: '+33',
+      country: 'FR',
       phoneNumber: '',
       email: '',
       password: '',
@@ -149,7 +149,7 @@ export default function SignupPage() {
                 <div className="grid grid-cols-[150px_1fr] gap-2 mt-2">
                   <FormField
                     control={form.control}
-                    name="countryCode"
+                    name="country"
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
