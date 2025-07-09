@@ -58,17 +58,19 @@ function DashboardLayoutContent({
   children: React.ReactNode;
 }) {
   const checkActivePath = useActivePath();
-  const { setOpen, isMobile, state } = useSidebar();
+  const { setOpen, isMobile, state, setOpenMobile } = useSidebar();
 
   const handleLinkClick = () => {
-    if (!isMobile && state === 'expanded') {
+    if (isMobile) {
+      setOpenMobile(false);
+    } else if (state === 'expanded') {
       setOpen(false);
     }
   };
 
   return (
     <>
-      <Sidebar>
+      <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" className="h-10 w-10 text-primary bg-primary-foreground/10 hover:bg-primary-foreground/20 rounded-lg">
