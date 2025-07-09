@@ -33,6 +33,11 @@ export const paymentMethods: PaymentMethod[] = [
   'Paiement différé',
 ];
 
+export interface StatusHistory {
+  status: ReservationStatus;
+  timestamp: string;
+}
+
 export interface Reservation {
   id: string;
   clientName: string;
@@ -41,6 +46,7 @@ export interface Reservation {
   pickup: string;
   dropoff: string;
   status: ReservationStatus;
+  statusHistory: StatusHistory[];
   amount: number;
   paymentMethod: PaymentMethod;
 }

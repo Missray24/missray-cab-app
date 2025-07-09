@@ -73,6 +73,7 @@ export default function ReservationDetailsPage({ params }: { params: { id: strin
                   const isCompleted = currentStatusIdx >= index;
                   const isCurrent = currentStatusIdx === index;
                   const isLastStep = index === timelineSteps.length - 1;
+                  const historyEntry = reservation.statusHistory.find(h => h.status === step.status);
 
                   return (
                     <div key={step.status} className="flex gap-4">
@@ -91,9 +92,11 @@ export default function ReservationDetailsPage({ params }: { params: { id: strin
                         <p className={cn("font-medium", isCurrent ? "text-primary" : "text-foreground")}>
                           {step.status}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          {isCompleted && !isCurrent && reservation.status !== 'Terminée' ? 'Effectué' : ''}
-                        </p>
+                        {historyEntry && (
+                          <p className="text-xs text-muted-foreground">
+                            {historyEntry.timestamp}
+                          </p>
+                        )}
                       </div>
                     </div>
                   );
