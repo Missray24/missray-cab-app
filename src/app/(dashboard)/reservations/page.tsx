@@ -63,11 +63,11 @@ export default function ReservationsPage() {
                   <TableCell>
                      <Badge
                       variant={
-                        reservation.status === 'Completed'
+                        reservation.status === 'Terminée'
                           ? 'default'
-                          : reservation.status === 'Pending'
-                          ? 'secondary'
-                          : 'destructive'
+                          : reservation.status.startsWith('Annulée') || reservation.status === 'No-show'
+                          ? 'destructive'
+                          : 'secondary'
                       }
                       className="capitalize"
                     >

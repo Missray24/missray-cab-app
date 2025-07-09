@@ -1,3 +1,16 @@
+export type ReservationStatus =
+  | 'Nouvelle demande'
+  | 'Acceptée'
+  | 'Chauffeur en route'
+  | 'Chauffeur sur place'
+  | 'Voyageur à bord'
+  | 'Terminée'
+  | 'Annulée par le chauffeur (sans frais)'
+  | 'Annulée par le client (sans frais)'
+  | 'Annulée par le chauffeur (avec frais)'
+  | 'Annulée par le client (avec frais)'
+  | 'No-show';
+
 export interface Reservation {
   id: string;
   clientName: string;
@@ -5,7 +18,7 @@ export interface Reservation {
   date: string;
   pickup: string;
   dropoff: string;
-  status: 'Completed' | 'Pending' | 'Cancelled';
+  status: ReservationStatus;
   amount: number;
 }
 
