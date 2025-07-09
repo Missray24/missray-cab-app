@@ -198,7 +198,7 @@ export default function ReservationsPage() {
               Mettez à jour les détails de la réservation ci-dessous.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-6">
             <div className="space-y-2">
               <Label htmlFor="clientId">Client</Label>
               <Select value={editFormData.clientId} onValueChange={(value) => handleSelectChange('clientId', value)}>
