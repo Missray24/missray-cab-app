@@ -33,7 +33,6 @@ body {
     --chart-4: 14 80% 70%;
     --chart-5: 231 20% 70%;
     --radius: 0.5rem;
-    --sidebar-background: 231 35% 18%;
     --sidebar-foreground: 234 40% 85%;
     --sidebar-primary: 231 48% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -67,7 +66,6 @@ body {
     --chart-3: 231 30% 70%;
     --chart-4: 14 80% 80%;
     --chart-5: 231 20% 80%;
-    --sidebar-background: 231 22% 12%;
     --sidebar-foreground: 234 40% 85%;
     --sidebar-primary: 231 48% 58%;
     --sidebar-primary-foreground: 0 0% 100%;
