@@ -46,11 +46,11 @@ export default function LandingPage() {
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button size="lg" className="flex-1 h-12 text-base">
-                          Voir les véhicules
-                        </Button>
                         <Button size="icon" aria-label="Programmer une course" className="h-12 w-12 shrink-0">
                             <Calendar className="h-6 w-6" />
+                        </Button>
+                        <Button size="lg" className="flex-1 h-12 text-base">
+                          Voir les véhicules
                         </Button>
                       </div>
                     </div>
