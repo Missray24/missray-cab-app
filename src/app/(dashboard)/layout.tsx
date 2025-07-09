@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -12,7 +11,6 @@ import {
   Map,
   Settings,
   LogOut,
-  Car,
   TrendingUp,
   Banknote,
   CarFront,
@@ -74,12 +72,7 @@ function DashboardLayoutContent({
     <>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-10 w-10 text-primary bg-primary-foreground/10 hover:bg-primary-foreground/20 rounded-lg">
-              <Car className="h-6 w-6" />
-            </Button>
-            <h2 className="text-lg font-headline font-semibold">Cab Central</h2>
-          </div>
+          <h2 className="text-lg font-headline font-semibold">Cab Central</h2>
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
