@@ -1,16 +1,21 @@
-import { notFound } from 'next/navigation';
+
+'use client';
+
+import { useState, useEffect } from 'react';
+import { notFound, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { CheckCircle2, Car, MapPin, User, Star, Clock } from 'lucide-react';
+import { doc, getDoc } from "firebase/firestore";
 
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { reservations, serviceTiers } from '@/lib/data';
-import type { ReservationStatus } from '@/lib/types';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { Reservation, ReservationStatus, ServiceTier } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { db } from '@/lib/firebase';
 
-// Helper to determine the progress of the reservation
 const getStatusIndex = (status: ReservationStatus) => {
   const normalFlow: ReservationStatus[] = [
     'Nouvelle demande',
@@ -21,7 +26,6 @@ const getStatusIndex = (status: ReservationStatus) => {
     'Terminée',
   ];
   const index = normalFlow.indexOf(status);
-  // Return a high index for statuses not in the normal flow so they don't mess up the timeline
   return index === -1 ? 99 : index;
 };
 
@@ -34,15 +38,67 @@ const timelineSteps = [
   { status: 'Terminée', icon: Star },
 ];
 
-export default function ReservationDetailsPage({ params }: { params: { id: string } }) {
-  const reservation = reservations.find(res => res.id === params.id);
+export default function ReservationDetailsPage() {
+  const params = useParams<{ id: string }>();
+  const [reservation, setReservation] = useState<Reservation | null | undefined>(undefined);
+  const [tier, setTier] = useState<ServiceTier | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!params.id) return;
+
+    const fetchReservation = async () => {
+      try {
+        const resDocRef = doc(db, "reservations", params.id);
+        const resDocSnap = await getDoc(resDocRef);
+
+        if (resDocSnap.exists()) {
+          const resData = { id: resDocSnap.id, ...resDocSnap.data() } as Reservation;
+          setReservation(resData);
+          
+          if(resData.serviceTierId) {
+            const tierDocRef = doc(db, "serviceTiers", resData.serviceTierId);
+            const tierDocSnap = await getDoc(tierDocRef);
+            if (tierDocSnap.exists()) {
+              setTier({ id: tierDocSnap.id, ...tierDocSnap.data() } as ServiceTier);
+            }
+          }
+        } else {
+          setReservation(null); // Not found
+        }
+      } catch (error) {
+        console.error("Error fetching reservation details: ", error);
+        setReservation(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReservation();
+  }, [params.id]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-6">
+        <PageHeader title="Réservation..."><Skeleton className="h-6 w-24 rounded-full" /></PageHeader>
+        <div className="grid gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-6">
+                <Card><CardHeader><Skeleton className="h-6 w-48" /></CardHeader><CardContent><Skeleton className="h-96 w-full" /></CardContent></Card>
+                <Card><CardHeader><Skeleton className="h-6 w-48" /></CardHeader><CardContent><Skeleton className="h-64 w-full" /></CardContent></Card>
+            </div>
+            <div className="lg:col-span-1">
+                <Card><CardHeader><Skeleton className="h-6 w-48" /></CardHeader><CardContent className="h-[400px] p-0"><Skeleton className="h-full w-full" /></CardContent></Card>
+            </div>
+        </div>
+      </div>
+    );
+  }
 
   if (!reservation) {
     notFound();
   }
   
   const currentStatusIdx = getStatusIndex(reservation.status);
-  const tier = serviceTiers.find(t => t.id === reservation.serviceTierId);
 
   return (
     <div className="flex flex-col gap-6">

@@ -20,6 +20,7 @@ import {
   Car,
   MoreVertical,
 } from 'lucide-react';
+import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
 
 import {
   Card,
@@ -43,13 +44,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { PageHeader } from '@/components/page-header';
-import { reservations } from '@/lib/data';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   ChartContainer,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { Reservation } from '@/lib/types';
+import { db } from '@/lib/firebase';
 
 const chartData = [
   { month: 'Jan', reservations: 186, revenue: 4230 },
@@ -72,6 +75,30 @@ const chartConfig = {
 };
 
 export default function DashboardPage() {
+  const [recentReservations, setRecentReservations] = React.useState<Reservation[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  
+  React.useEffect(() => {
+    const fetchRecentReservations = async () => {
+      try {
+        const reservationsRef = collection(db, "reservations");
+        const q = query(reservationsRef, orderBy("date", "desc"), limit(5));
+        const querySnapshot = await getDocs(q);
+        const reservationsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Reservation[];
+        setRecentReservations(reservationsData);
+      } catch (error) {
+        console.error("Error fetching recent reservations: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRecentReservations();
+  }, []);
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Tableau de bord">
@@ -150,48 +177,62 @@ export default function DashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reservations.slice(0, 5).map((reservation) => (
-                <TableRow key={reservation.id}>
-                  <TableCell>
-                    <div className="font-medium">{reservation.clientName}</div>
-                  </TableCell>
-                  <TableCell>{reservation.driverName}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        reservation.status === 'Terminée'
-                          ? 'default'
-                          : reservation.status.startsWith('Annulée') || reservation.status === 'No-show'
-                          ? 'destructive'
-                          : 'secondary'
-                      }
-                      className="capitalize"
-                    >
-                      {reservation.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{reservation.date}</TableCell>
-                  <TableCell>{reservation.paymentMethod}</TableCell>
-                  <TableCell className="text-right">
-                    ${reservation.amount.toFixed(2)}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem asChild>
-                          <Link href={`/reservations/${reservation.id}`}>Voir les détails</Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>Modifier</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {loading ? (
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                    <TableCell><Skeleton className="h-6 w-[100px] rounded-full" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                    <TableCell><Skeleton className="h-4 w-[60px] ml-auto" /></TableCell>
+                    <TableCell><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                recentReservations.map((reservation) => (
+                  <TableRow key={reservation.id}>
+                    <TableCell>
+                      <div className="font-medium">{reservation.clientName}</div>
+                    </TableCell>
+                    <TableCell>{reservation.driverName}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          reservation.status === 'Terminée'
+                            ? 'default'
+                            : reservation.status.startsWith('Annulée') || reservation.status === 'No-show'
+                            ? 'destructive'
+                            : 'secondary'
+                        }
+                        className="capitalize"
+                      >
+                        {reservation.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{reservation.date}</TableCell>
+                    <TableCell>{reservation.paymentMethod}</TableCell>
+                    <TableCell className="text-right">
+                      ${reservation.amount.toFixed(2)}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem asChild>
+                            <Link href={`/reservations/${reservation.id}`}>Voir les détails</Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>Modifier</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

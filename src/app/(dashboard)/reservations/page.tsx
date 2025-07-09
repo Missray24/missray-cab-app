@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MoreHorizontal } from "lucide-react";
+import { collection, getDocs } from "firebase/firestore";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,11 +48,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
-import { reservations as initialReservations, clients, serviceTiers } from "@/lib/data";
-import { reservationStatuses, paymentMethods, type Reservation, type ReservationStatus, type PaymentMethod } from '@/lib/types';
+import { Skeleton } from "@/components/ui/skeleton";
+import { reservationStatuses, paymentMethods, type Reservation, type ReservationStatus, type PaymentMethod, type Client, type ServiceTier } from '@/lib/types';
+import { db } from '@/lib/firebase';
 
 export default function ReservationsPage() {
-  const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
   const [editFormData, setEditFormData] = useState({
     clientId: '',
@@ -63,6 +69,32 @@ export default function ReservationsPage() {
     status: '' as ReservationStatus,
     paymentMethod: '' as PaymentMethod,
   });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [reservationsSnap, clientsSnap, tiersSnap] = await Promise.all([
+          getDocs(collection(db, "reservations")),
+          getDocs(collection(db, "clients")),
+          getDocs(collection(db, "serviceTiers")),
+        ]);
+        
+        const reservationsData = reservationsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Reservation[];
+        const clientsData = clientsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Client[];
+        const tiersData = tiersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as ServiceTier[];
+
+        setReservations(reservationsData);
+        setClients(clientsData);
+        setServiceTiers(tiersData);
+
+      } catch (error) {
+        console.error("Error fetching data: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
     if (editingReservation) {
@@ -142,48 +174,62 @@ export default function ReservationsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {reservations.map((reservation) => (
-                  <TableRow key={reservation.id}>
-                    <TableCell className="font-medium">{reservation.id}</TableCell>
-                    <TableCell>{reservation.clientName}</TableCell>
-                    <TableCell>{reservation.driverName}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          reservation.status === 'Terminée'
-                            ? 'default'
-                            : reservation.status.startsWith('Annulée') || reservation.status === 'No-show'
-                            ? 'destructive'
-                            : 'secondary'
-                        }
-                        className="capitalize"
-                      >
-                        {reservation.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{reservation.date}</TableCell>
-                    <TableCell>{reservation.paymentMethod}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/reservations/${reservation.id}`}>Voir les détails</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => setEditingReservation(reservation)}>
-                            Modifier
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {loading ? (
+                  Array.from({ length: 10 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-[100px] rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[80px]" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  reservations.map((reservation) => (
+                    <TableRow key={reservation.id}>
+                      <TableCell className="font-medium">{reservation.id}</TableCell>
+                      <TableCell>{reservation.clientName}</TableCell>
+                      <TableCell>{reservation.driverName}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            reservation.status === 'Terminée'
+                              ? 'default'
+                              : reservation.status.startsWith('Annulée') || reservation.status === 'No-show'
+                              ? 'destructive'
+                              : 'secondary'
+                          }
+                          className="capitalize"
+                        >
+                          {reservation.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{reservation.date}</TableCell>
+                      <TableCell>{reservation.paymentMethod}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/reservations/${reservation.id}`}>Voir les détails</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setEditingReservation(reservation)}>
+                              Modifier
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>

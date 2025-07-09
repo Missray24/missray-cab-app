@@ -1,8 +1,10 @@
+
 'use client';
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { MoreHorizontal, FileText, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { collection, getDocs } from "firebase/firestore";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,12 +42,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/page-header";
-import { drivers as initialDrivers } from "@/lib/data";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Driver, DocumentStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { db } from "@/lib/firebase";
 
 const countryCodes = [
   { value: '+1', label: 'US (+1)' },
@@ -78,10 +81,30 @@ const initialFormState = {
 };
 
 export default function DriversPage() {
-  const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
+  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [loading, setLoading] = useState(true);
   const [viewingDriver, setViewingDriver] = useState<Driver | null>(null);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
-  const [editFormData, setEditFormData] = useState(initialFormState);
+  const [editFormData, setEditFormData] = useState<any>(initialFormState);
+
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "drivers"));
+        const driversData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Driver[];
+        setDrivers(driversData);
+      } catch (error) {
+        console.error("Error fetching drivers: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDrivers();
+  }, []);
 
   useEffect(() => {
     if (editingDriver) {
@@ -230,40 +253,52 @@ export default function DriversPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {drivers.map((driver) => (
-                  <TableRow key={driver.id}>
-                    <TableCell className="font-medium">{driver.firstName} {driver.lastName}</TableCell>
-                    <TableCell>{driver.vehicle.brand} {driver.vehicle.model}</TableCell>
-                    <TableCell>{driver.vehicle.licensePlate}</TableCell>
-                    <TableCell>
-                      <Badge variant={driver.status === 'Active' ? 'secondary' : 'destructive'}>
-                        {driver.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => setViewingDriver(driver)}>
-                            View Documents
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => setEditingDriver(driver)}>
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => handleStatusToggle(driver.id)}>
-                            {driver.status === 'Active' ? 'Suspend' : 'Reactivate'}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {loading ? (
+                   Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-[80px] rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  drivers.map((driver) => (
+                    <TableRow key={driver.id}>
+                      <TableCell className="font-medium">{driver.firstName} {driver.lastName}</TableCell>
+                      <TableCell>{driver.vehicle.brand} {driver.vehicle.model}</TableCell>
+                      <TableCell>{driver.vehicle.licensePlate}</TableCell>
+                      <TableCell>
+                        <Badge variant={driver.status === 'Active' ? 'secondary' : 'destructive'}>
+                          {driver.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onSelect={() => setViewingDriver(driver)}>
+                              View Documents
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setEditingDriver(driver)}>
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleStatusToggle(driver.id)}>
+                              {driver.status === 'Active' ? 'Suspend' : 'Reactivate'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
@@ -317,14 +352,14 @@ export default function DriversPage() {
                    <Button
                      variant="outline"
                      className="w-full"
-                     onClick={() => handleDocumentStatusChange(viewingDriver.id, index, 'Rejected')}
+                     onClick={() => viewingDriver && handleDocumentStatusChange(viewingDriver.id, index, 'Rejected')}
                      disabled={doc.status === 'Rejected'}
                    >
                      Refuser
                    </Button>
                    <Button
                      className="w-full"
-                     onClick={() => handleDocumentStatusChange(viewingDriver.id, index, 'Approved')}
+                     onClick={() => viewingDriver && handleDocumentStatusChange(viewingDriver.id, index, 'Approved')}
                      disabled={doc.status === 'Approved'}
                    >
                      Approuver
