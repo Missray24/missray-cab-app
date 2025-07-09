@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { MoreHorizontal } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -25,9 +28,25 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
-import { drivers } from "@/lib/data";
+import { drivers as initialDrivers } from "@/lib/data";
+import type { Driver } from '@/lib/types';
 
 export default function DriversPage() {
+  const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
+
+  const handleStatusToggle = (driverId: string) => {
+    setDrivers(prevDrivers =>
+      prevDrivers.map(driver =>
+        driver.id === driverId
+          ? {
+              ...driver,
+              status: driver.status === 'Active' ? 'Suspended' : 'Active',
+            }
+          : driver
+      )
+    );
+  };
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Chauffeurs">
@@ -76,7 +95,7 @@ export default function DriversPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem>View Documents</DropdownMenuItem>
                         <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onSelect={() => handleStatusToggle(driver.id)}>
                           {driver.status === 'Active' ? 'Suspend' : 'Reactivate'}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
