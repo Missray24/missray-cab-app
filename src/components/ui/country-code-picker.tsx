@@ -56,6 +56,7 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
                  width={20}
                  height={15}
                  alt={selectedCountry.name}
+ style={{ width: 'auto', height: 'auto' }}
                />
               <span>{`${selectedCountry.code} (${selectedCountry.dial_code})`}</span>
             </span>
@@ -68,13 +69,9 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
       <PopoverContent className="w-[300px] p-0" align="start">
         <Command
           filter={(itemValue, search) => {
-            const country = countries.find(c => c.code.toLowerCase() === itemValue);
-            if (!country) return 0;
-            
             const searchValue = search.toLowerCase();
-            const searchableText = `${country.name} ${country.dial_code} ${country.code}`.toLowerCase();
-            
-            return searchableText.includes(searchValue) ? 1 : 0;
+            const country = countries.find((c) => c.code.toLowerCase() === itemValue || c.name.toLowerCase().includes(searchValue) || c.dial_code.includes(searchValue));
+ return country ? 1 : 0;
           }}
         >
           <CommandInput placeholder="Rechercher un pays..." />
@@ -99,6 +96,7 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
                     height={15}
                     alt={country.name}
                     className="mr-2"
+ style={{ width: 'auto', height: 'auto' }}
                   />
                   <span className="flex-1 truncate">{country.name}</span>
                   <span className="ml-auto text-muted-foreground">{country.dial_code}</span>

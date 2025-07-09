@@ -25,7 +25,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { CountryCodePicker } from '@/components/ui/country-code-picker';
 
 const formSchema = z
   .object({
@@ -34,8 +33,6 @@ const formSchema = z
     }),
     firstName: z.string().min(1, 'Le prénom est requis'),
     lastName: z.string().min(1, 'Le nom est requis'),
-    country: z.string().min(1, "Le pays est requis"),
-    phoneNumber: z.string().min(1, 'Le numéro de téléphone est requis'),
     email: z.string().email("L'email est invalide"),
     password: z
       .string()
@@ -53,8 +50,6 @@ export default function SignupPage() {
     defaultValues: {
       firstName: '',
       lastName: '',
-      country: 'FR',
-      phoneNumber: '',
       email: '',
       password: '',
       confirmPassword: '',
@@ -142,39 +137,6 @@ export default function SignupPage() {
                     </FormItem>
                   )}
                 />
-              </div>
-
-              <div>
-                <Label>Numéro de téléphone</Label>
-                <div className="grid grid-cols-[150px_1fr] gap-2 mt-2">
-                  <FormField
-                    control={form.control}
-                    name="country"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                           <CountryCodePicker
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="phoneNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Input type="tel" placeholder="6 12 34 56 78" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
               </div>
 
               <FormField
