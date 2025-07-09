@@ -68,9 +68,9 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
               {countries.map((country) => (
                 <CommandItem
                   key={country.code}
-                  value={`${country.name} (${country.dial_code})`}
-                  onSelect={() => {
-                    onValueChange(country.code);
+                  value={country.code}
+                  onSelect={(currentValue) => {
+                    onValueChange(currentValue.toUpperCase());
                     setOpen(false)
                   }}
                 >
