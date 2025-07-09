@@ -2,6 +2,7 @@
 'use client'
 
 import * as React from "react"
+import Image from "next/image"
 import { Check, ChevronsUpDown } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -49,7 +50,15 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
           className={cn("w-full justify-between", className)}
         >
           {selectedCountry ? (
-            <span>{`${selectedCountry.code} (${selectedCountry.dial_code})`}</span>
+            <span className="flex items-center gap-2">
+               <Image
+                 src={`https://flagcdn.com/w20/${selectedCountry.code.toLowerCase()}.png`}
+                 width={20}
+                 height={15}
+                 alt={selectedCountry.name}
+               />
+              <span>{`${selectedCountry.code} (${selectedCountry.dial_code})`}</span>
+            </span>
            ) : (
             "Select Code"
            )}
@@ -83,6 +92,13 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
                       "mr-2 h-4 w-4",
                       value?.toUpperCase() === country.code.toUpperCase() ? "opacity-100" : "opacity-0"
                     )}
+                  />
+                  <Image
+                    src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                    width={20}
+                    height={15}
+                    alt={country.name}
+                    className="mr-2"
                   />
                   <span className="flex-1 truncate">{country.name}</span>
                   <span className="ml-auto text-muted-foreground">{country.dial_code}</span>
