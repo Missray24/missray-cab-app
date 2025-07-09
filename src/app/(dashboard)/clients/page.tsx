@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { MoreHorizontal } from "lucide-react";
+import { collection, getDocs } from "firebase/firestore";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -49,14 +50,36 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/page-header";
-import { clients as initialClients } from "@/lib/data";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Client } from "@/lib/types";
+import { db } from "@/lib/firebase";
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>(initialClients);
+  const [clients, setClients] = useState<Client[]>([]);
+  const [loading, setLoading] = useState(true);
   const [editingClient, setEditingClient] = useState<Client | null>(null);
   const [deletingClient, setDeletingClient] = useState<Client | null>(null);
   const [editFormData, setEditFormData] = useState({ name: '', email: '' });
+
+  useEffect(() => {
+    const fetchClients = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "clients"));
+        const clientsData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Client[];
+        setClients(clientsData);
+      } catch (error) {
+        console.error("Error fetching clients: ", error);
+        // In a real app, you might want to show a toast notification
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClients();
+  }, []);
 
   useEffect(() => {
     if (editingClient) {
@@ -64,6 +87,8 @@ export default function ClientsPage() {
     }
   }, [editingClient]);
 
+  // NOTE: The following handlers currently only modify the local state.
+  // They will be connected to Firestore in the next step.
   const handleToggleBlock = (clientId: string) => {
     setClients(clients.map(client => 
       client.id === clientId 
@@ -119,34 +144,46 @@ export default function ClientsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {clients.map((client) => (
-                  <TableRow key={client.id}>
-                    <TableCell className="font-medium">{client.name}</TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>
-                      <Badge variant={client.status === 'Active' ? 'secondary' : 'destructive'}>
-                        {client.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{client.joinDate}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem onSelect={() => setEditingClient(client)}>Edit</DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => handleToggleBlock(client.id)}>{client.status === 'Active' ? 'Block' : 'Unblock'}</DropdownMenuItem>
-                          <DropdownMenuItem onSelect={() => setDeletingClient(client)} className="text-destructive">Delete</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <TableRow key={i}>
+                      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[200px]" /></TableCell>
+                      <TableCell><Skeleton className="h-6 w-[70px] rounded-full" /></TableCell>
+                      <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+                      <TableCell><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  clients.map((client) => (
+                    <TableRow key={client.id}>
+                      <TableCell className="font-medium">{client.name}</TableCell>
+                      <TableCell>{client.email}</TableCell>
+                      <TableCell>
+                        <Badge variant={client.status === 'Active' ? 'secondary' : 'destructive'}>
+                          {client.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{client.joinDate}</TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                              <MoreHorizontal className="h-4 w-4" />
+                              <span className="sr-only">Toggle menu</span>
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onSelect={() => setEditingClient(client)}>Edit</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleToggleBlock(client.id)}>{client.status === 'Active' ? 'Block' : 'Unblock'}</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => setDeletingClient(client)} className="text-destructive">Delete</DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
