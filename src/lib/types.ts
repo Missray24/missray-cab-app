@@ -114,10 +114,15 @@ export interface Driver {
 export interface ServiceTier {
   id: string;
   name: string;
+  reference: string;
   description: string;
+  photoUrl: string;
   baseFare: number;
   perKm: number;
-  icon: any;
+  perMinute: number;
+  perStop: number;
+  minimumPrice: number;
+  availableZoneIds: string[];
 }
 
 export interface Zone {

@@ -1,5 +1,4 @@
 import type { Reservation, Client, Driver, ServiceTier, Zone } from './types';
-import { Car, CarTaxiFront, Rocket } from "lucide-react";
 
 export const reservations: Reservation[] = [
   { id: 'RES-001', clientName: 'Alice Johnson', clientId: 'CLI-001', driverName: 'Bob Williams', driverId: 'DRV-001', date: '2023-10-26', pickup: '123 Main St', dropoff: '456 Oak Ave', status: 'Terminée', amount: 25.50, driverPayout: 20.40, paymentMethod: 'Carte', serviceTierId: 'tier-1',
@@ -58,9 +57,45 @@ export const drivers: Driver[] = [
 ];
 
 export const serviceTiers: ServiceTier[] = [
-    { id: 'tier-1', name: 'Economy', description: 'Affordable and efficient rides.', baseFare: 2.50, perKm: 0.90, icon: Car },
-    { id: 'tier-2', name: 'Premium', description: 'Comfort and luxury combined.', baseFare: 5.00, perKm: 1.50, icon: CarTaxiFront },
-    { id: 'tier-3', name: 'XL', description: 'More space for more passengers.', baseFare: 7.00, perKm: 2.00, icon: Rocket },
+  {
+    id: 'tier-1',
+    name: 'Berline',
+    reference: 'ECO-01',
+    description: 'Courses abordables et efficaces.',
+    photoUrl: 'https://placehold.co/600x400.png',
+    baseFare: 2.50,
+    perKm: 0.90,
+    perMinute: 0.15,
+    perStop: 1.00,
+    minimumPrice: 5.00,
+    availableZoneIds: ['zone-1', 'zone-2'],
+  },
+  {
+    id: 'tier-2',
+    name: 'Affaires',
+    reference: 'PREM-01',
+    description: 'Confort et luxe pour vos déplacements.',
+    photoUrl: 'https://placehold.co/600x400.png',
+    baseFare: 5.00,
+    perKm: 1.50,
+    perMinute: 0.30,
+    perStop: 2.00,
+    minimumPrice: 10.00,
+    availableZoneIds: ['zone-1', 'zone-2', 'zone-3'],
+  },
+  {
+    id: 'tier-3',
+    name: 'Van',
+    reference: 'XL-01',
+    description: 'Plus d\'espace pour plus de passagers.',
+    photoUrl: 'https://placehold.co/600x400.png',
+    baseFare: 7.00,
+    perKm: 2.00,
+    perMinute: 0.40,
+    perStop: 2.50,
+    minimumPrice: 15.00,
+    availableZoneIds: ['zone-3', 'zone-4'],
+  },
 ];
 
 export const zones: Zone[] = [
