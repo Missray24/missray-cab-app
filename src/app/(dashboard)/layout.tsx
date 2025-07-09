@@ -15,7 +15,7 @@ import {
   Car,
   TrendingUp,
   Banknote,
-  SteeringWheel,
+  CarFront,
 } from 'lucide-react';
 
 import {
@@ -46,7 +46,7 @@ const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/reservations', icon: CalendarCheck, label: 'Réservations' },
   { href: '/clients', icon: Users, label: 'Clients' },
-  { href: '/drivers', icon: SteeringWheel, label: 'Chauffeurs' },
+  { href: '/drivers', icon: CarFront, label: 'Chauffeurs' },
   { href: '/earnings', icon: TrendingUp, label: 'Revenus' },
   { href: '/payouts', icon: Banknote, label: 'Paiements' },
   { href: '/tiers', icon: Layers, label: 'Gammes' },
@@ -66,7 +66,7 @@ function DashboardLayoutContent({
     if (isMobile) {
       setOpenMobile(false);
     } else if (state === 'expanded') {
-      setOpen(false);
+      // Intentionally not collapsing on desktop to show icons only
     }
   };
 
