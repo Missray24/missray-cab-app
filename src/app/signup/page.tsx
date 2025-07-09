@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -162,7 +163,7 @@ export default function SignupPage() {
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col gap-1.5">
                     <FormLabel>Numéro de téléphone</FormLabel>
                     <FormControl>
                        <IntlTelInput
