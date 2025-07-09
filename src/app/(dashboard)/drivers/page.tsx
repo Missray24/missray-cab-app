@@ -412,7 +412,7 @@ export default function DriversPage() {
               <TabsTrigger value="vehicle">Informations véhicule</TabsTrigger>
             </TabsList>
             <TabsContent value="personal" className="pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">Prénom</Label>
                   <Input id="firstName" value={editFormData.firstName} onChange={handleEditFormChange} />
@@ -421,11 +421,11 @@ export default function DriversPage() {
                   <Label htmlFor="lastName">Nom</Label>
                   <Input id="lastName" value={editFormData.lastName} onChange={handleEditFormChange} />
                 </div>
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input id="email" type="email" value={editFormData.email} onChange={handleEditFormChange} />
                 </div>
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
                   <Label>Numéro de téléphone</Label>
                   <IntlTelInput
                     ref={phoneInputRef}
