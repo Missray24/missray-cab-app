@@ -27,6 +27,7 @@ import {
   SidebarFooter,
   SidebarTrigger,
   SidebarInset,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import { Button } from '@/components/ui/button';
 import {
@@ -51,15 +52,22 @@ const navItems = [
   { href: '/settings', icon: Settings, label: 'Paramètres' },
 ];
 
-export default function DashboardLayout({
+function DashboardLayoutContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const checkActivePath = useActivePath();
+  const { setOpen, isMobile, state } = useSidebar();
+
+  const handleLinkClick = () => {
+    if (!isMobile && state === 'expanded') {
+      setOpen(false);
+    }
+  };
 
   return (
-    <SidebarProvider>
+    <>
       <Sidebar>
         <SidebarHeader>
           <div className="flex items-center gap-2">
@@ -77,6 +85,7 @@ export default function DashboardLayout({
                   asChild
                   isActive={checkActivePath(item.href)}
                   tooltip={item.label}
+                  onClick={handleLinkClick}
                 >
                   <Link href={item.href}>
                     <item.icon />
@@ -123,6 +132,19 @@ export default function DashboardLayout({
         </header>
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </SidebarInset>
+    </>
+  );
+}
+
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <SidebarProvider>
+      <DashboardLayoutContent>{children}</DashboardLayoutContent>
     </SidebarProvider>
   );
 }
