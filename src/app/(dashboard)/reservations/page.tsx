@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,11 +27,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -52,7 +48,7 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
 import { reservations as initialReservations, clients, serviceTiers } from "@/lib/data";
-import { reservationStatuses, type Reservation, type ReservationStatus } from '@/lib/types';
+import { reservationStatuses, paymentMethods, type Reservation, type ReservationStatus, type PaymentMethod } from '@/lib/types';
 
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>(initialReservations);
@@ -64,6 +60,8 @@ export default function ReservationsPage() {
     serviceTierId: '',
     amount: '',
     driverPayout: '',
+    status: '' as ReservationStatus,
+    paymentMethod: '' as PaymentMethod,
   });
 
   useEffect(() => {
@@ -75,17 +73,11 @@ export default function ReservationsPage() {
         serviceTierId: editingReservation.serviceTierId,
         amount: String(editingReservation.amount),
         driverPayout: String(editingReservation.driverPayout),
+        status: editingReservation.status,
+        paymentMethod: editingReservation.paymentMethod,
       });
     }
   }, [editingReservation]);
-
-  const handleStatusChange = (reservationId: string, newStatus: ReservationStatus) => {
-    setReservations(prevReservations =>
-      prevReservations.map(res =>
-        res.id === reservationId ? { ...res, status: newStatus } : res
-      )
-    );
-  };
 
   const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEditFormData(prev => ({ ...prev, [e.target.id]: e.target.value }));
@@ -111,6 +103,8 @@ export default function ReservationsPage() {
             serviceTierId: editFormData.serviceTierId,
             amount: parseFloat(editFormData.amount) || 0,
             driverPayout: parseFloat(editFormData.driverPayout) || 0,
+            status: editFormData.status as ReservationStatus,
+            paymentMethod: editFormData.paymentMethod as PaymentMethod,
           };
         }
         return res;
@@ -185,21 +179,6 @@ export default function ReservationsPage() {
                           <DropdownMenuItem onSelect={() => setEditingReservation(reservation)}>
                             Modifier
                           </DropdownMenuItem>
-                          <DropdownMenuSub>
-                            <DropdownMenuSubTrigger>Changer le statut</DropdownMenuSubTrigger>
-                            <DropdownMenuSubContent>
-                              <DropdownMenuRadioGroup
-                                value={reservation.status}
-                                onValueChange={(value) => handleStatusChange(reservation.id, value as ReservationStatus)}
-                              >
-                                {reservationStatuses.map((status) => (
-                                  <DropdownMenuRadioItem key={status} value={status}>
-                                    {status}
-                                  </DropdownMenuRadioItem>
-                                ))}
-                              </DropdownMenuRadioGroup>
-                            </DropdownMenuSubContent>
-                          </DropdownMenuSub>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -250,6 +229,32 @@ export default function ReservationsPage() {
                 <SelectContent>
                   {serviceTiers.map(tier => (
                     <SelectItem key={tier.id} value={tier.id}>{tier.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Statut</Label>
+              <Select value={editFormData.status} onValueChange={(value) => handleSelectChange('status', value as ReservationStatus)}>
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Sélectionner un statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  {reservationStatuses.map(status => (
+                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="paymentMethod">Moyen de paiement</Label>
+              <Select value={editFormData.paymentMethod} onValueChange={(value) => handleSelectChange('paymentMethod', value as PaymentMethod)}>
+                <SelectTrigger id="paymentMethod">
+                  <SelectValue placeholder="Sélectionner un moyen de paiement" />
+                </SelectTrigger>
+                <SelectContent>
+                  {paymentMethods.map(method => (
+                    <SelectItem key={method} value={method}>{method}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
