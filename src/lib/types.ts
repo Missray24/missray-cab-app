@@ -78,11 +78,7 @@ export interface Driver {
   firstName: string;
   lastName: string;
   email: string;
-  phone: {
-    country: string; // e.g. 'FR'
-    countryCode: string; // e.g. '+33'
-    number: string;
-  };
+  phone: string; // E.164 format
   // Company
   company: {
     name?: string;

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { MoreHorizontal, FileText, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
@@ -50,14 +50,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { CountryCodePicker } from "@/components/ui/country-code-picker";
-import { countries } from "@/lib/countries";
+import { IntlTelInput, type IntlTelInputRef } from "@/components/ui/intl-tel-input";
 
 const initialFormState = {
   firstName: '',
   lastName: '',
   email: '',
-  phone: { country: 'FR', countryCode: '+33', number: '' },
+  phone: '',
   company: {
     name: '',
     address: '',
@@ -88,6 +87,7 @@ export default function DriversPage() {
   const [modalState, setModalState] = useState<ModalState>({ mode: 'add', driver: null, isOpen: false });
   const [editFormData, setEditFormData] = useState<any>(initialFormState);
   const { toast } = useToast();
+  const phoneInputRef = useRef<IntlTelInputRef>(null);
 
   const fetchDrivers = async () => {
     setLoading(true);
@@ -116,7 +116,7 @@ export default function DriversPage() {
         firstName: modalState.driver.firstName || '',
         lastName: modalState.driver.lastName || '',
         email: modalState.driver.email || '',
-        phone: modalState.driver.phone || { country: 'FR', countryCode: '+33', number: '' },
+        phone: modalState.driver.phone || '',
         company: { ...modalState.driver.company, commission: String(modalState.driver.company?.commission || '') } || {},
         vehicle: modalState.driver.vehicle || {},
       });
@@ -148,15 +148,12 @@ export default function DriversPage() {
     }
   };
 
-  const handleCountryChange = (countryShortCode: string) => {
-    const country = countries.find(c => c.code === countryShortCode);
-    if (country) {
-      setEditFormData(prev => ({
-          ...prev,
-          phone: { ...prev.phone, country: country.code, countryCode: country.dial_code }
-      }));
-    }
-  }
+  const handlePhoneChange = (number: string) => {
+    setEditFormData(prev => ({
+        ...prev,
+        phone: number
+    }));
+  };
   
   const handleVatSubjectedChange = (checked: boolean | 'indeterminate') => {
     if (typeof checked === 'boolean') {
@@ -168,8 +165,14 @@ export default function DriversPage() {
   };
 
   const handleSaveChanges = async () => {
+    if (!phoneInputRef.current?.isValidNumber()) {
+      toast({ variant: 'destructive', title: "Erreur", description: "Le numéro de téléphone est invalide." });
+      return;
+    }
+
     const driverData = {
       ...editFormData,
+      phone: phoneInputRef.current.getNumber(),
       company: {
         ...editFormData.company,
         commission: parseFloat(String(editFormData.company.commission)) || 0,
@@ -424,14 +427,11 @@ export default function DriversPage() {
                 </div>
                 <div className="space-y-2">
                   <Label>Numéro de téléphone</Label>
-                  <div className="flex gap-2">
-                    <CountryCodePicker
-                      className="w-[150px]"
-                      value={editFormData.phone.country}
-                      onValueChange={handleCountryChange}
-                    />
-                    <Input id="phone.number" value={editFormData.phone.number} onChange={handleEditFormChange} className="flex-1" />
-                  </div>
+                  <IntlTelInput
+                    ref={phoneInputRef}
+                    value={editFormData.phone}
+                    onChange={handlePhoneChange}
+                  />
                 </div>
               </div>
             </TabsContent>
