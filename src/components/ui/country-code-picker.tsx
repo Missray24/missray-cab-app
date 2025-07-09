@@ -35,6 +35,11 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
     return countries.find((country) => country.code.toUpperCase() === value?.toUpperCase())
   }, [value])
 
+  const handleSelect = (currentValue: string) => {
+    onValueChange(currentValue.toUpperCase());
+    setOpen(false);
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -61,7 +66,17 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[300px] p-0" align="start">
-        <Command>
+        <Command
+          filter={(itemValue, search) => {
+            const country = countries.find(c => c.code.toLowerCase() === itemValue);
+            if (!country) return 0;
+            
+            const searchValue = search.toLowerCase();
+            const searchableText = `${country.name} ${country.dial_code} ${country.code}`.toLowerCase();
+            
+            return searchableText.includes(searchValue) ? 1 : 0;
+          }}
+        >
           <CommandInput placeholder="Rechercher un pays..." />
           <CommandList>
             <CommandEmpty>Aucun pays trouvé.</CommandEmpty>
@@ -69,11 +84,8 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
               {countries.map((country) => (
                 <CommandItem
                   key={country.code}
-                  value={country.name}
-                  onSelect={() => {
-                    onValueChange(country.code)
-                    setOpen(false)
-                  }}
+                  value={country.code.toLowerCase()}
+                  onSelect={handleSelect}
                 >
                   <Check
                     className={cn(
