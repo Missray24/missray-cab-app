@@ -39,7 +39,7 @@ export default function LandingPage() {
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input type="text" placeholder="Adresse d'arrivée" className="pl-10 h-12 text-base" />
                     </div>
-                    <Button size="lg" className="w-full h-12 text-base bg-primary hover:bg-primary/90 text-primary-foreground">
+                    <Button size="lg" className="w-full h-12 text-base text-primary-foreground bg-gradient-to-r from-primary to-[hsl(231,50%,70%)] transition-opacity hover:opacity-90">
                       Voir les véhicules
                     </Button>
                   </div>
