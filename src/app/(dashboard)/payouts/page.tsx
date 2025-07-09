@@ -58,7 +58,7 @@ export default function PayoutsPage() {
               {driversWithPendingPayouts.map((driver) => (
                 <TableRow key={driver.id}>
                   <TableCell>
-                     <div className="font-medium">{driver.name}</div>
+                     <div className="font-medium">{driver.firstName} {driver.lastName}</div>
                     <div className="text-sm text-muted-foreground">{driver.email}</div>
                   </TableCell>
                   <TableCell>

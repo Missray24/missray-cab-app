@@ -55,7 +55,7 @@ export default function DriverEarningsPage() {
               {drivers.map((driver) => (
                 <TableRow key={driver.id}>
                   <TableCell>
-                    <div className="font-medium">{driver.name}</div>
+                    <div className="font-medium">{driver.firstName} {driver.lastName}</div>
                     <div className="text-sm text-muted-foreground">{driver.email}</div>
                   </TableCell>
                   <TableCell className="text-right">{driver.totalRides}</TableCell>

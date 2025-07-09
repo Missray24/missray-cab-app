@@ -43,34 +43,109 @@ import { PageHeader } from "@/components/page-header";
 import { drivers as initialDrivers } from "@/lib/data";
 import type { Driver, DocumentStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const countryCodes = [
+  { value: '+1', label: 'US (+1)' },
+  { value: '+33', label: 'FR (+33)' },
+  { value: '+44', label: 'UK (+44)' },
+  { value: '+49', label: 'DE (+49)' },
+  { value: '+212', label: 'MA (+212)' },
+];
+
+const initialFormState = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  phone: { countryCode: '+33', number: '' },
+  company: {
+    name: '',
+    address: '',
+    siret: '',
+    vatNumber: '',
+    evtcAdsNumber: '',
+  },
+  vehicle: {
+    brand: '',
+    model: '',
+    licensePlate: '',
+    registrationDate: '',
+  },
+};
 
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
   const [viewingDriver, setViewingDriver] = useState<Driver | null>(null);
   const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
-  const [editFormData, setEditFormData] = useState({ name: '', vehicle: '', licensePlate: '' });
+  const [editFormData, setEditFormData] = useState(initialFormState);
 
   useEffect(() => {
     if (editingDriver) {
       setEditFormData({
-        name: editingDriver.name,
-        vehicle: editingDriver.vehicle,
-        licensePlate: editingDriver.licensePlate,
+        firstName: editingDriver.firstName || '',
+        lastName: editingDriver.lastName || '',
+        email: editingDriver.email || '',
+        phone: {
+          countryCode: editingDriver.phone?.countryCode || '+33',
+          number: editingDriver.phone?.number || '',
+        },
+        company: {
+          name: editingDriver.company?.name || '',
+          address: editingDriver.company?.address || '',
+          siret: editingDriver.company?.siret || '',
+          vatNumber: editingDriver.company?.vatNumber || '',
+          evtcAdsNumber: editingDriver.company?.evtcAdsNumber || '',
+        },
+        vehicle: {
+          brand: editingDriver.vehicle?.brand || '',
+          model: editingDriver.vehicle?.model || '',
+          licensePlate: editingDriver.vehicle?.licensePlate || '',
+          registrationDate: editingDriver.vehicle?.registrationDate || '',
+        },
       });
+    } else {
+      setEditFormData(initialFormState);
     }
   }, [editingDriver]);
 
   const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setEditFormData(prev => ({ ...prev, [id]: value }));
+    const keys = id.split('.');
+  
+    if (keys.length === 2) {
+      const [section, field] = keys as [keyof typeof editFormData, string];
+      setEditFormData(prev => ({
+        ...prev,
+        [section]: {
+          ...(prev[section] as object),
+          [field]: value,
+        },
+      }));
+    } else {
+      setEditFormData(prev => ({
+        ...prev,
+        [id]: value,
+      }));
+    }
   };
+
+  const handleCountryCodeChange = (value: string) => {
+    setEditFormData(prev => ({
+        ...prev,
+        phone: { ...prev.phone, countryCode: value }
+    }));
+  }
 
   const handleSaveChanges = () => {
     if (!editingDriver) return;
     setDrivers(prevDrivers =>
       prevDrivers.map(driver =>
         driver.id === editingDriver.id
-          ? { ...driver, ...editFormData }
+          ? { 
+              ...driver,
+              ...editFormData,
+            }
           : driver
       )
     );
@@ -136,9 +211,9 @@ export default function DriversPage() {
               <TableBody>
                 {drivers.map((driver) => (
                   <TableRow key={driver.id}>
-                    <TableCell className="font-medium">{driver.name}</TableCell>
-                    <TableCell>{driver.vehicle}</TableCell>
-                    <TableCell>{driver.licensePlate}</TableCell>
+                    <TableCell className="font-medium">{driver.firstName} {driver.lastName}</TableCell>
+                    <TableCell>{driver.vehicle.brand} {driver.vehicle.model}</TableCell>
+                    <TableCell>{driver.vehicle.licensePlate}</TableCell>
                     <TableCell>
                       <Badge variant={driver.status === 'Active' ? 'secondary' : 'destructive'}>
                         {driver.status}
@@ -177,7 +252,7 @@ export default function DriversPage() {
       <Dialog open={!!viewingDriver} onOpenChange={(isOpen) => !isOpen && setViewingDriver(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Documents for {viewingDriver?.name}</DialogTitle>
+            <DialogTitle>Documents for {viewingDriver?.firstName} {viewingDriver?.lastName}</DialogTitle>
             <DialogDescription>
               Review the uploaded documents for this driver.
             </DialogDescription>
@@ -244,49 +319,95 @@ export default function DriversPage() {
       </Dialog>
       
       <Dialog open={!!editingDriver} onOpenChange={(isOpen) => !isOpen && setEditingDriver(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Edit Driver: {editingDriver?.name}</DialogTitle>
+            <DialogTitle>Edit Driver: {editingDriver?.firstName} {editingDriver?.lastName}</DialogTitle>
             <DialogDescription>
               Update the driver's details below.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="name"
-                value={editFormData.name}
-                onChange={handleEditFormChange}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="vehicle" className="text-right">
-                Vehicle
-              </Label>
-              <Input
-                id="vehicle"
-                value={editFormData.vehicle}
-                onChange={handleEditFormChange}
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="licensePlate" className="text-right">
-                License Plate
-              </Label>
-              <Input
-                id="licensePlate"
-                value={editFormData.licensePlate}
-                onChange={handleEditFormChange}
-                className="col-span-3"
-              />
-            </div>
-          </div>
-          <DialogFooter>
+          <Tabs defaultValue="personal" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="personal">Informations personnelles</TabsTrigger>
+              <TabsTrigger value="company">Informations entreprise</TabsTrigger>
+              <TabsTrigger value="vehicle">Informations véhicule</TabsTrigger>
+            </TabsList>
+            <TabsContent value="personal" className="pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">Prénom</Label>
+                  <Input id="firstName" value={editFormData.firstName} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Nom</Label>
+                  <Input id="lastName" value={editFormData.lastName} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" type="email" value={editFormData.email} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label>Numéro de téléphone</Label>
+                  <div className="flex gap-2">
+                    <Select value={editFormData.phone.countryCode} onValueChange={handleCountryCodeChange}>
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Indicatif" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {countryCodes.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                    <Input id="phone.number" value={editFormData.phone.number} onChange={handleEditFormChange} className="flex-1" />
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="company" className="pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="company.name">Nom de la société</Label>
+                  <Input id="company.name" value={editFormData.company.name} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company.address">Adresse de la société</Label>
+                  <Input id="company.address" value={editFormData.company.address} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company.siret">Numéro de SIRET</Label>
+                  <Input id="company.siret" value={editFormData.company.siret} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company.vatNumber">Numéro de TVA</Label>
+                  <Input id="company.vatNumber" value={editFormData.company.vatNumber} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company.evtcAdsNumber">Numéro EVTC ou ADS</Label>
+                  <Input id="company.evtcAdsNumber" value={editFormData.company.evtcAdsNumber} onChange={handleEditFormChange} />
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="vehicle" className="pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="vehicle.brand">Marque</Label>
+                  <Input id="vehicle.brand" value={editFormData.vehicle.brand} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="vehicle.model">Modèle</Label>
+                  <Input id="vehicle.model" value={editFormData.vehicle.model} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="vehicle.licensePlate">Immatriculation</Label>
+                  <Input id="vehicle.licensePlate" value={editFormData.vehicle.licensePlate} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="vehicle.registrationDate">Première date d'immatriculation</Label>
+                  <Input id="vehicle.registrationDate" type="date" value={editFormData.vehicle.registrationDate} onChange={handleEditFormChange} />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
+          <DialogFooter className="pt-4">
             <Button variant="outline" onClick={() => setEditingDriver(null)}>Cancel</Button>
             <Button onClick={handleSaveChanges}>Save Changes</Button>
           </DialogFooter>

@@ -70,11 +70,29 @@ export interface DriverDocument {
 
 export interface Driver {
   id: string;
-  name: string;
+  // Personal
+  firstName: string;
+  lastName: string;
   email: string;
-  phone: string;
-  vehicle: string;
-  licensePlate: string;
+  phone: {
+    countryCode: string;
+    number: string;
+  };
+  // Company
+  company: {
+    name?: string;
+    address?: string;
+    siret?: string;
+    vatNumber?: string;
+    evtcAdsNumber?: string;
+  };
+  // Vehicle
+  vehicle: {
+    brand: string;
+    model: string;
+    licensePlate: string;
+    registrationDate: string;
+  };
   status: 'Active' | 'Suspended';
   totalRides: number;
   totalEarnings: number;
@@ -85,6 +103,7 @@ export interface Driver {
   };
   documents: DriverDocument[];
 }
+
 
 export interface ServiceTier {
   id: string;
