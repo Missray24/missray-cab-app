@@ -40,7 +40,7 @@ export default function LandingPage() {
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input type="text" placeholder="Adresse d'arrivée" className="pl-10 h-12 text-base w-full" />
                       </div>
-                      <Button variant="outline" size="icon" aria-label="Ajouter un arrêt" className="h-12 w-12 shrink-0">
+                      <Button size="icon" aria-label="Ajouter un arrêt" className="h-12 w-12 shrink-0 text-primary-foreground bg-gradient-to-r from-[#223aff] to-[#1697ff] transition-opacity hover:opacity-90">
                         <Plus className="h-6 w-6" />
                       </Button>
                     </div>
