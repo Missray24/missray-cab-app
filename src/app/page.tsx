@@ -29,7 +29,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex items-center">
-                <div className="bg-card p-6 rounded-lg shadow-lg w-full max-w-md">
+                <div className="bg-card/80 backdrop-blur-sm p-6 rounded-lg shadow-lg w-full max-w-md">
                   <div className="space-y-4">
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
