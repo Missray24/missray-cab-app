@@ -60,6 +60,11 @@ export interface Client {
   status: 'Active' | 'Blocked';
 }
 
+export interface DriverDocument {
+  name: string;
+  url: string;
+}
+
 export interface Driver {
   id: string;
   name: string;
@@ -75,6 +80,7 @@ export interface Driver {
     method: 'Bank Transfer' | 'PayPal';
     account: string;
   };
+  documents: DriverDocument[];
 }
 
 export interface ServiceTier {
