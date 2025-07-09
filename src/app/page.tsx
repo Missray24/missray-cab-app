@@ -28,28 +28,30 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex items-center">
-                <div className="bg-card/40 backdrop-blur-md p-6 rounded-lg shadow-lg w-full max-w-md">
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                      <Input type="text" placeholder="Adresse de départ" className="pl-10 h-12 text-base" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="relative flex-1">
+                <div className="p-0.5 bg-gradient-to-br from-primary to-[#1697ff] rounded-xl animate-glow w-full max-w-md">
+                  <div className="bg-card/60 backdrop-blur-md p-6 rounded-lg shadow-lg w-full">
+                    <div className="space-y-4">
+                      <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input type="text" placeholder="Adresse d'arrivée" className="pl-10 h-12 text-base w-full" />
+                        <Input type="text" placeholder="Adresse de départ" className="pl-10 h-12 text-base" />
                       </div>
-                      <Button size="icon" aria-label="Ajouter un arrêt" className="h-12 w-12 shrink-0">
-                        <Plus className="h-6 w-6" />
-                      </Button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button size="lg" className="flex-1 h-12 text-base">
-                        Voir les véhicules
-                      </Button>
-                      <Button size="icon" aria-label="Programmer une course" className="h-12 w-12 shrink-0">
-                          <Calendar className="h-6 w-6" />
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <div className="relative flex-1">
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <Input type="text" placeholder="Adresse d'arrivée" className="pl-10 h-12 text-base w-full" />
+                        </div>
+                        <Button size="icon" aria-label="Ajouter un arrêt" className="h-12 w-12 shrink-0">
+                          <Plus className="h-6 w-6" />
+                        </Button>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button size="lg" className="flex-1 h-12 text-base">
+                          Voir les véhicules
+                        </Button>
+                        <Button size="icon" aria-label="Programmer une course" className="h-12 w-12 shrink-0">
+                            <Calendar className="h-6 w-6" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
