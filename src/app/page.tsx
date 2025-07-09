@@ -15,7 +15,7 @@ export default function LandingPage() {
       <LandingHeader />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-[#223aff] to-[#1697ff]">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-blue-500 to-blue-300">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_500px]">
               <div className="flex flex-col justify-center space-y-4">
@@ -30,7 +30,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center">
                 <div className="p-0.5 bg-gradient-to-br from-primary to-[#1697ff] rounded-xl w-full max-w-md">
-                  <div className="bg-card/40 backdrop-blur-md p-6 rounded-lg shadow-lg w-full animate-glow">
+                  <div className="bg-card/20 backdrop-blur-md p-6 rounded-lg shadow-lg w-full">
                     <div className="space-y-4">
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
