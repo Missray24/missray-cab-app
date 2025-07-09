@@ -69,16 +69,16 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
               {countries.map((country) => (
                 <CommandItem
                   key={country.code}
-                  value={country.name}
-                  onSelect={() => {
-                    onValueChange(country.code)
+                  value={country.code}
+                  onSelect={(currentValue) => {
+                    onValueChange(currentValue.toUpperCase())
                     setOpen(false)
                   }}
                 >
                   <Check
                     className={cn(
                       "mr-2 h-4 w-4",
-                      value === country.code ? "opacity-100" : "opacity-0"
+                      value?.toUpperCase() === country.code.toUpperCase() ? "opacity-100" : "opacity-0"
                     )}
                   />
                   <Image
