@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -14,6 +15,7 @@ import {
   Car,
   TrendingUp,
   Banknote,
+  SteeringWheel,
 } from 'lucide-react';
 
 import {
@@ -44,7 +46,7 @@ const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { href: '/reservations', icon: CalendarCheck, label: 'Réservations' },
   { href: '/clients', icon: Users, label: 'Clients' },
-  { href: '/drivers', icon: Car, label: 'Chauffeurs' },
+  { href: '/drivers', icon: SteeringWheel, label: 'Chauffeurs' },
   { href: '/earnings', icon: TrendingUp, label: 'Revenus' },
   { href: '/payouts', icon: Banknote, label: 'Paiements' },
   { href: '/tiers', icon: Layers, label: 'Gammes' },
@@ -58,7 +60,7 @@ function DashboardLayoutContent({
   children: React.ReactNode;
 }) {
   const checkActivePath = useActivePath();
-  const { setOpen, isMobile, state, setOpenMobile } = useSidebar();
+  const { isMobile, state, setOpen, setOpenMobile } = useSidebar();
 
   const handleLinkClick = () => {
     if (isMobile) {
