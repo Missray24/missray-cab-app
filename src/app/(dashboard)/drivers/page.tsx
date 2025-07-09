@@ -45,6 +45,7 @@ import type { Driver, DocumentStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 const countryCodes = [
   { value: '+1', label: 'US (+1)' },
@@ -64,6 +65,7 @@ const initialFormState = {
     address: '',
     siret: '',
     vatNumber: '',
+    isVatSubjected: false,
     evtcAdsNumber: '',
   },
   vehicle: {
@@ -95,6 +97,7 @@ export default function DriversPage() {
           address: editingDriver.company?.address || '',
           siret: editingDriver.company?.siret || '',
           vatNumber: editingDriver.company?.vatNumber || '',
+          isVatSubjected: editingDriver.company?.isVatSubjected || false,
           evtcAdsNumber: editingDriver.company?.evtcAdsNumber || '',
         },
         vehicle: {
@@ -136,6 +139,18 @@ export default function DriversPage() {
         phone: { ...prev.phone, countryCode: value }
     }));
   }
+  
+  const handleVatSubjectedChange = (checked: boolean | 'indeterminate') => {
+    if (typeof checked === 'boolean') {
+      setEditFormData(prev => ({
+        ...prev,
+        company: {
+          ...prev.company,
+          isVatSubjected: checked,
+        },
+      }));
+    }
+  };
 
   const handleSaveChanges = () => {
     if (!editingDriver) return;
@@ -379,6 +394,16 @@ export default function DriversPage() {
                 <div className="space-y-2">
                   <Label htmlFor="company.vatNumber">Numéro de TVA</Label>
                   <Input id="company.vatNumber" value={editFormData.company.vatNumber} onChange={handleEditFormChange} />
+                </div>
+                <div className="md:col-span-2 flex items-center space-x-2 pt-2">
+                  <Checkbox
+                    id="isVatSubjected"
+                    checked={editFormData.company.isVatSubjected}
+                    onCheckedChange={handleVatSubjectedChange}
+                  />
+                  <Label htmlFor="isVatSubjected" className="font-normal">
+                    Assujetti à la TVA
+                  </Label>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="company.evtcAdsNumber">Numéro EVTC ou ADS</Label>

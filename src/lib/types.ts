@@ -84,6 +84,7 @@ export interface Driver {
     address?: string;
     siret?: string;
     vatNumber?: string;
+    isVatSubjected?: boolean;
     evtcAdsNumber?: string;
   };
   // Vehicle
