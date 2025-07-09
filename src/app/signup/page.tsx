@@ -1,4 +1,3 @@
-
 'use client';
 
 import Link from 'next/link';
@@ -84,7 +83,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-[#223aff] to-[#1697ff] p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Créer un compte missray cab</CardTitle>
@@ -159,11 +158,11 @@ export default function SignupPage() {
                 />
               </div>
 
-               <FormField
+              <FormField
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
-                  <FormItem className="grid w-full gap-2">
+                  <FormItem>
                     <FormLabel>Numéro de téléphone</FormLabel>
                     <FormControl>
                        <IntlTelInput
