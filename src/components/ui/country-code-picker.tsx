@@ -69,8 +69,13 @@ export function CountryCodePicker({ value, onValueChange, className }: CountryCo
                 <CommandItem
                   key={country.code}
                   value={`${country.name} (${country.dial_code})`}
-                  onSelect={() => {
-                    onValueChange(country.code)
+                  onSelect={(currentValue) => {
+                    const selected = countries.find(
+                      (c) => `${c.name} (${c.dial_code})`.toLowerCase() === currentValue
+                    );
+                    if (selected) {
+                      onValueChange(selected.code);
+                    }
                     setOpen(false)
                   }}
                 >
