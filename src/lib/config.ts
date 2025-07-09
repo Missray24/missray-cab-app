@@ -9,3 +9,4 @@ export const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
 // Client-side keys (prefixed with NEXT_PUBLIC_ to be exposed to the browser)
 export const NEXT_PUBLIC_GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+export const NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
