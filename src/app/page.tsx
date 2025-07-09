@@ -30,7 +30,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center">
                 <div className="p-0.5 bg-gradient-to-br from-primary to-[#1697ff] rounded-xl w-full max-w-md">
-                  <div className="bg-card/20 backdrop-blur-md p-6 rounded-lg shadow-lg w-full">
+                  <div className="bg-white p-6 rounded-lg shadow-lg w-full">
                     <div className="space-y-4">
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
