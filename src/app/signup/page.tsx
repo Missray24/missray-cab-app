@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -30,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 const countryCodes = [
   { value: '+1', label: 'US (+1)' },
@@ -41,6 +43,9 @@ const countryCodes = [
 
 const formSchema = z
   .object({
+    accountType: z.enum(['client', 'driver'], {
+        required_error: "Vous devez sélectionner un type de compte."
+    }),
     firstName: z.string().min(1, 'Le prénom est requis'),
     lastName: z.string().min(1, 'Le nom est requis'),
     countryCode: z.string().min(1, "L'indicatif est requis"),
@@ -83,12 +88,47 @@ export default function SignupPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Créer un compte missray cab</CardTitle>
           <CardDescription>
-            Entrez vos informations pour créer un nouveau compte client.
+            Choisissez votre type de compte et entrez vos informations pour vous inscrire.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+               <FormField
+                control={form.control}
+                name="accountType"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Je souhaite m'inscrire en tant que :</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                        className="flex items-center space-x-4 pt-1"
+                      >
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="client" id="role-client" />
+                          </FormControl>
+                          <Label htmlFor="role-client" className="font-normal">
+                            Client
+                          </Label>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-2 space-y-0">
+                          <FormControl>
+                            <RadioGroupItem value="driver" id="role-driver" />
+                          </FormControl>
+                          <Label htmlFor="role-driver" className="font-normal">
+                            Chauffeur
+                          </Label>
+                        </FormItem>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
