@@ -4,7 +4,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { MoreHorizontal, FileText, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -49,6 +50,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { db } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 
 const countryCodes = [
   { value: '+1', label: 'US (+1)' },
@@ -80,62 +82,63 @@ const initialFormState = {
   },
 };
 
+type ModalState = {
+  mode: 'add' | 'edit';
+  driver: Driver | null;
+  isOpen: boolean;
+}
+
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
   const [viewingDriver, setViewingDriver] = useState<Driver | null>(null);
-  const [editingDriver, setEditingDriver] = useState<Driver | null>(null);
+  const [modalState, setModalState] = useState<ModalState>({ mode: 'add', driver: null, isOpen: false });
   const [editFormData, setEditFormData] = useState<any>(initialFormState);
+  const { toast } = useToast();
+
+  const fetchDrivers = async () => {
+    setLoading(true);
+    try {
+      const querySnapshot = await getDocs(collection(db, "drivers"));
+      const driversData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Driver[];
+      setDrivers(driversData);
+    } catch (error) {
+      console.error("Error fetching drivers: ", error);
+      toast({ variant: 'destructive', title: "Erreur", description: "Impossible de charger les chauffeurs." });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDrivers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "drivers"));
-        const driversData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Driver[];
-        setDrivers(driversData);
-      } catch (error) {
-        console.error("Error fetching drivers: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDrivers();
   }, []);
 
   useEffect(() => {
-    if (editingDriver) {
+    if (modalState.mode === 'edit' && modalState.driver) {
       setEditFormData({
-        firstName: editingDriver.firstName || '',
-        lastName: editingDriver.lastName || '',
-        email: editingDriver.email || '',
-        phone: {
-          countryCode: editingDriver.phone?.countryCode || '+33',
-          number: editingDriver.phone?.number || '',
-        },
-        company: {
-          name: editingDriver.company?.name || '',
-          address: editingDriver.company?.address || '',
-          siret: editingDriver.company?.siret || '',
-          vatNumber: editingDriver.company?.vatNumber || '',
-          isVatSubjected: editingDriver.company?.isVatSubjected || false,
-          evtcAdsNumber: editingDriver.company?.evtcAdsNumber || '',
-          commission: String(editingDriver.company?.commission || ''),
-        },
-        vehicle: {
-          brand: editingDriver.vehicle?.brand || '',
-          model: editingDriver.vehicle?.model || '',
-          licensePlate: editingDriver.vehicle?.licensePlate || '',
-          registrationDate: editingDriver.vehicle?.registrationDate || '',
-        },
+        firstName: modalState.driver.firstName || '',
+        lastName: modalState.driver.lastName || '',
+        email: modalState.driver.email || '',
+        phone: modalState.driver.phone || { countryCode: '+33', number: '' },
+        company: { ...modalState.driver.company, commission: String(modalState.driver.company?.commission || '') } || {},
+        vehicle: modalState.driver.vehicle || {},
       });
     } else {
       setEditFormData(initialFormState);
     }
-  }, [editingDriver]);
+  }, [modalState]);
+  
+  const handleOpenModal = (mode: 'add' | 'edit', driver: Driver | null = null) => {
+    setModalState({ mode, driver, isOpen: true });
+  };
+  
+  const handleCloseModal = () => {
+    setModalState({ ...modalState, isOpen: false });
+  }
 
   const handleEditFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -145,16 +148,10 @@ export default function DriversPage() {
       const [section, field] = keys as [keyof typeof editFormData, string];
       setEditFormData(prev => ({
         ...prev,
-        [section]: {
-          ...(prev[section] as object),
-          [field]: value,
-        },
+        [section]: { ...(prev[section] as object), [field]: value },
       }));
     } else {
-      setEditFormData(prev => ({
-        ...prev,
-        [id]: value,
-      }));
+      setEditFormData(prev => ({ ...prev, [id]: value }));
     }
   };
 
@@ -169,68 +166,95 @@ export default function DriversPage() {
     if (typeof checked === 'boolean') {
       setEditFormData(prev => ({
         ...prev,
-        company: {
-          ...prev.company,
-          isVatSubjected: checked,
-        },
+        company: { ...prev.company, isVatSubjected: checked },
       }));
     }
   };
 
-  const handleSaveChanges = () => {
-    if (!editingDriver) return;
-    setDrivers(prevDrivers =>
-      prevDrivers.map(driver =>
-        driver.id === editingDriver.id
-          ? { 
-              ...driver,
-              ...editFormData,
-              company: {
-                ...editFormData.company,
-                commission: parseFloat(String(editFormData.company.commission)) || 0,
-              }
-            }
-          : driver
-      )
-    );
-    setEditingDriver(null);
+  const handleSaveChanges = async () => {
+    const driverData = {
+      ...editFormData,
+      company: {
+        ...editFormData.company,
+        commission: parseFloat(String(editFormData.company.commission)) || 0,
+      }
+    };
+
+    if (modalState.mode === 'edit' && modalState.driver) {
+      // Update existing driver
+      try {
+        const driverRef = doc(db, "drivers", modalState.driver.id);
+        await updateDoc(driverRef, driverData);
+        setDrivers(prev => prev.map(d => d.id === modalState.driver!.id ? { ...d, ...driverData } : d));
+        toast({ title: "Succès", description: "Chauffeur mis à jour." });
+      } catch (error) {
+        console.error("Error updating driver: ", error);
+        toast({ variant: 'destructive', title: "Erreur", description: "Impossible de mettre à jour le chauffeur." });
+      }
+    } else {
+      // Add new driver
+      try {
+        const fullDriverData = {
+          ...driverData,
+          status: 'Active' as const,
+          totalRides: 0,
+          totalEarnings: 0,
+          unpaidAmount: 0,
+          paymentDetails: { method: 'Bank Transfer' as const, account: '' },
+          documents: [],
+        };
+        const docRef = await addDoc(collection(db, "drivers"), fullDriverData);
+        setDrivers(prev => [...prev, { id: docRef.id, ...fullDriverData }]);
+        toast({ title: "Succès", description: "Chauffeur ajouté." });
+      } catch (error) {
+        console.error("Error adding driver: ", error);
+        toast({ variant: 'destructive', title: "Erreur", description: "Impossible d'ajouter le chauffeur." });
+      }
+    }
+    handleCloseModal();
   };
 
-  const handleStatusToggle = (driverId: string) => {
-    setDrivers(prevDrivers =>
-      prevDrivers.map(driver =>
-        driver.id === driverId
-          ? {
-              ...driver,
-              status: driver.status === 'Active' ? 'Suspended' : 'Active',
-            }
-          : driver
-      )
-    );
+  const handleStatusToggle = async (driverToToggle: Driver) => {
+    const newStatus = driverToToggle.status === 'Active' ? 'Suspended' : 'Active';
+    try {
+      const driverRef = doc(db, "drivers", driverToToggle.id);
+      await updateDoc(driverRef, { status: newStatus });
+      setDrivers(prev => prev.map(d => d.id === driverToToggle.id ? { ...d, status: newStatus } : d));
+      toast({ title: "Succès", description: "Statut du chauffeur mis à jour." });
+    } catch (error) {
+      console.error("Error toggling driver status: ", error);
+      toast({ variant: 'destructive', title: "Erreur", description: "Impossible de changer le statut." });
+    }
   };
   
-  const handleDocumentStatusChange = (driverId: string, docIndex: number, newStatus: DocumentStatus) => {
-    const newDrivers = drivers.map(driver => {
-      if (driver.id === driverId) {
-        const newDocuments = [...driver.documents];
-        newDocuments[docIndex] = { ...newDocuments[docIndex], status: newStatus };
-        const updatedDriver = { ...driver, documents: newDocuments };
-        if (viewingDriver && viewingDriver.id === driverId) {
-          setViewingDriver(updatedDriver);
-        }
-        return updatedDriver;
-      }
-      return driver;
-    });
-    setDrivers(newDrivers);
-  };
+  const handleDocumentStatusChange = async (driverId: string, docIndex: number, newStatus: DocumentStatus) => {
+     const driverToUpdate = drivers.find(d => d.id === driverId);
+    if (!driverToUpdate) return;
+    
+    const newDocuments = [...driverToUpdate.documents];
+    newDocuments[docIndex] = { ...newDocuments[docIndex], status: newStatus };
+    
+    try {
+        const driverRef = doc(db, "drivers", driverId);
+        await updateDoc(driverRef, { documents: newDocuments });
 
+        const updatedDriver = { ...driverToUpdate, documents: newDocuments };
+        setDrivers(drivers.map(d => d.id === driverId ? updatedDriver : d));
+        if (viewingDriver && viewingDriver.id === driverId) {
+            setViewingDriver(updatedDriver);
+        }
+        toast({ title: "Succès", description: "Statut du document mis à jour." });
+    } catch (error) {
+        console.error("Error updating document status: ", error);
+        toast({ variant: 'destructive', title: "Erreur", description: "Impossible de mettre à jour le document." });
+    }
+  };
 
   return (
     <>
       <div className="flex flex-col gap-6">
         <PageHeader title="Chauffeurs">
-          <Button>Add Driver</Button>
+          <Button onClick={() => handleOpenModal('add')}>Add Driver</Button>
         </PageHeader>
         <Card>
           <CardHeader>
@@ -287,10 +311,10 @@ export default function DriversPage() {
                             <DropdownMenuItem onSelect={() => setViewingDriver(driver)}>
                               View Documents
                             </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => setEditingDriver(driver)}>
+                            <DropdownMenuItem onSelect={() => handleOpenModal('edit', driver)}>
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleStatusToggle(driver.id)}>
+                            <DropdownMenuItem onSelect={() => handleStatusToggle(driver)}>
                               {driver.status === 'Active' ? 'Suspend' : 'Reactivate'}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -374,10 +398,10 @@ export default function DriversPage() {
         </DialogContent>
       </Dialog>
       
-      <Dialog open={!!editingDriver} onOpenChange={(isOpen) => !isOpen && setEditingDriver(null)}>
+      <Dialog open={modalState.isOpen} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Edit Driver: {editingDriver?.firstName} {editingDriver?.lastName}</DialogTitle>
+            <DialogTitle>{modalState.mode === 'edit' ? `Edit Driver: ${modalState.driver?.firstName} ${modalState.driver?.lastName}` : 'Add New Driver'}</DialogTitle>
             <DialogDescription>
               Update the driver's details below.
             </DialogDescription>
@@ -478,7 +502,7 @@ export default function DriversPage() {
             </TabsContent>
           </Tabs>
           <DialogFooter className="pt-4">
-            <Button variant="outline" onClick={() => setEditingDriver(null)}>Cancel</Button>
+            <Button variant="outline" onClick={handleCloseModal}>Cancel</Button>
             <Button onClick={handleSaveChanges}>Save Changes</Button>
           </DialogFooter>
         </DialogContent>

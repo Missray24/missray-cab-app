@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { MoreHorizontal } from "lucide-react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, updateDoc, writeBatch } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -32,36 +32,97 @@ import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Driver } from "@/lib/types";
 import { db } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export default function PayoutsPage() {
   const [driversWithPendingPayouts, setDriversWithPendingPayouts] = useState<Driver[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const fetchDrivers = async () => {
+    setLoading(true);
+    try {
+      const driversRef = collection(db, "drivers");
+      const q = query(driversRef, where("unpaidAmount", ">", 0));
+      const querySnapshot = await getDocs(q);
+      const driversData = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Driver[];
+      setDriversWithPendingPayouts(driversData);
+    } catch (error) {
+      console.error("Error fetching drivers for payouts: ", error);
+      toast({ variant: 'destructive', title: "Erreur", description: "Impossible de charger les paiements en attente." });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDrivers = async () => {
-      try {
-        const driversRef = collection(db, "drivers");
-        const q = query(driversRef, where("unpaidAmount", ">", 0));
-        const querySnapshot = await getDocs(q);
-        const driversData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Driver[];
-        setDriversWithPendingPayouts(driversData);
-      } catch (error) {
-        console.error("Error fetching drivers for payouts: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchDrivers();
   }, []);
+
+  const handleMarkAsPaid = async (driverId: string) => {
+    try {
+      const driverRef = doc(db, "drivers", driverId);
+      await updateDoc(driverRef, { unpaidAmount: 0 });
+      setDriversWithPendingPayouts(prev => prev.filter(d => d.id !== driverId));
+      toast({ title: "Succès", description: "Le chauffeur a été marqué comme payé." });
+    } catch (error) {
+      console.error("Error marking driver as paid: ", error);
+      toast({ variant: 'destructive', title: "Erreur", description: "Impossible de mettre à jour le statut du paiement." });
+    }
+  };
+
+  const handleBulkPayout = async () => {
+    const batch = writeBatch(db);
+    driversWithPendingPayouts.forEach(driver => {
+      const driverRef = doc(db, "drivers", driver.id);
+      batch.update(driverRef, { unpaidAmount: 0 });
+    });
+
+    try {
+      await batch.commit();
+      setDriversWithPendingPayouts([]);
+      toast({ title: "Succès", description: "Tous les chauffeurs ont été marqués comme payés." });
+    } catch (error) {
+      console.error("Error with bulk payout: ", error);
+      toast({ variant: 'destructive', title: "Erreur", description: "Le paiement groupé a échoué." });
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Paiements Chauffeurs">
-        <Button>Lancer un paiement groupé</Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button disabled={driversWithPendingPayouts.length === 0}>Lancer un paiement groupé</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmer le paiement groupé?</AlertDialogTitle>
+              <AlertDialogDescription>
+                Cette action marquera les {driversWithPendingPayouts.length} chauffeurs comme payés.
+                Ceci mettra leur solde "Montant à payer" à 0. Cette action est irréversible.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleBulkPayout}>Confirmer & Payer</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </PageHeader>
       <Card>
         <CardHeader>
@@ -94,6 +155,12 @@ export default function PayoutsPage() {
                     <TableCell><Skeleton className="h-8 w-8 rounded-md" /></TableCell>
                   </TableRow>
                 ))
+              ) : driversWithPendingPayouts.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-24 text-center">
+                    Aucun paiement en attente.
+                  </TableCell>
+                </TableRow>
               ) : (
                 driversWithPendingPayouts.map((driver) => (
                   <TableRow key={driver.id}>
@@ -117,7 +184,7 @@ export default function PayoutsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          <DropdownMenuItem>Marquer comme payé</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => handleMarkAsPaid(driver.id)}>Marquer comme payé</DropdownMenuItem>
                           <DropdownMenuItem>Contacter le chauffeur</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

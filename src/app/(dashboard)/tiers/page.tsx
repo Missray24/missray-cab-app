@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
 
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +23,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -31,120 +30,202 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
+import { Textarea } from '@/components/ui/textarea';
+
+const initialFormState = {
+  name: '',
+  reference: '',
+  description: '',
+  photoUrl: '',
+  baseFare: '0',
+  perKm: '0',
+  perMinute: '0',
+  perStop: '0',
+  minimumPrice: '0',
+  availableZoneIds: [] as string[],
+};
+
+type ModalState = {
+  mode: 'add' | 'edit';
+  tier: ServiceTier | null;
+  isOpen: boolean;
+}
 
 export default function ServiceTiersPage() {
   const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAddTierDialogOpen, setIsAddTierDialogOpen] = useState(false);
+  const [modalState, setModalState] = useState<ModalState>({ mode: 'add', tier: null, isOpen: false });
+  const [formData, setFormData] = useState(initialFormState);
+  const { toast } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const [tiersSnap, zonesSnap] = await Promise.all([
           getDocs(collection(db, "serviceTiers")),
           getDocs(collection(db, "zones")),
         ]);
-        const tiersData = tiersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as ServiceTier[];
-        const zonesData = zonesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Zone[];
-        setServiceTiers(tiersData);
-        setZones(zonesData);
+        setServiceTiers(tiersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as ServiceTier[]);
+        setZones(zonesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Zone[]);
       } catch (error) {
-        console.error("Error fetching service tiers or zones: ", error);
+        console.error("Error fetching data: ", error);
+        toast({ variant: 'destructive', title: "Erreur", description: "Impossible de charger les données." });
       } finally {
         setLoading(false);
       }
     };
     fetchData();
-  }, []);
+  }, [toast]);
+  
+  useEffect(() => {
+    if (modalState.mode === 'edit' && modalState.tier) {
+      const { availableZoneIds, ...rest } = modalState.tier;
+      setFormData({
+        ...Object.fromEntries(Object.entries(rest).map(([key, value]) => [key, String(value)])),
+        availableZoneIds,
+      } as any);
+    } else {
+      setFormData(initialFormState);
+    }
+  }, [modalState]);
+
+  const handleOpenModal = (mode: 'add' | 'edit', tier: ServiceTier | null = null) => {
+    setModalState({ mode, tier, isOpen: true });
+  }
+
+  const handleCloseModal = () => {
+    setModalState(prev => ({ ...prev, isOpen: false }));
+  }
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({ ...prev, [id]: value }));
+  }
+
+  const handleZoneChange = (zoneId: string, checked: boolean | 'indeterminate') => {
+    if (typeof checked === 'boolean') {
+      setFormData(prev => ({
+        ...prev,
+        availableZoneIds: checked
+          ? [...prev.availableZoneIds, zoneId]
+          : prev.availableZoneIds.filter(id => id !== zoneId)
+      }));
+    }
+  }
+
+  const handleSubmit = async () => {
+    const dataToSave = {
+      ...formData,
+      photoUrl: formData.photoUrl || 'https://placehold.co/600x400.png',
+      baseFare: parseFloat(formData.baseFare),
+      perKm: parseFloat(formData.perKm),
+      perMinute: parseFloat(formData.perMinute),
+      perStop: parseFloat(formData.perStop),
+      minimumPrice: parseFloat(formData.minimumPrice),
+    };
+
+    if (modalState.mode === 'edit' && modalState.tier) {
+      try {
+        const tierRef = doc(db, "serviceTiers", modalState.tier.id);
+        await updateDoc(tierRef, dataToSave);
+        setServiceTiers(prev => prev.map(t => t.id === modalState.tier!.id ? { id: modalState.tier!.id, ...dataToSave } : t));
+        toast({ title: "Succès", description: "Gamme mise à jour." });
+      } catch (error) {
+        console.error("Error updating tier: ", error);
+        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour la gamme.' });
+      }
+    } else {
+      try {
+        const docRef = await addDoc(collection(db, "serviceTiers"), dataToSave);
+        setServiceTiers(prev => [...prev, { id: docRef.id, ...dataToSave }]);
+        toast({ title: "Succès", description: "Gamme ajoutée." });
+      } catch (error) {
+        console.error("Error adding tier: ", error);
+        toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible d\'ajouter la gamme.' });
+      }
+    }
+    handleCloseModal();
+  }
+
+  const tierDialogContent = (
+    <>
+      <ScrollArea className="max-h-[70vh]">
+        <div className="p-1 pr-6 space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Nom de la gamme</Label>
+            <Input id="name" placeholder="Ex: Berline" value={formData.name} onChange={handleFormChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="reference">Référence (interne)</Label>
+            <Input id="reference" placeholder="Ex: BER-01" value={formData.reference} onChange={handleFormChange}/>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea id="description" placeholder="Description courte de la gamme" value={formData.description} onChange={handleFormChange} />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="photoUrl">URL de la photo</Label>
+            <Input id="photoUrl" placeholder="https://..." value={formData.photoUrl} onChange={handleFormChange}/>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+            <div className="space-y-2"><Label htmlFor="baseFare">Prise en charge (€)</Label><Input id="baseFare" type="number" value={formData.baseFare} onChange={handleFormChange} /></div>
+            <div className="space-y-2"><Label htmlFor="perKm">Prix / km (€)</Label><Input id="perKm" type="number" value={formData.perKm} onChange={handleFormChange} /></div>
+            <div className="space-y-2"><Label htmlFor="perMinute">Prix / minute (€)</Label><Input id="perMinute" type="number" value={formData.perMinute} onChange={handleFormChange} /></div>
+            <div className="space-y-2"><Label htmlFor="perStop">Prix / arrêt (€)</Label><Input id="perStop" type="number" value={formData.perStop} onChange={handleFormChange} /></div>
+            <div className="space-y-2"><Label htmlFor="minimumPrice">Prix minimum (€)</Label><Input id="minimumPrice" type="number" value={formData.minimumPrice} onChange={handleFormChange} /></div>
+          </div>
+          <div className="space-y-2 pt-2">
+            <Label>Zones de disponibilité</Label>
+            <div className="grid grid-cols-2 gap-2 rounded-md border p-4 max-h-48 overflow-y-auto">
+              {zones.map(zone => (
+                <div key={zone.id} className="flex items-center gap-2">
+                  <Checkbox 
+                    id={`zone-${zone.id}`} 
+                    checked={formData.availableZoneIds.includes(zone.id)}
+                    onCheckedChange={(checked) => handleZoneChange(zone.id, checked)}
+                  />
+                  <Label htmlFor={`zone-${zone.id}`} className="font-normal">{zone.name}</Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </ScrollArea>
+      <DialogFooter>
+        <Button variant="outline" onClick={handleCloseModal}>Annuler</Button>
+        <Button onClick={handleSubmit}>{modalState.mode === 'edit' ? 'Sauvegarder' : 'Ajouter'}</Button>
+      </DialogFooter>
+    </>
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Gammes de Service">
-        <Dialog open={isAddTierDialogOpen} onOpenChange={setIsAddTierDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>Ajouter une gamme</Button>
-          </DialogTrigger>
+        <Button onClick={() => handleOpenModal('add')}>Ajouter une gamme</Button>
+      </PageHeader>
+      
+      <Dialog open={modalState.isOpen} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Ajouter une nouvelle gamme</DialogTitle>
+              <DialogTitle>{modalState.mode === 'edit' ? 'Modifier la gamme' : 'Ajouter une nouvelle gamme'}</DialogTitle>
               <DialogDescription>
-                Remplissez les informations ci-dessous pour créer une nouvelle gamme de service.
+                Remplissez les informations ci-dessous.
               </DialogDescription>
             </DialogHeader>
-            <ScrollArea className="max-h-[70vh]">
-              <div className="p-1 pr-6 space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Nom de la gamme</Label>
-                  <Input id="name" placeholder="Ex: Berline" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reference">Référence (interne)</Label>
-                  <Input id="reference" placeholder="Ex: BER-01" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="photo">Photo de la gamme</Label>
-                  <Input id="photo" type="file" />
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="baseFare">Prise en charge (€)</Label>
-                    <Input id="baseFare" type="number" placeholder="5.00" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="perKm">Prix / km (€)</Label>
-                    <Input id="perKm" type="number" placeholder="1.50" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="perMinute">Prix / minute (€)</Label>
-                    <Input id="perMinute" type="number" placeholder="0.30" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="perStop">Prix / arrêt (€)</Label>
-                    <Input id="perStop" type="number" placeholder="2.00" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="minimumPrice">Prix minimum (€)</Label>
-                    <Input id="minimumPrice" type="number" placeholder="10.00" />
-                  </div>
-                </div>
-                <div className="space-y-2 pt-2">
-                  <Label>Zones de disponibilité</Label>
-                  <div className="grid grid-cols-2 gap-2 rounded-md border p-4 max-h-48 overflow-y-auto">
-                    {zones.map(zone => (
-                      <div key={zone.id} className="flex items-center gap-2">
-                        <Checkbox id={`zone-${zone.id}`} />
-                        <Label htmlFor={`zone-${zone.id}`} className="font-normal">{zone.name}</Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </ScrollArea>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddTierDialogOpen(false)}>Annuler</Button>
-              <Button onClick={() => setIsAddTierDialogOpen(false)}>Ajouter la gamme</Button>
-            </DialogFooter>
+            {tierDialogContent}
           </DialogContent>
-        </Dialog>
-      </PageHeader>
+      </Dialog>
+      
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
             <Card key={i}>
-              <CardHeader>
-                <Skeleton className="aspect-video w-full rounded-md" />
-                <Skeleton className="h-6 w-3/4 mt-4" />
-                <Skeleton className="h-4 w-full mt-2" />
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-              </CardContent>
-              <CardFooter>
-                <Skeleton className="h-10 w-full" />
-              </CardFooter>
+              <CardHeader><Skeleton className="aspect-video w-full rounded-md" /><Skeleton className="h-6 w-3/4 mt-4" /><Skeleton className="h-4 w-full mt-2" /></CardHeader>
+              <CardContent className="space-y-2"><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-full" /></CardContent>
+              <CardFooter><Skeleton className="h-10 w-full" /></CardFooter>
             </Card>
           ))
         ) : (
@@ -165,25 +246,13 @@ export default function ServiceTiersPage() {
                 <CardDescription>{tier.description}</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-2 text-sm flex-grow">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Prise en charge</span>
-                  <span className="font-medium">€{tier.baseFare.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Prix / km</span>
-                  <span className="font-medium">€{tier.perKm.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Prix / minute</span>
-                  <span className="font-medium">€{tier.perMinute.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Prix minimum</span>
-                  <span className="font-medium">€{tier.minimumPrice.toFixed(2)}</span>
-                </div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Prise en charge</span><span className="font-medium">€{tier.baseFare.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Prix / km</span><span className="font-medium">€{tier.perKm.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Prix / minute</span><span className="font-medium">€{tier.perMinute.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Prix minimum</span><span className="font-medium">€{tier.minimumPrice.toFixed(2)}</span></div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full" onClick={() => handleOpenModal('edit', tier)}>
                   Modifier
                 </Button>
               </CardFooter>
