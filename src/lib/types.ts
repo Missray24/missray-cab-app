@@ -68,6 +68,13 @@ export interface Driver {
   vehicle: string;
   licensePlate: string;
   status: 'Active' | 'Suspended';
+  totalRides: number;
+  totalEarnings: number;
+  unpaidAmount: number;
+  paymentDetails: {
+    method: 'Bank Transfer' | 'PayPal';
+    account: string;
+  };
 }
 
 export interface ServiceTier {

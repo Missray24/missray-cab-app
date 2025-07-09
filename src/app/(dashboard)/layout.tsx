@@ -12,6 +12,8 @@ import {
   Settings,
   LogOut,
   Car,
+  TrendingUp,
+  Banknote,
 } from 'lucide-react';
 
 import {
@@ -42,6 +44,8 @@ const navItems = [
   { href: '/reservations', icon: CalendarCheck, label: 'Réservations' },
   { href: '/clients', icon: Users, label: 'Clients' },
   { href: '/drivers', icon: Car, label: 'Chauffeurs' },
+  { href: '/earnings', icon: TrendingUp, label: 'Revenus' },
+  { href: '/payouts', icon: Banknote, label: 'Paiements' },
   { href: '/tiers', icon: Layers, label: 'Gammes' },
   { href: '/zones', icon: Map, label: 'Zones' },
   { href: '/settings', icon: Settings, label: 'Paramètres' },
