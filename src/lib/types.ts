@@ -90,6 +90,7 @@ export interface Driver {
     vatNumber?: string;
     isVatSubjected?: boolean;
     evtcAdsNumber?: string;
+    commission?: number;
   };
   // Vehicle
   vehicle: {

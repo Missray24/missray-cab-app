@@ -67,6 +67,7 @@ const initialFormState = {
     vatNumber: '',
     isVatSubjected: false,
     evtcAdsNumber: '',
+    commission: '',
   },
   vehicle: {
     brand: '',
@@ -99,6 +100,7 @@ export default function DriversPage() {
           vatNumber: editingDriver.company?.vatNumber || '',
           isVatSubjected: editingDriver.company?.isVatSubjected || false,
           evtcAdsNumber: editingDriver.company?.evtcAdsNumber || '',
+          commission: String(editingDriver.company?.commission || ''),
         },
         vehicle: {
           brand: editingDriver.vehicle?.brand || '',
@@ -160,6 +162,10 @@ export default function DriversPage() {
           ? { 
               ...driver,
               ...editFormData,
+              company: {
+                ...editFormData.company,
+                commission: parseFloat(String(editFormData.company.commission)) || 0,
+              }
             }
           : driver
       )
@@ -392,8 +398,16 @@ export default function DriversPage() {
                   <Input id="company.siret" value={editFormData.company.siret} onChange={handleEditFormChange} />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="company.evtcAdsNumber">Numéro EVTC ou ADS</Label>
+                  <Input id="company.evtcAdsNumber" value={editFormData.company.evtcAdsNumber} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="company.vatNumber">Numéro de TVA</Label>
                   <Input id="company.vatNumber" value={editFormData.company.vatNumber} onChange={handleEditFormChange} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="company.commission">Commission (%)</Label>
+                  <Input id="company.commission" type="number" value={editFormData.company.commission} onChange={handleEditFormChange} />
                 </div>
                 <div className="md:col-span-2 flex items-center space-x-2 pt-2">
                   <Checkbox
@@ -404,10 +418,6 @@ export default function DriversPage() {
                   <Label htmlFor="isVatSubjected" className="font-normal">
                     Assujetti à la TVA
                   </Label>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="company.evtcAdsNumber">Numéro EVTC ou ADS</Label>
-                  <Input id="company.evtcAdsNumber" value={editFormData.company.evtcAdsNumber} onChange={handleEditFormChange} />
                 </div>
               </div>
             </TabsContent>
