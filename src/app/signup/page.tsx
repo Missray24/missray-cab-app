@@ -25,6 +25,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { CountryCodePicker } from '@/components/ui/country-code-picker';
 
 const formSchema = z
   .object({
@@ -33,6 +34,10 @@ const formSchema = z
     }),
     firstName: z.string().min(1, 'Le prénom est requis'),
     lastName: z.string().min(1, 'Le nom est requis'),
+    phone: z.object({
+      country: z.string().min(1, "Veuillez sélectionner un indicatif."),
+      number: z.string().min(1, "Le numéro de téléphone est requis."),
+    }),
     email: z.string().email("L'email est invalide"),
     password: z
       .string()
@@ -50,6 +55,10 @@ export default function SignupPage() {
     defaultValues: {
       firstName: '',
       lastName: '',
+      phone: {
+        country: 'FR',
+        number: '',
+      },
       email: '',
       password: '',
       confirmPassword: '',
@@ -137,6 +146,39 @@ export default function SignupPage() {
                     </FormItem>
                   )}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Numéro de téléphone</Label>
+                <div className="flex items-start gap-2">
+                  <FormField
+                    control={form.control}
+                    name="phone.country"
+                    render={({ field }) => (
+                      <FormItem className="w-[150px] flex-shrink-0">
+                        <FormControl>
+                          <CountryCodePicker
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          />
+                        </FormControl>
+                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone.number"
+                    render={({ field }) => (
+                      <FormItem className="flex-1">
+                        <FormControl>
+                          <Input placeholder="6 12 34 56 78" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
 
               <FormField
