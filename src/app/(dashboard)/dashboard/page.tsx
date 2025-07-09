@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -49,7 +50,6 @@ import {
   ChartContainer,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const chartData = [
   { month: 'Jan', reservations: 186, revenue: 4230 },
@@ -62,11 +62,11 @@ const chartData = [
 
 const chartConfig = {
   reservations: {
-    label: 'Reservations',
+    label: 'Réservations',
     color: 'hsl(var(--chart-1))',
   },
   revenue: {
-    label: 'Revenue',
+    label: 'Revenu',
     color: 'hsl(var(--chart-2))',
   },
 };
@@ -74,125 +74,66 @@ const chartConfig = {
 export default function DashboardPage() {
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Dashboard">
+      <PageHeader title="Tableau de bord">
         <Button>Nouvelle Réservation</Button>
       </PageHeader>
-       <Tabs defaultValue="week">
-          <TabsList>
-            <TabsTrigger value="today">Aujourd'hui</TabsTrigger>
-            <TabsTrigger value="week">Cette semaine</TabsTrigger>
-            <TabsTrigger value="month">Ce mois-ci</TabsTrigger>
-          </TabsList>
-        </Tabs>
+      
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Revenu Total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">$45,231.89</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              +20.1% depuis le mois dernier
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Reservations</CardTitle>
+            <CardTitle className="text-sm font-medium">Réservations</CardTitle>
             <CalendarCheck className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+2350</div>
             <p className="text-xs text-muted-foreground">
-              +180.1% from last month
+              +180.1% depuis le mois dernier
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New Clients</CardTitle>
+            <CardTitle className="text-sm font-medium">Nouveaux Clients</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+12,234</div>
             <p className="text-xs text-muted-foreground">
-              +19% from last month
+              +19% depuis le mois dernier
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Drivers</CardTitle>
+            <CardTitle className="text-sm font-medium">Chauffeurs Actifs</CardTitle>
             <Car className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">+573</div>
             <p className="text-xs text-muted-foreground">
-              +20 since last hour
+              +20 depuis la dernière heure
             </p>
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="lg:col-span-4">
-          <CardHeader>
-            <CardTitle>Revenue Overview</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <LineChart data={chartData}>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                />
-                <Tooltip content={<ChartTooltipContent />} />
-                <Line
-                  dataKey="revenue"
-                  type="monotone"
-                  stroke="hsl(var(--chart-2))"
-                  strokeWidth={2}
-                  dot={false}
-                />
-              </LineChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-3">
-          <CardHeader>
-            <CardTitle>Reservations This Year</CardTitle>
-            <CardDescription>A summary of bookings per month.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ChartContainer config={chartConfig} className="h-[300px] w-full">
-              <BarChart data={chartData} accessibilityLayer>
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                />
-                <YAxis />
-                <Tooltip content={<ChartTooltipContent hideLabel />} />
-                <Bar
-                  dataKey="reservations"
-                  fill="hsl(var(--chart-1))"
-                  radius={4}
-                />
-              </BarChart>
-            </ChartContainer>
-          </CardContent>
-        </Card>
-      </div>
+      
       <Card>
         <CardHeader>
-          <CardTitle>Recent Reservations</CardTitle>
+          <CardTitle>Réservations récentes</CardTitle>
           <CardDescription>
-            A list of the most recent reservations.
+            Une liste des réservations les plus récentes.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -200,11 +141,11 @@ export default function DashboardPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Client</TableHead>
-                <TableHead>Driver</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Chauffeur</TableHead>
+                <TableHead>Statut</TableHead>
                 <TableHead>Date</TableHead>
-                <TableHead>Payment</TableHead>
-                <TableHead className="text-right">Amount</TableHead>
+                <TableHead>Paiement</TableHead>
+                <TableHead className="text-right">Montant</TableHead>
                 <TableHead className="w-[40px]"></TableHead>
               </TableRow>
             </TableHeader>
@@ -243,9 +184,9 @@ export default function DashboardPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
                         <DropdownMenuItem asChild>
-                          <Link href={`/reservations/${reservation.id}`}>View Details</Link>
+                          <Link href={`/reservations/${reservation.id}`}>Voir les détails</Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
+                        <DropdownMenuItem>Modifier</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -255,6 +196,62 @@ export default function DashboardPage() {
           </Table>
         </CardContent>
       </Card>
+      
+      <div className="grid gap-4 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Aperçu des revenus</CardTitle>
+            <CardDescription>Évolution des revenus mensuels.</CardDescription>
+          </CardHeader>
+          <CardContent className="pl-2">
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <LineChart data={chartData}>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                />
+                <Tooltip content={<ChartTooltipContent />} />
+                <Line
+                  dataKey="revenue"
+                  type="monotone"
+                  stroke="hsl(var(--chart-2))"
+                  strokeWidth={2}
+                  dot={false}
+                />
+              </LineChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Réservations de l'année</CardTitle>
+            <CardDescription>Un résumé des réservations par mois.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={chartConfig} className="h-[300px] w-full">
+              <BarChart data={chartData} accessibilityLayer>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                />
+                <YAxis />
+                <Tooltip content={<ChartTooltipContent hideLabel />} />
+                <Bar
+                  dataKey="reservations"
+                  fill="hsl(var(--chart-1))"
+                  radius={4}
+                />
+              </BarChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
