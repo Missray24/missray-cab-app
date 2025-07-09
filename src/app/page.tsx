@@ -15,16 +15,8 @@ export default function LandingPage() {
       <LandingHeader />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 relative">
-          <div className="absolute inset-0 bg-black/50 z-10" />
-          <Image
-            src="https://placehold.co/1920x1080.png"
-            alt="Hero background"
-            data-ai-hint="city night street"
-            fill
-            className="object-cover"
-          />
-          <div className="container px-4 md:px-6 z-20 relative">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-br from-primary to-[hsl(231,35%,18%)]">
+          <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_500px]">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
@@ -37,7 +29,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex items-center">
-                <div className="bg-background/90 p-6 rounded-lg shadow-lg w-full max-w-md backdrop-blur-sm">
+                <div className="bg-card p-6 rounded-lg shadow-lg w-full max-w-md">
                   <div className="space-y-4">
                     <div className="relative">
                       <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
