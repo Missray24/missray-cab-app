@@ -11,6 +11,20 @@ export type ReservationStatus =
   | 'Annulée par le client (avec frais)'
   | 'No-show';
 
+export const reservationStatuses: ReservationStatus[] = [
+  'Nouvelle demande',
+  'Acceptée',
+  'Chauffeur en route',
+  'Chauffeur sur place',
+  'Voyageur à bord',
+  'Terminée',
+  'Annulée par le chauffeur (sans frais)',
+  'Annulée par le client (sans frais)',
+  'Annulée par le chauffeur (avec frais)',
+  'Annulée par le client (avec frais)',
+  'No-show',
+];
+
 export interface Reservation {
   id: string;
   clientName: string;
