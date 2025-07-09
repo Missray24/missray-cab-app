@@ -9,6 +9,9 @@ export function LandingFooter() {
         <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} missray cab. Tous droits réservés.</p>
       </div>
       <nav className="sm:ml-auto flex gap-4 sm:gap-6">
+        <Link href="/signup-driver" className="text-xs hover:underline underline-offset-4" prefetch={false}>
+          Devenir chauffeur
+        </Link>
         <Link href="#" className="text-xs hover:underline underline-offset-4" prefetch={false}>
           Termes et Conditions
         </Link>

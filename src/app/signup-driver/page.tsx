@@ -26,7 +26,7 @@ import { Input } from '@/components/ui/input';
 import { IntlTelInput, type IntlTelInputRef } from '@/components/ui/intl-tel-input';
 import { useToast } from '@/hooks/use-toast';
 
-export default function SignupPage() {
+export default function SignupDriverPage() {
   const phoneInputRef = useRef<IntlTelInputRef>(null);
   const { toast } = useToast();
 
@@ -67,11 +67,11 @@ export default function SignupPage() {
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    // NOTE: This is a mock submission for a client.
+    // NOTE: This is a mock submission for a driver.
     const fullPhoneNumber = phoneInputRef.current?.getNumber();
-    console.log({ ...values, phone: fullPhoneNumber, accountType: 'client' });
+    console.log({ ...values, phone: fullPhoneNumber, accountType: 'driver' });
     toast({
-      title: "Inscription Client (simulation)",
+      title: "Inscription Chauffeur (simulation)",
       description: "Vérifiez la console pour voir les données du formulaire.",
     });
   }
@@ -80,9 +80,9 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-[#223aff] to-[#1697ff] p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-headline">Créer votre compte client</CardTitle>
+          <CardTitle className="text-2xl font-headline">Devenez chauffeur missray cab</CardTitle>
           <CardDescription>
-            Inscrivez-vous pour réserver vos courses en quelques clics.
+            Rejoignez notre flotte et commencez à conduire.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -185,7 +185,7 @@ export default function SignupPage() {
               />
 
               <Button type="submit" className="w-full">
-                Créer mon compte
+                Rejoindre la flotte
               </Button>
             </form>
           </Form>
@@ -197,8 +197,8 @@ export default function SignupPage() {
               </Link>
             </p>
              <p>
-              Vous êtes chauffeur?{' '}
-              <Link href="/signup-driver" className="underline">
+              Vous êtes un client?{' '}
+              <Link href="/signup" className="underline">
                 Inscrivez-vous ici
               </Link>
             </p>
