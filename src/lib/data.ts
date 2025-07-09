@@ -64,8 +64,8 @@ export const serviceTiers: ServiceTier[] = [
 ];
 
 export const zones: Zone[] = [
-    { id: 'zone-1', name: 'Downtown Core', region: 'Metropolis Central', activeDrivers: 45 },
-    { id: 'zone-2', name: 'North Suburbs', region: 'Metropolis North', activeDrivers: 23 },
-    { id: 'zone-3', name: 'Airport District', region: 'Metropolis South', activeDrivers: 67 },
-    { id: 'zone-4', name: 'Western Industrial', region: 'Metropolis West', activeDrivers: 12 },
+    { id: 'zone-1', name: 'Downtown Core', region: 'Metropolis Central', activeDrivers: 45, paymentMethods: ['Carte', 'Espèces'], freeWaitingMinutes: 5, minutesBeforeNoShow: 10 },
+    { id: 'zone-2', name: 'North Suburbs', region: 'Metropolis North', activeDrivers: 23, paymentMethods: ['Carte', 'Espèces', 'Paiement différé'], freeWaitingMinutes: 3, minutesBeforeNoShow: 8 },
+    { id: 'zone-3', name: 'Airport District', region: 'Metropolis South', activeDrivers: 67, paymentMethods: ['Carte'], freeWaitingMinutes: 2, minutesBeforeNoShow: 5 },
+    { id: 'zone-4', name: 'Western Industrial', region: 'Metropolis West', activeDrivers: 12, paymentMethods: ['Espèces', 'Paiement différé'], freeWaitingMinutes: 7, minutesBeforeNoShow: 12 },
 ]

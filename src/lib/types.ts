@@ -91,4 +91,7 @@ export interface Zone {
   name: string;
   region: string;
   activeDrivers: number;
+  paymentMethods: PaymentMethod[];
+  freeWaitingMinutes: number;
+  minutesBeforeNoShow: number;
 }
