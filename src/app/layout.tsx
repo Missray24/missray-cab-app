@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Cab Central Dashboard',
-  description: 'Admin dashboard for Cab Central',
+  title: 'missray cab Dashboard',
+  description: 'Admin dashboard for missray cab',
   manifest: '/manifest.json',
 };
 

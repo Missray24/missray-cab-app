@@ -72,7 +72,7 @@ function DashboardLayoutContent({
     <>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <h2 className="text-lg font-headline font-semibold">Cab Central</h2>
+          <h2 className="text-lg font-headline font-semibold">missray cab</h2>
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
