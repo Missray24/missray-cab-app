@@ -47,18 +47,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Driver, DocumentStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
-
-const countryCodes = [
-  { value: '+1', label: 'US (+1)' },
-  { value: '+33', label: 'FR (+33)' },
-  { value: '+44', label: 'UK (+44)' },
-  { value: '+49', label: 'DE (+49)' },
-  { value: '+212', label: 'MA (+212)' },
-];
+import { CountryCodePicker } from "@/components/ui/country-code-picker";
 
 const initialFormState = {
   firstName: '',
@@ -429,14 +421,11 @@ export default function DriversPage() {
                 <div className="space-y-2">
                   <Label>Numéro de téléphone</Label>
                   <div className="flex gap-2">
-                    <Select value={editFormData.phone.countryCode} onValueChange={handleCountryCodeChange}>
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="Indicatif" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {countryCodes.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                    <CountryCodePicker
+                      className="w-[150px]"
+                      value={editFormData.phone.countryCode}
+                      onValueChange={handleCountryCodeChange}
+                    />
                     <Input id="phone.number" value={editFormData.phone.number} onChange={handleEditFormChange} className="flex-1" />
                   </div>
                 </div>

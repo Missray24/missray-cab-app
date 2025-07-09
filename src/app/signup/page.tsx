@@ -23,23 +23,9 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-
-const countryCodes = [
-  { value: '+1', label: 'US (+1)' },
-  { value: '+33', label: 'FR (+33)' },
-  { value: '+44', label: 'UK (+44)' },
-  { value: '+49', label: 'DE (+49)' },
-  { value: '+212', label: 'MA (+212)' },
-];
+import { CountryCodePicker } from '@/components/ui/country-code-picker';
 
 const formSchema = z
   .object({
@@ -160,26 +146,18 @@ export default function SignupPage() {
 
               <div>
                 <Label>Numéro de téléphone</Label>
-                <div className="grid grid-cols-[120px_1fr] gap-2 mt-2">
+                <div className="grid grid-cols-[150px_1fr] gap-2 mt-2">
                   <FormField
                     control={form.control}
                     name="countryCode"
                     render={({ field }) => (
                       <FormItem>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Indicatif" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {countryCodes.map((country) => (
-                              <SelectItem key={country.value} value={country.value}>
-                                {country.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                        <FormControl>
+                           <CountryCodePicker
+                            value={field.value}
+                            onValueChange={field.onChange}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
