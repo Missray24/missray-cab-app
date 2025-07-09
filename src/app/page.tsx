@@ -1,3 +1,4 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
 import { Car, Star, CheckCircle, Smartphone, CreditCard, MapPin, Calendar, Plus } from 'lucide-react';
@@ -28,8 +29,8 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex items-center">
-                <div className="p-0.5 bg-gradient-to-br from-primary to-[#1697ff] rounded-xl animate-glow w-full max-w-md">
-                  <div className="bg-card/60 backdrop-blur-md p-6 rounded-lg shadow-lg w-full">
+                <div className="p-0.5 bg-gradient-to-br from-primary to-[#1697ff] rounded-xl w-full max-w-md">
+                  <div className="bg-card/40 backdrop-blur-md p-6 rounded-lg shadow-lg w-full animate-glow">
                     <div className="space-y-4">
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
