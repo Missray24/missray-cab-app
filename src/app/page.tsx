@@ -1,11 +1,13 @@
+
 import Image from 'next/image';
 import Link from 'next/link';
-import { Car, Star, CheckCircle, Smartphone, CreditCard } from 'lucide-react';
+import { Car, Star, CheckCircle, Smartphone, CreditCard, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
 import { serviceTiers } from '@/lib/data';
+import { Input } from '@/components/ui/input';
 
 export default function LandingPage() {
   return (
@@ -33,10 +35,20 @@ export default function LandingPage() {
                     Réservez votre course en quelques clics. Profitez d'un service ponctuel, professionnel et confortable.
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button asChild size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground">
-                    <Link href="/signup">Réserver maintenant</Link>
-                  </Button>
+                <div className="bg-background/90 p-6 rounded-lg shadow-lg max-w-md backdrop-blur-sm mt-4">
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Input type="text" placeholder="Adresse de départ" className="pl-10 h-12 text-base" />
+                    </div>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                      <Input type="text" placeholder="Adresse d'arrivée" className="pl-10 h-12 text-base" />
+                    </div>
+                    <Button size="lg" className="w-full h-12 text-base bg-primary hover:bg-primary/90 text-primary-foreground">
+                      Voir les véhicules
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -75,7 +87,7 @@ export default function LandingPage() {
                  </div>
                 <h3 className="text-lg font-bold">2. Voyagez</h3>
                 <p className="text-sm text-muted-foreground">
-                  Votre chauffeur arrive en quelques minutes. Profitez d'un trajet confortable et en toute sécurité.
+                  Votre chauffeur vient vous chercher. Profitez d'un trajet confortable et en toute sécurité.
                 </p>
               </div>
               <div className="grid gap-1 text-center">
