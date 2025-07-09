@@ -421,11 +421,11 @@ export default function DriversPage() {
                   <Label htmlFor="lastName">Nom</Label>
                   <Input id="lastName" value={editFormData.lastName} onChange={handleEditFormChange} />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <Label htmlFor="email">Email</Label>
                   <Input id="email" type="email" value={editFormData.email} onChange={handleEditFormChange} />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-2 md:col-span-2">
                   <Label>Numéro de téléphone</Label>
                   <IntlTelInput
                     ref={phoneInputRef}

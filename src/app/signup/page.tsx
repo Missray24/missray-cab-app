@@ -49,8 +49,9 @@ export default function SignupPage() {
       message: 'Les mots de passe ne correspondent pas',
       path: ['confirmPassword'],
     })
-    .refine((data) => {
-        if (!data.phone) return false;
+    .refine(() => {
+        // Validation now happens inside the IntlTelInput component logic for real-time feedback
+        // but we still need to trigger it on form submission.
         if (typeof window === 'undefined') return true; // Pass validation on server
         return phoneInputRef.current?.isValidNumber() ?? false;
     }, {
@@ -125,34 +126,32 @@ export default function SignupPage() {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="firstName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Prénom</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Jean" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nom</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Dupont" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Prénom</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Jean" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Dupont" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
                <FormField
                 control={form.control}
