@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Car } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -82,12 +81,7 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center h-16 w-16 text-primary bg-primary-foreground/10 rounded-full">
-              <Car className="h-8 w-8 text-primary" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl font-headline">Créer un compte</CardTitle>
+          <CardTitle className="text-2xl font-headline">Créer un compte missray cab</CardTitle>
           <CardDescription>
             Entrez vos informations pour créer un nouveau compte client.
           </CardDescription>

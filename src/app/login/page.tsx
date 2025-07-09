@@ -11,19 +11,13 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Car } from 'lucide-react';
 
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="flex items-center justify-center h-16 w-16 text-primary bg-primary-foreground/10 rounded-full">
-              <Car className="h-8 w-8 text-primary" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl font-headline">Connexion</CardTitle>
+          <CardTitle className="text-2xl font-headline">Connexion à missray cab</CardTitle>
           <CardDescription>
             Entrez votre email ci-dessous pour vous connecter à votre compte.
           </CardDescription>
