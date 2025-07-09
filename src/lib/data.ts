@@ -2,7 +2,7 @@ import type { Reservation, Client, Driver, ServiceTier, Zone } from './types';
 import { Car, CarTaxiFront, Rocket } from "lucide-react";
 
 export const reservations: Reservation[] = [
-  { id: 'RES-001', clientName: 'Alice Johnson', driverName: 'Bob Williams', date: '2023-10-26', pickup: '123 Main St', dropoff: '456 Oak Ave', status: 'Terminée', amount: 25.50, paymentMethod: 'Carte',
+  { id: 'RES-001', clientName: 'Alice Johnson', clientId: 'CLI-001', driverName: 'Bob Williams', driverId: 'DRV-001', date: '2023-10-26', pickup: '123 Main St', dropoff: '456 Oak Ave', status: 'Terminée', amount: 25.50, driverPayout: 20.40, paymentMethod: 'Carte', serviceTierId: 'tier-1',
     statusHistory: [
       { status: 'Nouvelle demande', timestamp: '26/10/2023 10:00' },
       { status: 'Acceptée', timestamp: '26/10/2023 10:02' },
@@ -12,12 +12,12 @@ export const reservations: Reservation[] = [
       { status: 'Terminée', timestamp: '26/10/2023 10:30' },
     ]
   },
-  { id: 'RES-002', clientName: 'Charlie Brown', driverName: 'Diana Prince', date: '2023-10-26', pickup: '789 Pine Ln', dropoff: '101 Maple Dr', status: 'Nouvelle demande', amount: 18.75, paymentMethod: 'Espèces',
+  { id: 'RES-002', clientName: 'Charlie Brown', clientId: 'CLI-002', driverName: 'Diana Prince', driverId: 'DRV-002', date: '2023-10-26', pickup: '789 Pine Ln', dropoff: '101 Maple Dr', status: 'Nouvelle demande', amount: 18.75, driverPayout: 15.00, paymentMethod: 'Espèces', serviceTierId: 'tier-1',
     statusHistory: [
       { status: 'Nouvelle demande', timestamp: '26/10/2023 11:00' },
     ]
   },
-  { id: 'RES-003', clientName: 'Eve Adams', driverName: 'Frank White', date: '2023-10-25', pickup: '212 Birch Rd', dropoff: '333 Cedar Blvd', status: 'Terminée', amount: 32.00, paymentMethod: 'Paiement différé',
+  { id: 'RES-003', clientName: 'Eve Adams', clientId: 'CLI-003', driverName: 'Frank White', driverId: 'DRV-003', date: '2023-10-25', pickup: '212 Birch Rd', dropoff: '333 Cedar Blvd', status: 'Terminée', amount: 32.00, driverPayout: 25.60, paymentMethod: 'Paiement différé', serviceTierId: 'tier-2',
     statusHistory: [
       { status: 'Nouvelle demande', timestamp: '25/10/2023 14:00' },
       { status: 'Acceptée', timestamp: '25/10/2023 14:01' },
@@ -27,14 +27,14 @@ export const reservations: Reservation[] = [
       { status: 'Terminée', timestamp: '25/10/2023 14:25' },
     ]
   },
-  { id: 'RES-004', clientName: 'Grace Lee', driverName: 'Henry Green', date: '2023-10-27', pickup: '444 Elm Ct', dropoff: '555 Spruce Way', status: 'Annulée par le client (sans frais)', amount: 22.10, paymentMethod: 'Carte',
+  { id: 'RES-004', clientName: 'Grace Lee', clientId: 'CLI-004', driverName: 'Henry Green', driverId: 'DRV-004', date: '2023-10-27', pickup: '444 Elm Ct', dropoff: '555 Spruce Way', status: 'Annulée par le client (sans frais)', amount: 22.10, driverPayout: 17.68, paymentMethod: 'Carte', serviceTierId: 'tier-1',
     statusHistory: [
       { status: 'Nouvelle demande', timestamp: '27/10/2023 09:00' },
       { status: 'Acceptée', timestamp: '27/10/2023 09:02' },
       { status: 'Annulée par le client (sans frais)', timestamp: '27/10/2023 09:05' },
     ]
   },
-  { id: 'RES-005', clientName: 'Ivy Chen', driverName: 'Jack Black', date: '2023-10-28', pickup: '666 Willow Ave', dropoff: '777 Redwood Pkwy', status: 'Nouvelle demande', amount: 45.30, paymentMethod: 'Espèces',
+  { id: 'RES-005', clientName: 'Ivy Chen', clientId: 'CLI-005', driverName: 'Jack Black', driverId: 'DRV-005', date: '2023-10-28', pickup: '666 Willow Ave', dropoff: '777 Redwood Pkwy', status: 'Nouvelle demande', amount: 45.30, driverPayout: 36.24, paymentMethod: 'Espèces', serviceTierId: 'tier-3',
     statusHistory: [
         { status: 'Nouvelle demande', timestamp: '28/10/2023 18:00' },
     ]

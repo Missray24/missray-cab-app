@@ -41,14 +41,18 @@ export interface StatusHistory {
 export interface Reservation {
   id: string;
   clientName: string;
+  clientId: string;
   driverName: string;
+  driverId: string;
   date: string;
   pickup: string;
   dropoff: string;
   status: ReservationStatus;
   statusHistory: StatusHistory[];
   amount: number;
+  driverPayout: number;
   paymentMethod: PaymentMethod;
+  serviceTierId: string;
 }
 
 export interface Client {

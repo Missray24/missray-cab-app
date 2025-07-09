@@ -6,7 +6,7 @@ import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { reservations } from '@/lib/data';
+import { reservations, serviceTiers } from '@/lib/data';
 import type { ReservationStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +42,7 @@ export default function ReservationDetailsPage({ params }: { params: { id: strin
   }
   
   const currentStatusIdx = getStatusIndex(reservation.status);
+  const tier = serviceTiers.find(t => t.id === reservation.serviceTierId);
 
   return (
     <div className="flex flex-col gap-6">
@@ -138,8 +139,19 @@ export default function ReservationDetailsPage({ params }: { params: { id: strin
                    <p className="font-medium">{reservation.date}</p>
                  </div>
                  <div>
-                   <p className="font-medium text-muted-foreground">Montant</p>
+                   <p className="font-medium text-muted-foreground">Gamme</p>
+                   <p className="font-medium">{tier?.name || 'N/A'}</p>
+                 </div>
+               </div>
+               <Separator />
+               <div className="grid md:grid-cols-2 gap-4">
+                 <div>
+                   <p className="font-medium text-muted-foreground">Montant Total</p>
                    <p className="font-medium">${reservation.amount.toFixed(2)} ({reservation.paymentMethod})</p>
+                 </div>
+                 <div>
+                   <p className="font-medium text-muted-foreground">Paiement Chauffeur</p>
+                   <p className="font-medium">${reservation.driverPayout.toFixed(2)}</p>
                  </div>
                </div>
             </CardContent>
