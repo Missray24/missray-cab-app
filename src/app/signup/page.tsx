@@ -27,9 +27,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { IntlTelInput, type IntlTelInputRef } from '@/components/ui/intl-tel-input';
+import { useToast } from '@/hooks/use-toast';
 
 export default function SignupPage() {
   const phoneInputRef = useRef<IntlTelInputRef>(null);
+  const { toast } = useToast();
 
   const formSchema = z
     .object({
@@ -50,10 +52,9 @@ export default function SignupPage() {
       path: ['confirmPassword'],
     })
     .refine(() => {
-        // Validation now happens inside the IntlTelInput component logic for real-time feedback
-        // but we still need to trigger it on form submission.
-        if (typeof window === 'undefined') return true; // Pass validation on server
-        return phoneInputRef.current?.isValidNumber() ?? false;
+        if (typeof window === 'undefined') return true;
+        const isValid = phoneInputRef.current?.isValidNumber() ?? false;
+        return isValid;
     }, {
         message: "Le numéro de téléphone est invalide.",
         path: ["phone"],
@@ -76,7 +77,10 @@ export default function SignupPage() {
     // In a real application, you would handle user registration here.
     const fullPhoneNumber = phoneInputRef.current?.getNumber();
     console.log({ ...values, phone: fullPhoneNumber });
-    alert('Inscription réussie! (Simulation)');
+    toast({
+      title: "Inscription (simulation)",
+      description: "Vérifiez la console pour voir les données du formulaire.",
+    });
   }
 
   return (
@@ -126,7 +130,7 @@ export default function SignupPage() {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -159,13 +163,16 @@ export default function SignupPage() {
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="grid w-full gap-2">
                     <FormLabel>Numéro de téléphone</FormLabel>
                     <FormControl>
                        <IntlTelInput
                         ref={phoneInputRef}
                         value={field.value}
-                        onChange={(value) => field.onChange(value)}
+                        onChange={(value) => {
+                            field.onChange(value);
+                            form.trigger('phone');
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

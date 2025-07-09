@@ -165,14 +165,14 @@ export default function DriversPage() {
   };
 
   const handleSaveChanges = async () => {
-    if (!phoneInputRef.current?.isValidNumber()) {
+    if (phoneInputRef.current && !phoneInputRef.current.isValidNumber()) {
       toast({ variant: 'destructive', title: "Erreur", description: "Le numéro de téléphone est invalide." });
       return;
     }
 
     const driverData = {
       ...editFormData,
-      phone: phoneInputRef.current.getNumber(),
+      phone: phoneInputRef.current?.getNumber() || editFormData.phone,
       company: {
         ...editFormData.company,
         commission: parseFloat(String(editFormData.company.commission)) || 0,
@@ -184,7 +184,7 @@ export default function DriversPage() {
       try {
         const driverRef = doc(db, "drivers", modalState.driver.id);
         await updateDoc(driverRef, driverData);
-        setDrivers(prev => prev.map(d => d.id === modalState.driver!.id ? { ...d, ...driverData } : d));
+        setDrivers(prev => prev.map(d => d.id === modalState.driver!.id ? { ...d, ...driverData } as Driver : d));
         toast({ title: "Succès", description: "Chauffeur mis à jour." });
       } catch (error) {
         console.error("Error updating driver: ", error);
@@ -413,7 +413,7 @@ export default function DriversPage() {
             </TabsList>
             <TabsContent value="personal" className="pt-4">
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="firstName">Prénom</Label>
                     <Input id="firstName" value={editFormData.firstName} onChange={handleEditFormChange} />
@@ -427,7 +427,7 @@ export default function DriversPage() {
                   <Label htmlFor="email">Email</Label>
                   <Input id="email" type="email" value={editFormData.email} onChange={handleEditFormChange} />
                 </div>
-                <div className="space-y-2">
+                <div className="grid w-full gap-2">
                   <Label>Numéro de téléphone</Label>
                   <IntlTelInput
                     ref={phoneInputRef}
