@@ -44,6 +44,7 @@ export default function DriverEarningsPage() {
                 <TableHead>Chauffeur</TableHead>
                 <TableHead className="text-right">Courses</TableHead>
                 <TableHead className="text-right">Revenus Totaux</TableHead>
+                <TableHead className="text-right">Commission (20%)</TableHead>
                 <TableHead className="text-right">Montant à payer</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -59,6 +60,7 @@ export default function DriverEarningsPage() {
                   </TableCell>
                   <TableCell className="text-right">{driver.totalRides}</TableCell>
                   <TableCell className="text-right">${driver.totalEarnings.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">${(driver.totalEarnings * 0.2).toFixed(2)}</TableCell>
                   <TableCell className="text-right font-medium text-primary">${driver.unpaidAmount.toFixed(2)}</TableCell>
                   <TableCell>
                     <DropdownMenu>

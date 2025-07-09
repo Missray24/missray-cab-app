@@ -47,6 +47,7 @@ export default function PayoutsPage() {
               <TableRow>
                 <TableHead>Chauffeur</TableHead>
                 <TableHead>Méthode de paiement</TableHead>
+                <TableHead className="text-right">Commission</TableHead>
                 <TableHead className="text-right">Montant à payer</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
@@ -64,6 +65,7 @@ export default function PayoutsPage() {
                     <div>{driver.paymentDetails.method}</div>
                     <div className="text-sm text-muted-foreground">{driver.paymentDetails.account}</div>
                   </TableCell>
+                  <TableCell className="text-right">${(driver.unpaidAmount / 4).toFixed(2)}</TableCell>
                   <TableCell className="text-right font-medium text-primary">${driver.unpaidAmount.toFixed(2)}</TableCell>
                   <TableCell>
                     <DropdownMenu>
