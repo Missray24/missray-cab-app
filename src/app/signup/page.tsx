@@ -38,7 +38,7 @@ export default function SignupPage() {
       }),
       firstName: z.string().min(1, 'Le prénom est requis'),
       lastName: z.string().min(1, 'Le nom est requis'),
-      phone: z.string(),
+      phone: z.string().min(1, 'Le numéro de téléphone est requis'),
       email: z.string().email("L'email est invalide"),
       password: z
         .string()
