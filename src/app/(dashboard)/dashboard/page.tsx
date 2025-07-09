@@ -202,6 +202,7 @@ export default function DashboardPage() {
                 <TableHead>Driver</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Payment</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
                 <TableHead className="w-[40px]"></TableHead>
               </TableRow>
@@ -228,6 +229,7 @@ export default function DashboardPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{reservation.date}</TableCell>
+                  <TableCell>{reservation.paymentMethod}</TableCell>
                   <TableCell className="text-right">
                     ${reservation.amount.toFixed(2)}
                   </TableCell>

@@ -25,6 +25,14 @@ export const reservationStatuses: ReservationStatus[] = [
   'No-show',
 ];
 
+export type PaymentMethod = 'Carte' | 'Espèces' | 'Paiement différé';
+
+export const paymentMethods: PaymentMethod[] = [
+  'Carte',
+  'Espèces',
+  'Paiement différé',
+];
+
 export interface Reservation {
   id: string;
   clientName: string;
@@ -34,6 +42,7 @@ export interface Reservation {
   dropoff: string;
   status: ReservationStatus;
   amount: number;
+  paymentMethod: PaymentMethod;
 }
 
 export interface Client {

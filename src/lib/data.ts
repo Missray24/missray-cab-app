@@ -2,11 +2,11 @@ import type { Reservation, Client, Driver, ServiceTier, Zone } from './types';
 import { Car, CarTaxiFront, Rocket } from "lucide-react";
 
 export const reservations: Reservation[] = [
-  { id: 'RES-001', clientName: 'Alice Johnson', driverName: 'Bob Williams', date: '2023-10-26', pickup: '123 Main St', dropoff: '456 Oak Ave', status: 'Terminée', amount: 25.50 },
-  { id: 'RES-002', clientName: 'Charlie Brown', driverName: 'Diana Prince', date: '2023-10-26', pickup: '789 Pine Ln', dropoff: '101 Maple Dr', status: 'Nouvelle demande', amount: 18.75 },
-  { id: 'RES-003', clientName: 'Eve Adams', driverName: 'Frank White', date: '2023-10-25', pickup: '212 Birch Rd', dropoff: '333 Cedar Blvd', status: 'Terminée', amount: 32.00 },
-  { id: 'RES-004', clientName: 'Grace Lee', driverName: 'Henry Green', date: '2023-10-27', pickup: '444 Elm Ct', dropoff: '555 Spruce Way', status: 'Annulée par le client (sans frais)', amount: 22.10 },
-  { id: 'RES-005', clientName: 'Ivy Chen', driverName: 'Jack Black', date: '2023-10-28', pickup: '666 Willow Ave', dropoff: '777 Redwood Pkwy', status: 'Nouvelle demande', amount: 45.30 },
+  { id: 'RES-001', clientName: 'Alice Johnson', driverName: 'Bob Williams', date: '2023-10-26', pickup: '123 Main St', dropoff: '456 Oak Ave', status: 'Terminée', amount: 25.50, paymentMethod: 'Carte' },
+  { id: 'RES-002', clientName: 'Charlie Brown', driverName: 'Diana Prince', date: '2023-10-26', pickup: '789 Pine Ln', dropoff: '101 Maple Dr', status: 'Nouvelle demande', amount: 18.75, paymentMethod: 'Espèces' },
+  { id: 'RES-003', clientName: 'Eve Adams', driverName: 'Frank White', date: '2023-10-25', pickup: '212 Birch Rd', dropoff: '333 Cedar Blvd', status: 'Terminée', amount: 32.00, paymentMethod: 'Paiement différé' },
+  { id: 'RES-004', clientName: 'Grace Lee', driverName: 'Henry Green', date: '2023-10-27', pickup: '444 Elm Ct', dropoff: '555 Spruce Way', status: 'Annulée par le client (sans frais)', amount: 22.10, paymentMethod: 'Carte' },
+  { id: 'RES-005', clientName: 'Ivy Chen', driverName: 'Jack Black', date: '2023-10-28', pickup: '666 Willow Ave', dropoff: '777 Redwood Pkwy', status: 'Nouvelle demande', amount: 45.30, paymentMethod: 'Espèces' },
 ];
 
 export const clients: Client[] = [

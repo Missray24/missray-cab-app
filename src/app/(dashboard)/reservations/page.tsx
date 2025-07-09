@@ -68,6 +68,7 @@ export default function ReservationsPage() {
                 <TableHead>Driver</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Date</TableHead>
+                <TableHead>Payment</TableHead>
                 <TableHead>
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -94,6 +95,7 @@ export default function ReservationsPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>{reservation.date}</TableCell>
+                  <TableCell>{reservation.paymentMethod}</TableCell>
                   <TableCell>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
