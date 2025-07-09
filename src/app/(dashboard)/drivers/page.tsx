@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from "next/image";
-import { MoreHorizontal, FileText } from "lucide-react";
+import { MoreHorizontal, FileText, CheckCircle, XCircle, AlertCircle } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -37,7 +38,8 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
 import { drivers as initialDrivers } from "@/lib/data";
-import type { Driver } from '@/lib/types';
+import type { Driver, DocumentStatus } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 export default function DriversPage() {
   const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
@@ -55,6 +57,23 @@ export default function DriversPage() {
       )
     );
   };
+  
+  const handleDocumentStatusChange = (driverId: string, docIndex: number, newStatus: DocumentStatus) => {
+    const newDrivers = drivers.map(driver => {
+      if (driver.id === driverId) {
+        const newDocuments = [...driver.documents];
+        newDocuments[docIndex] = { ...newDocuments[docIndex], status: newStatus };
+        const updatedDriver = { ...driver, documents: newDocuments };
+        if (viewingDriver && viewingDriver.id === driverId) {
+          setViewingDriver(updatedDriver);
+        }
+        return updatedDriver;
+      }
+      return driver;
+    });
+    setDrivers(newDrivers);
+  };
+
 
   return (
     <>
@@ -131,12 +150,28 @@ export default function DriversPage() {
           </DialogHeader>
           <div className="grid gap-6 py-4 grid-cols-1 sm:grid-cols-2">
             {viewingDriver?.documents.map((doc, index) => (
-              <Card key={index}>
-                <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-                  <FileText className="h-6 w-6 text-primary" />
-                  <CardTitle className="text-lg">{doc.name}</CardTitle>
-                </CardHeader>
-                <CardContent>
+              <Card key={index} className="flex flex-col">
+                 <CardHeader>
+                   <div className="flex items-center justify-between">
+                     <div className="flex items-center gap-4">
+                       <FileText className="h-6 w-6 text-primary" />
+                       <CardTitle className="text-lg">{doc.name}</CardTitle>
+                     </div>
+                     <Badge
+                       className={cn("capitalize items-center", {
+                         "bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80": doc.status === 'Approved',
+                         "bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80": doc.status === 'Rejected',
+                         "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80": doc.status === 'Pending',
+                       })}
+                     >
+                       {doc.status === 'Approved' && <CheckCircle className="mr-1 h-3 w-3" />}
+                       {doc.status === 'Rejected' && <XCircle className="mr-1 h-3 w-3" />}
+                       {doc.status === 'Pending' && <AlertCircle className="mr-1 h-3 w-3" />}
+                       {doc.status}
+                     </Badge>
+                   </div>
+                 </CardHeader>
+                <CardContent className="flex-grow">
                   <div className="aspect-video w-full rounded-md overflow-hidden border">
                     <Image
                       src={doc.url}
@@ -148,6 +183,23 @@ export default function DriversPage() {
                     />
                   </div>
                 </CardContent>
+                 <CardFooter className="gap-2">
+                   <Button
+                     variant="outline"
+                     className="w-full"
+                     onClick={() => handleDocumentStatusChange(viewingDriver.id, index, 'Rejected')}
+                     disabled={doc.status === 'Rejected'}
+                   >
+                     Refuser
+                   </Button>
+                   <Button
+                     className="w-full"
+                     onClick={() => handleDocumentStatusChange(viewingDriver.id, index, 'Approved')}
+                     disabled={doc.status === 'Approved'}
+                   >
+                     Approuver
+                   </Button>
+                 </CardFooter>
               </Card>
             ))}
             {viewingDriver?.documents.length === 0 && (

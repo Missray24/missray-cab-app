@@ -60,9 +60,12 @@ export interface Client {
   status: 'Active' | 'Blocked';
 }
 
+export type DocumentStatus = 'Pending' | 'Approved' | 'Rejected';
+
 export interface DriverDocument {
   name: string;
   url: string;
+  status: DocumentStatus;
 }
 
 export interface Driver {
