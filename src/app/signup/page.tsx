@@ -164,7 +164,7 @@ export default function SignupPage() {
                        <IntlTelInput
                         ref={phoneInputRef}
                         value={field.value}
-                        onChange={field.onChange}
+                        onChange={(value) => field.onChange(value)}
                       />
                     </FormControl>
                     <FormMessage />
