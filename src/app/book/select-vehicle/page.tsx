@@ -241,7 +241,7 @@ function VehicleSelectionComponent() {
                       ) : (
                         serviceTiers.map((tier) => (
                           <Card key={tier.id} className="flex flex-col md:flex-row md:items-center">
-                            <div className="md:w-1/3">
+                            <div className="md:w-1/4">
                               <Image
                                 src={tier.photoUrl}
                                 alt={`Photo de ${tier.name}`}
