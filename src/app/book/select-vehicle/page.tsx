@@ -109,15 +109,17 @@ function VehicleSelectionComponent() {
                                 <p>Départ immédiat</p>
                             </div>
                         )}
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-2">
                             <div className="flex items-start gap-3">
                                 <MapPin className="h-5 w-5 mt-0.5 text-green-500" />
                                 <p className="font-medium">{pickup}</p>
                             </div>
                              {stops.map((stop, index) => (
-                                stop && <div key={index} className="flex items-start gap-3 pl-[2.2rem] relative">
-                                     <div className="absolute left-[0.55rem] top-2 w-px h-full bg-border -z-10" />
-                                    <p className="text-xs text-muted-foreground before:content-['•'] before:mr-2 before:text-lg before:-ml-1">{stop}</p>
+                                stop && <div key={index} className="flex items-center gap-3 pl-1">
+                                    <div className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-xs font-bold">
+                                        {index + 1}
+                                    </div>
+                                    <p className="text-sm font-medium text-muted-foreground">{stop}</p>
                                 </div>
                             ))}
                             <div className="flex items-start gap-3">
