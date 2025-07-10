@@ -128,12 +128,6 @@ function VehicleSelectionComponent() {
               </div>
             ) : (
                 <div className="flex flex-col gap-8">
-                    <div className="mb-8">
-                        <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline mb-2">Choisissez votre véhicule</h1>
-                        <p className="text-muted-foreground max-w-2xl">
-                            Sélectionnez la gamme de véhicule qui correspond le mieux à vos besoins pour le trajet que vous avez demandé.
-                        </p>
-                    </div>
                     <Card>
                         <CardHeader>
                             <div className="flex justify-between items-center">
@@ -149,7 +143,7 @@ function VehicleSelectionComponent() {
                                <RouteMap 
                                   pickup={bookingDetails.pickup}
                                   dropoff={bookingDetails.dropoff}
-                                  stops={bookingDetails.stops}
+                                  stops={bookingDetails.stops.map(s => s.address)}
                                   onRouteInfoFetched={setRouteInfo}
                                />
                             </div>
@@ -228,6 +222,7 @@ function VehicleSelectionComponent() {
                     </Card>
         
                     <div className="flex flex-col gap-6">
+                        <h2 className="text-2xl font-bold tracking-tighter font-headline">Choisissez votre véhicule</h2>
                       {loading ? (
                         Array.from({ length: 4 }).map((_, i) => (
                           <Card key={i}><CardHeader><Skeleton className="aspect-video w-full" /></CardHeader><CardContent className="space-y-2"><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-full" /><Skeleton className="h-10 w-full mt-2" /></CardContent></Card>
@@ -245,42 +240,33 @@ function VehicleSelectionComponent() {
                                 className="h-full w-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-r-none"
                               />
                             </div>
-                            <div className="flex-1 flex flex-col">
-                               <CardHeader>
-                                  <div className="flex items-start justify-between gap-4">
-                                      <CardTitle className="font-headline flex-grow">{tier.name}</CardTitle>
-                                       <TooltipProvider>
-                                          <Tooltip>
-                                              <TooltipTrigger asChild>
-                                                  <span className="font-bold text-lg text-foreground whitespace-nowrap flex items-center gap-1.5 cursor-help">
-                                                      <Info className="h-4 w-4 text-muted-foreground" />
-                                                      Estimation: {tier.minimumPrice.toFixed(2)}€
-                                                  </span>
-                                              </TooltipTrigger>
-                                              <TooltipContent>
-                                                  <p>Temps d'attente gratuit en ville: 3 minute, gare 10 minutes, aéroport 60 minutes</p>
-                                              </TooltipContent>
-                                          </Tooltip>
-                                       </TooltipProvider>
-                                  </div>
-                               </CardHeader>
-                               <CardContent className="flex-grow flex flex-col justify-between">
-                                  <p className="text-sm text-muted-foreground">{tier.description}</p>
-                                  <div className="my-2" />
-                                  <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
-                                      <div className="flex items-center gap-2">
-                                          <Users className="h-5 w-5 text-primary" />
-                                          <span className="font-medium text-foreground">{tier.capacity?.passengers || 4} passagers</span>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                          <Briefcase className="h-5 w-5 text-primary" />
-                                          <span className="font-medium text-foreground">{tier.capacity?.suitcases || 2} valises</span>
-                                      </div>
-                                  </div>
-                                  <Button className="w-full mt-4" asChild>
-                                     <a href={getSignupLink(tier.id)}>Choisir {tier.name} <ArrowRight className="ml-2" /></a>
-                                  </Button>
-                               </CardContent>
+                            <div className="flex-1 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                               <div className='flex-grow'>
+                                 <p className="font-bold text-lg text-foreground">{tier.name}</p>
+                                 <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                   <div className="flex items-center gap-1.5"><Users className="h-4 w-4" />{tier.capacity?.passengers || 4}</div>
+                                   <div className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{tier.capacity?.suitcases || 2}</div>
+                                 </div>
+                                 <p className="text-sm text-muted-foreground mt-2">{tier.description}</p>
+                               </div>
+                               <div className='flex-shrink-0 text-right'>
+                                   <TooltipProvider>
+                                      <Tooltip>
+                                          <TooltipTrigger asChild>
+                                              <span className="font-bold text-lg text-foreground whitespace-nowrap flex items-center justify-end gap-1.5 cursor-help">
+                                                  <Info className="h-4 w-4 text-muted-foreground" />
+                                                  Estimation: {tier.minimumPrice.toFixed(2)}€
+                                              </span>
+                                          </TooltipTrigger>
+                                          <TooltipContent>
+                                              <p>Temps d'attente gratuit en ville: 3 minute, gare 10 minutes, aéroport 60 minutes</p>
+                                          </TooltipContent>
+                                      </Tooltip>
+                                   </TooltipProvider>
+                                    <Button className="w-full md:w-auto mt-2" asChild>
+                                       <a href={getSignupLink(tier.id)}>Choisir <ArrowRight className="ml-2" /></a>
+                                    </Button>
+                               </div>
                             </div>
                           </Card>
                         ))
