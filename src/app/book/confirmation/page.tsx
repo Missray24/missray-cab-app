@@ -9,6 +9,7 @@ import { CheckCircle2, Car, MapPin, User as UserIcon, Calendar, Clock, DollarSig
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
+import Image from 'next/image';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
@@ -98,7 +99,7 @@ function ConfirmationComponent() {
           <Card>
             <CardHeader className="items-center text-center">
               <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
-              <CardTitle className="text-3xl font-headline">Réservation Confirmée !</CardTitle>
+              <CardTitle className="text-3xl font-headline text-center">Réservation Confirmée !</CardTitle>
               <CardDescription>
                 Votre course est enregistrée. Vous recevrez des notifications sur son statut.
               </CardDescription>
@@ -140,8 +141,8 @@ function ConfirmationComponent() {
                 <div className="space-y-4">
                     <h3 className="font-semibold text-lg">Véhicule et Paiement</h3>
                      <div className="flex items-center gap-3">
-                        <Car className="h-5 w-5 text-muted-foreground" />
-                        <p>{tier.name}</p>
+                        <Image src={tier.photoUrl} alt={tier.name} width={40} height={40} className="rounded-md object-cover w-16 h-10" />
+                        <p className="font-semibold">{tier.name}</p>
                     </div>
                     {tier.capacity?.passengers && (
                       <div className="flex items-center gap-3">
