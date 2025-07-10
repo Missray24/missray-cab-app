@@ -34,6 +34,7 @@ function VehicleSelectionComponent() {
   const [loading, setLoading] = useState(true);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [formattedScheduledTime, setFormattedScheduledTime] = useState<string | null>(null);
 
   // Memoize booking details to prevent re-parsing on every render
   const bookingDetails = useMemo(() => {
@@ -47,11 +48,18 @@ function VehicleSelectionComponent() {
     return {
       pickup,
       dropoff,
-      stops,
+      stops: stops.map(s => s), // Ensure it's an array of strings
       scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
     };
   }, [searchParams]);
 
+  useEffect(() => {
+    if (bookingDetails?.scheduledTime) {
+      setFormattedScheduledTime(
+        format(bookingDetails.scheduledTime, "dd MMM yyyy 'à' HH:mm", { locale: fr })
+      );
+    }
+  }, [bookingDetails?.scheduledTime]);
 
   useEffect(() => {
     if (!bookingDetails) {
@@ -118,7 +126,10 @@ function VehicleSelectionComponent() {
                 <Card>
                     <CardContent className="p-6">
                         <BookingForm 
-                            initialDetails={bookingDetails} 
+                            initialDetails={{
+                                ...bookingDetails,
+                                stops: bookingDetails.stops.map(s => ({id: Date.now() + Math.random(), address: s})),
+                            }} 
                             onSubmit={handleUpdateTrip}
                             submitButtonText="Mettre à jour le trajet"
                         />
@@ -138,12 +149,12 @@ function VehicleSelectionComponent() {
                                </Button>
                             </div>
                         </CardHeader>
-                        <CardContent className="grid gap-6 lg:grid-cols-2">
+                        <CardContent className="grid gap-6">
                              <div className="h-64 rounded-lg overflow-hidden border">
                                <RouteMap 
                                   pickup={bookingDetails.pickup}
                                   dropoff={bookingDetails.dropoff}
-                                  stops={bookingDetails.stops.map(s => s.address)}
+                                  stops={bookingDetails.stops}
                                   onRouteInfoFetched={setRouteInfo}
                                />
                             </div>
@@ -190,7 +201,7 @@ function VehicleSelectionComponent() {
                                         <Calendar className="h-5 w-5" />
                                         <div>
                                             <p>Course programmée</p>
-                                            <p>{format(new Date(bookingDetails.scheduledTime), "dd MMM yyyy 'à' HH:mm", { locale: fr })}</p>
+                                            <p>{formattedScheduledTime || 'Calcul...'}</p>
                                         </div>
                                     </div>
                                 ) : (
