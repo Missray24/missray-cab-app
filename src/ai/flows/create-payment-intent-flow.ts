@@ -19,15 +19,16 @@ export type CreatePaymentIntentInput = z.infer<typeof CreatePaymentIntentInputSc
 
 const CreatePaymentIntentOutputSchema = z.object({
   clientSecret: z.string().nullable().describe('The client secret from the created Payment Intent.'),
+  error: z.string().nullable().describe('An error message if the creation failed.'),
 });
 export type CreatePaymentIntentOutput = z.infer<typeof CreatePaymentIntentOutputSchema>;
 
-if (!STRIPE_SECRET_KEY) {
-  console.warn('STRIPE_SECRET_KEY is not set. Payment functionality will be disabled.');
-}
-
 // Initialize Stripe outside the flow to avoid re-creation on every call.
 const stripe = STRIPE_SECRET_KEY ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-06-20' }) : null;
+
+if (!stripe) {
+  console.warn('Stripe key is not set. Payment functionality will be disabled.');
+}
 
 export async function createPaymentIntent(input: CreatePaymentIntentInput): Promise<CreatePaymentIntentOutput> {
   return createPaymentIntentFlow(input);
@@ -41,8 +42,9 @@ const createPaymentIntentFlow = ai.defineFlow(
   },
   async (input) => {
     if (!stripe) {
-      console.error('Stripe is not initialized. Cannot create payment intent.');
-      return { clientSecret: null };
+      const errorMessage = 'Stripe is not initialized. Please ensure STRIPE_SECRET_KEY is set in your environment variables.';
+      console.error(errorMessage);
+      return { clientSecret: null, error: errorMessage };
     }
 
     try {
@@ -54,11 +56,12 @@ const createPaymentIntentFlow = ai.defineFlow(
 
       return {
         clientSecret: paymentIntent.client_secret,
+        error: null,
       };
     } catch (error: any) {
       console.error('Error creating Stripe Payment Intent:', error);
       // It's better not to expose detailed Stripe errors to the client.
-      return { clientSecret: null };
+      return { clientSecret: null, error: 'An internal error occurred while creating the payment intent.' };
     }
   }
 );

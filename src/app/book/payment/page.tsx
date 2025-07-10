@@ -203,11 +203,11 @@ function PaymentComponent() {
           );
           setFinalPrice(calculatedPrice);
 
-          const { clientSecret } = await createPaymentIntent({ amount: calculatedPrice * 100 }); // Amount in cents
+          const { clientSecret, error } = await createPaymentIntent({ amount: Math.round(calculatedPrice * 100) }); // Amount in cents
           if (clientSecret) {
             setClientSecret(clientSecret);
           } else {
-             toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible d\'initialiser le paiement.' });
+             toast({ variant: 'destructive', title: 'Erreur de paiement', description: error || 'Impossible d\'initialiser le paiement.' });
           }
         } else {
           toast({ variant: 'destructive', title: 'Erreur', description: 'Gamme de service non trouvée.' });
@@ -332,5 +332,3 @@ export default function PaymentPage() {
         </Suspense>
     );
 }
-
-    
