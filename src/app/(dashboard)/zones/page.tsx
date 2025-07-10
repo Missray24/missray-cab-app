@@ -2,9 +2,9 @@
 'use client'
 
 import { useState, useEffect } from 'react';
-import Image from "next/image";
 import { MapPin } from "lucide-react";
 import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
+import { useLoadScript } from '@react-google-maps/api';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +33,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { paymentMethods, type Zone, type PaymentMethod } from "@/lib/types";
 import { db } from "@/lib/firebase";
 import { useToast } from '@/hooks/use-toast';
+import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
+import { ZoneMap } from '@/components/zone-map';
+
+const libraries = ['places', 'drawing'] as any;
 
 const initialFormState = {
     name: '',
@@ -40,6 +44,7 @@ const initialFormState = {
     freeWaitingMinutes: '5',
     minutesBeforeNoShow: '10',
     paymentMethods: [] as PaymentMethod[],
+    polygon: [] as { lat: number; lng: number }[],
 };
 
 type ModalState = {
@@ -54,6 +59,11 @@ export default function ZonesPage() {
   const [modalState, setModalState] = useState<ModalState>({ mode: 'add', zone: null, isOpen: false });
   const [formData, setFormData] = useState(initialFormState);
   const { toast } = useToast();
+
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries,
+  });
 
   useEffect(() => {
     const fetchZones = async () => {
@@ -83,6 +93,7 @@ export default function ZonesPage() {
               freeWaitingMinutes: String(modalState.zone.freeWaitingMinutes),
               minutesBeforeNoShow: String(modalState.zone.minutesBeforeNoShow),
               paymentMethods: modalState.zone.paymentMethods,
+              polygon: modalState.zone.polygon || [],
           });
       } else {
           setFormData(initialFormState);
@@ -111,6 +122,10 @@ export default function ZonesPage() {
           }));
       }
   }
+
+  const handlePolygonComplete = (path: { lat: number; lng: number }[]) => {
+    setFormData(prev => ({ ...prev, polygon: path }));
+  };
 
   const handleSubmit = async () => {
     const dataToSave = {
@@ -148,17 +163,15 @@ export default function ZonesPage() {
       <>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
           <div className="md:col-span-2">
-            <Label>Zone Area (Feature coming soon)</Label>
+            <Label>Zone Area</Label>
             <div className="mt-2 rounded-lg overflow-hidden border">
-              <Image
-                src="https://placehold.co/800x400.png"
-                alt="Map of the zone"
-                data-ai-hint="city map"
-                width={800}
-                height={400}
-                className="h-full w-full object-cover"
+              <ZoneMap 
+                isLoaded={isLoaded}
+                polygonPath={formData.polygon}
+                onPolygonComplete={handlePolygonComplete}
               />
             </div>
+            {loadError && <div>Error loading map</div>}
           </div>
           <div className="space-y-4 pt-2">
             <div className='space-y-2'>

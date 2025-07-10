@@ -126,4 +126,5 @@ export interface Zone {
   paymentMethods: PaymentMethod[];
   freeWaitingMinutes: number;
   minutesBeforeNoShow: number;
+  polygon?: { lat: number; lng: number }[];
 }
