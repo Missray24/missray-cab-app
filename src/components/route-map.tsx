@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { GoogleMap, useLoadScript, DirectionsRenderer, MarkerF } from '@react-google-maps/api';
 import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
 import { Skeleton } from './ui/skeleton';
@@ -31,7 +31,8 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
     googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: libraries as any,
   });
-
+  
+  const mapRef = useRef<google.maps.Map | null>(null);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   
   const mapOptions = isInteractive ? {} : {
@@ -61,7 +62,6 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
         if (status === google.maps.DirectionsStatus.OK && result) {
           setDirections(result);
           if (onRouteInfoFetched) {
-            // Calculate total distance and duration
             const route = result.routes[0];
             let totalDistance = 0;
             let totalDuration = 0;
@@ -70,8 +70,8 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
                 totalDuration += leg.duration?.value || 0;
             }
             onRouteInfoFetched({
-                distance: (totalDistance / 1000).toFixed(1) + ' km', // convert meters to km
-                duration: Math.round(totalDuration / 60) + ' min', // convert seconds to minutes
+                distance: (totalDistance / 1000).toFixed(1) + ' km',
+                duration: Math.round(totalDuration / 60) + ' min',
             });
           }
         } else {
@@ -80,6 +80,30 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
       }
     );
   }, [isLoaded, pickup, dropoff, stops, onRouteInfoFetched]);
+
+  // Adjust map bounds and zoom
+  useEffect(() => {
+    if (mapRef.current && directions?.routes[0]) {
+      const route = directions.routes[0];
+      const bounds = new google.maps.LatLngBounds();
+      route.legs.forEach(leg => {
+          bounds.extend(leg.start_location);
+          bounds.extend(leg.end_location);
+      });
+      mapRef.current.fitBounds(bounds);
+
+      // Add a listener to adjust zoom after bounds are fitted
+      const listener = google.maps.event.addListenerOnce(mapRef.current, 'idle', () => {
+         const currentZoom = mapRef.current?.getZoom();
+         if (currentZoom && !isInteractive) {
+             // We can increase zoom slightly for a closer view on static maps.
+             mapRef.current?.setZoom(currentZoom + 1);
+         }
+      });
+      // Cleanup listener
+      return () => google.maps.event.removeListener(listener);
+    }
+  }, [directions, isInteractive]);
 
   if (loadError) return <div>Error loading maps</div>;
   if (!isLoaded) return <Skeleton className="h-full w-full" />;
@@ -90,7 +114,6 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
   
   const waypointLocations = route?.legs.slice(0, -1).map(leg => leg.end_location);
 
-  // Custom marker SVGs
   const startIcon = {
     url: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%2322c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
     scaledSize: new window.google.maps.Size(32, 32),
@@ -102,7 +125,13 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
   };
 
   return (
-    <GoogleMap mapContainerStyle={mapContainerStyle} center={center} zoom={12} options={mapOptions}>
+    <GoogleMap 
+        mapContainerStyle={mapContainerStyle} 
+        center={center} 
+        zoom={12} 
+        options={mapOptions}
+        onLoad={map => { mapRef.current = map; }}
+    >
       {directions && (
         <>
           <DirectionsRenderer

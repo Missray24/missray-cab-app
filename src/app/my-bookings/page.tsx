@@ -4,7 +4,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
@@ -16,16 +16,63 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { db, auth } from '@/lib/firebase';
-import type { Reservation } from '@/lib/types';
+import type { Reservation, ReservationStatus } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/page-header';
 import { RouteMap } from '@/components/route-map';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 function MyBookingsComponent() {
   const router = useRouter();
+  const { toast } = useToast();
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+
+  const fetchReservations = async (currentUser: User) => {
+    setLoading(true);
+    try {
+      const usersRef = collection(db, "users");
+      const userQuery = query(usersRef, where("uid", "==", currentUser.uid));
+      const userSnapshot = await getDocs(userQuery);
+
+      if (!userSnapshot.empty) {
+        const clientDocId = userSnapshot.docs[0].id;
+        
+        const reservationsRef = collection(db, "reservations");
+        const q = query(
+          reservationsRef, 
+          where("clientId", "==", clientDocId)
+        );
+        const querySnapshot = await getDocs(q);
+        
+        let userReservations = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Reservation[];
+        
+        userReservations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        setReservations(userReservations);
+      }
+    } catch (error) {
+      console.error("Error fetching reservations: ", error);
+      toast({ variant: 'destructive', title: "Erreur", description: "Impossible de charger vos réservations." });
+    } finally {
+      setLoading(false);
+    }
+  };
   
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -33,41 +80,37 @@ function MyBookingsComponent() {
         router.push('/login');
       } else {
         setUser(currentUser);
-        setLoading(true);
-        try {
-          const usersRef = collection(db, "users");
-          const userQuery = query(usersRef, where("uid", "==", currentUser.uid));
-          const userSnapshot = await getDocs(userQuery);
-
-          if (!userSnapshot.empty) {
-            const clientDocId = userSnapshot.docs[0].id;
-            
-            const reservationsRef = collection(db, "reservations");
-            const q = query(
-              reservationsRef, 
-              where("clientId", "==", clientDocId)
-            );
-            const querySnapshot = await getDocs(q);
-            
-            let userReservations = querySnapshot.docs.map(doc => ({
-              id: doc.id,
-              ...doc.data(),
-            })) as Reservation[];
-            
-            // Sort reservations by date client-side to avoid needing a composite index
-            userReservations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-            setReservations(userReservations);
-          }
-        } catch (error) {
-          console.error("Error fetching reservations: ", error);
-        } finally {
-          setLoading(false);
-        }
+        fetchReservations(currentUser);
       }
     });
     return () => unsubscribe();
-  }, [router]);
+  }, [router, toast]);
+
+  const handleCancelReservation = async (reservationId: string) => {
+    try {
+      const resRef = doc(db, "reservations", reservationId);
+      const newStatus: ReservationStatus = 'Annulée par le client (sans frais)';
+      const statusHistoryEntry = { status: newStatus, timestamp: new Date().toLocaleString('fr-FR') };
+      
+      await updateDoc(resRef, {
+        status: newStatus,
+        statusHistory: [...reservations.find(r => r.id === reservationId)!.statusHistory, statusHistoryEntry]
+      });
+      
+      setReservations(prev => prev.map(res => 
+        res.id === reservationId ? { ...res, status: newStatus } : res
+      ));
+
+      toast({ title: 'Réservation annulée', description: 'Votre course a bien été annulée.' });
+    } catch (error) {
+      console.error('Error canceling reservation:', error);
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible d\'annuler la réservation.' });
+    }
+  };
+
+  const isCancellable = (status: ReservationStatus) => {
+    return !['Terminée', 'Annulée par le chauffeur (sans frais)', 'Annulée par le client (sans frais)', 'Annulée par le chauffeur (avec frais)', 'Annulée par le client (avec frais)', 'No-show'].includes(status);
+  };
 
   if (loading || !user) {
     return (
@@ -118,7 +161,7 @@ function MyBookingsComponent() {
                        <p className="text-xs text-muted-foreground">{res.paymentMethod}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 w-full md:w-auto flex-shrink-0">
+                  <div className="flex items-center gap-2 w-full md:w-auto flex-shrink-0">
                     <Badge
                       variant={
                         res.status === 'Terminée' ? 'default'
@@ -134,6 +177,25 @@ function MyBookingsComponent() {
                          Détails <ArrowRight className="ml-2 h-4 w-4"/>
                        </Link>
                      </Button>
+                     {isCancellable(res.status) && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                           <Button variant="destructive" size="sm">Annuler</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Êtes-vous sûr d'annuler ?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Cette action ne peut pas être annulée. Votre réservation sera définitivement annulée.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Retour</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleCancelReservation(res.id)}>Confirmer l'annulation</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                     )}
                   </div>
                 </CardContent>
               </Card>
