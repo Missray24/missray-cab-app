@@ -146,6 +146,14 @@ const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
                 <td style="color: #333333; font-size: 16px; font-weight: bold;">${params.dropoff || ''}</td>
               </tr>
               <tr style="border-bottom: 1px solid #eeeeee;">
+                <td style="color: #555555; font-size: 16px;">Gamme :</td>
+                <td style="color: #333333; font-size: 16px; font-weight: bold;">${params.tierName || 'N/A'} (${params.passengers || 'N/A'} passagers, ${params.suitcases || 'N/A'} valises)</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #eeeeee;">
+                <td style="color: #555555; font-size: 16px;">Paiement :</td>
+                <td style="color: #333333; font-size: 16px; font-weight: bold;">${params.paymentMethod || 'N/A'}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #eeeeee;">
                 <td style="color: #555555; font-size: 16px;">Montant total :</td>
                 <td style="color: #333333; font-size: 16px; font-weight: bold;">${params.amount ? `${params.amount.toFixed(2)}€` : 'N/A'}</td>
               </tr>

@@ -93,6 +93,10 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                         pickup: reservationData.pickup,
                         dropoff: reservationData.dropoff,
                         amount: reservationData.amount,
+                        paymentMethod: reservationData.paymentMethod,
+                        tierName: tier.name,
+                        passengers: tier.capacity.passengers,
+                        suitcases: tier.capacity.suitcases,
                     },
                 });
 
