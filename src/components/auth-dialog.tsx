@@ -88,18 +88,19 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
     defaultValues: { email: '', password: '' },
   });
   
-  const handleReservationCreation = async (user: { uid: string, name: string }) => {
-    // This is where we create the reservation after login/signup
-    console.log("Creating reservation for user...", { ...bookingDetails, clientId: user.uid });
+  const handleAuthSuccess = () => {
+    // After login/signup, redirect to the payment page with booking details
+    const params = new URLSearchParams();
+    params.set('pickup', bookingDetails.pickup);
+    params.set('dropoff', bookingDetails.dropoff);
+    bookingDetails.stops.forEach(s => params.append('stop', s));
+    if (bookingDetails.scheduledTime) {
+      params.set('scheduledTime', bookingDetails.scheduledTime.toISOString());
+    }
+    params.set('tierId', bookingDetails.tierId);
     
-    // Placeholder for actual reservation creation logic
-    // const reservationData = { ... };
-    // await addDoc(collection(db, 'reservations'), reservationData);
-    
-    toast({ title: "Succès", description: "Votre réservation est confirmée !" });
+    router.push(`/book/payment?${params.toString()}`);
     onOpenChange(false);
-    // Redirect to a confirmation or dashboard page
-    router.push('/dashboard/reservations'); 
   }
 
   async function onSignup(values: z.infer<typeof signupSchema>) {
@@ -126,7 +127,7 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
         sendEmail({ type: 'admin_new_user', to: { email: 'contact@missray-cab.com', name: 'Admin' }, params: { userType: 'Client', name: clientName, email: values.email }}),
       ]);
       
-      await handleReservationCreation({ uid: user.uid, name: clientName });
+      handleAuthSuccess();
 
     } catch (error: any) {
       toast({ variant: 'destructive', title: 'Erreur d\'inscription', description: error.code === 'auth/email-already-in-use' ? 'Cette adresse email est déjà utilisée.' : 'Une erreur est survenue.' });
@@ -138,12 +139,8 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
   async function onLogin(values: z.infer<typeof loginSchema>) {
     setIsLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
-      const user = userCredential.user;
-      
-      // We assume user doc exists. In a real app, you might fetch it to get the name.
-      await handleReservationCreation({ uid: user.uid, name: user.displayName || user.email! });
-
+      await signInWithEmailAndPassword(auth, values.email, values.password);
+      handleAuthSuccess();
     } catch (error: any) {
       toast({ variant: 'destructive', title: "Erreur de connexion", description: "Email ou mot de passe incorrect." });
     } finally {
@@ -210,4 +207,3 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
     </Dialog>
   );
 }
-    

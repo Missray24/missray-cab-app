@@ -1,0 +1,180 @@
+
+'use client';
+
+import { Suspense, useEffect, useState, useMemo } from 'react';
+import { useSearchParams, useRouter, notFound } from 'next/navigation';
+import { onAuthStateChanged, type User } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
+import { CheckCircle2, Car, MapPin, User as UserIcon, Calendar, Clock, DollarSign, Briefcase } from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import Link from 'next/link';
+
+import { LandingHeader } from '@/components/landing-header';
+import { LandingFooter } from '@/components/landing-footer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import { db, auth } from '@/lib/firebase';
+import type { Reservation, ServiceTier } from '@/lib/types';
+import { Badge } from '@/components/ui/badge';
+
+function ConfirmationComponent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const reservationId = useMemo(() => searchParams.get('id'), [searchParams]);
+
+  const [reservation, setReservation] = useState<Reservation | null>(null);
+  const [tier, setTier] = useState<ServiceTier | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser) {
+        router.push('/login');
+      } else {
+        setUser(currentUser);
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
+
+  useEffect(() => {
+    if (!reservationId) {
+      notFound();
+      return;
+    }
+    
+    const fetchReservation = async () => {
+      setLoading(true);
+      try {
+        const resDocRef = doc(db, "reservations", reservationId);
+        const resDocSnap = await getDoc(resDocRef);
+
+        if (resDocSnap.exists()) {
+          const resData = { id: resDocSnap.id, ...resDocSnap.data() } as Reservation;
+          setReservation(resData);
+          
+          if (resData.serviceTierId) {
+            const tierDocRef = doc(db, "serviceTiers", resData.serviceTierId);
+            const tierDocSnap = await getDoc(tierDocRef);
+            if (tierDocSnap.exists()) {
+              setTier({ id: tierDocSnap.id, ...tierDocSnap.data() } as ServiceTier);
+            }
+          }
+        } else {
+          notFound();
+        }
+      } catch (error) {
+        console.error("Error fetching reservation details: ", error);
+        notFound();
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchReservation();
+  }, [reservationId]);
+
+  if (loading || !reservation || !tier) {
+    return (
+        <div className="flex flex-col min-h-dvh bg-muted/40">
+            <LandingHeader />
+            <main className="flex-1 py-12 md:py-24"><div className="container max-w-2xl"><Skeleton className="h-96 w-full" /></div></main>
+            <LandingFooter />
+        </div>
+    );
+  }
+
+  const reservationDate = new Date(reservation.date);
+
+  return (
+    <div className="flex flex-col min-h-dvh bg-muted/40">
+      <LandingHeader />
+      <main className="flex-1 py-12 md:py-24">
+        <div className="container max-w-2xl">
+          <Card>
+            <CardHeader className="text-center items-center">
+              <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
+              <CardTitle className="text-3xl font-headline">Réservation Confirmée !</CardTitle>
+              <CardDescription>
+                Votre course est enregistrée. Vous recevrez des notifications sur son statut.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="bg-muted p-4 rounded-lg space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">ID de la réservation</span>
+                    <Badge variant="secondary">{reservation.id.substring(0, 8).toUpperCase()}</Badge>
+                  </div>
+                   <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Statut</span>
+                    <Badge>{reservation.status}</Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Détails de la course</h3>
+                    <div className="flex items-center gap-3">
+                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                        <p>{format(reservationDate, "EEEE d MMMM yyyy", { locale: fr })}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Clock className="h-5 w-5 text-muted-foreground" />
+                        <p>{format(reservationDate, "HH:mm", { locale: fr })}</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <MapPin className="h-5 w-5 mt-0.5 text-green-500" />
+                        <p className="font-medium">{reservation.pickup}</p>
+                    </div>
+                    <div className="flex items-start gap-3">
+                        <MapPin className="h-5 w-5 mt-0.5 text-red-500" />
+                        <p className="font-medium">{reservation.dropoff}</p>
+                    </div>
+                </div>
+
+                <Separator />
+                
+                <div className="space-y-4">
+                    <h3 className="font-semibold text-lg">Véhicule et Paiement</h3>
+                     <div className="flex items-center gap-3">
+                        <Car className="h-5 w-5 text-muted-foreground" />
+                        <p>{tier.name}</p>
+                    </div>
+                     <div className="flex items-center gap-3">
+                        <UserIcon className="h-5 w-5 text-muted-foreground" />
+                        <p>{tier.capacity.passengers} passagers</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Briefcase className="h-5 w-5 text-muted-foreground" />
+                        <p>{tier.capacity.suitcases} valises</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <DollarSign className="h-5 w-5 text-muted-foreground" />
+                        <p>{reservation.amount.toFixed(2)}€ ({reservation.paymentMethod})</p>
+                    </div>
+                </div>
+
+                <Separator />
+                <Button asChild className="w-full" size="lg">
+                    <Link href="/dashboard/reservations">Voir mes réservations</Link>
+                </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </main>
+      <LandingFooter />
+    </div>
+  );
+}
+
+export default function ConfirmationPage() {
+    return (
+        <Suspense fallback={<div>Chargement de la confirmation...</div>}>
+            <ConfirmationComponent />
+        </Suspense>
+    );
+}
+
