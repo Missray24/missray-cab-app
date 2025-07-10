@@ -8,6 +8,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
+import { ArrowRight, MapPin, Euro } from 'lucide-react';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
@@ -74,8 +75,8 @@ function MyBookingsComponent() {
             <LandingHeader />
             <main className="flex-1 container py-12">
               <PageHeader title="Mes Courses" />
-              <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}
+              <div className="mt-8 grid gap-4 md:grid-cols-1">
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
               </div>
             </main>
             <LandingFooter />
@@ -89,19 +90,25 @@ function MyBookingsComponent() {
       <main className="flex-1 container py-12">
         <PageHeader title="Mes Courses" />
         {reservations.length > 0 ? (
-           <div className="mt-8 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+           <div className="mt-8 grid gap-4 md:grid-cols-1">
             {reservations.map((res) => (
-              <Card key={res.id} className="flex flex-col">
-                <CardHeader>
-                  <div className="flex justify-between items-start">
+              <Card key={res.id}>
+                <CardContent className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                  <div className="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm w-full">
                     <div className="flex flex-col">
-                      <div className="flex items-baseline gap-2">
-                          <CardTitle className="text-lg">
-                            Course du {format(new Date(res.date), "d MMMM yyyy", { locale: fr })}
-                          </CardTitle>
-                          <CardDescription>ID: {res.id.substring(0, 8)}...</CardDescription>
-                      </div>
+                        <p className="font-semibold text-base">{format(new Date(res.date), "d MMMM yyyy", { locale: fr })}</p>
+                        <p className="text-xs text-muted-foreground">ID: {res.id.substring(0,8)}...</p>
                     </div>
+                    <div className="flex flex-col sm:items-center text-left sm:text-center">
+                       <p className="font-semibold truncate w-full">{res.pickup}</p>
+                       <p className="font-semibold text-muted-foreground truncate w-full">vers {res.dropoff}</p>
+                    </div>
+                    <div className="flex flex-col sm:items-end text-left sm:text-right">
+                       <p className="font-bold text-lg">{res.amount.toFixed(2)}€</p>
+                       <p className="text-xs text-muted-foreground">{res.paymentMethod}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 w-full md:w-auto flex-shrink-0">
                     <Badge
                       variant={
                         res.status === 'Terminée' ? 'default'
@@ -112,18 +119,13 @@ function MyBookingsComponent() {
                     >
                       {res.status}
                     </Badge>
+                     <Button asChild variant="outline" size="sm">
+                       <Link href={`/book/confirmation?id=${res.id}`}>
+                         Détails <ArrowRight className="ml-2 h-4 w-4"/>
+                       </Link>
+                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm flex-grow">
-                  <p><span className="font-semibold">Départ:</span> {res.pickup}</p>
-                  <p><span className="font-semibold">Arrivée:</span> {res.dropoff}</p>
-                  <p><span className="font-semibold">Prix:</span> {res.amount.toFixed(2)}€ ({res.paymentMethod})</p>
                 </CardContent>
-                <CardFooter>
-                  <Button asChild className="w-full" variant="outline">
-                    <Link href={`/book/confirmation?id=${res.id}`}>Voir les détails</Link>
-                  </Button>
-                </CardFooter>
               </Card>
             ))}
           </div>
