@@ -182,7 +182,7 @@ function VehicleSelectionComponent() {
                         <CardHeader>
                             <div className="flex justify-between items-center">
                                <CardTitle>Résumé de votre course</CardTitle>
-                               <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+                               <Button size="sm" onClick={() => setIsEditing(true)}>
                                    <Edit className="mr-2 h-4 w-4" />
                                    Modifier le trajet
                                </Button>
