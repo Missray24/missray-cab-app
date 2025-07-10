@@ -8,12 +8,13 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
-import { ArrowRight, MapPin, Euro } from 'lucide-react';
+import Image from 'next/image';
+import { ArrowRight } from 'lucide-react';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { db, auth } from '@/lib/firebase';
 import type { Reservation } from '@/lib/types';
@@ -42,7 +43,6 @@ function MyBookingsComponent() {
             const clientDocId = userSnapshot.docs[0].id;
             
             const reservationsRef = collection(db, "reservations");
-            // Query without server-side ordering to avoid needing a composite index
             const q = query(
               reservationsRef, 
               where("clientId", "==", clientDocId)
@@ -54,7 +54,6 @@ function MyBookingsComponent() {
               ...doc.data(),
             })) as Reservation[];
             
-            // Sort the reservations on the client-side
             userReservations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
             setReservations(userReservations);
@@ -76,7 +75,7 @@ function MyBookingsComponent() {
             <main className="flex-1 container py-12">
               <PageHeader title="Mes Courses" />
               <div className="mt-8 grid gap-4 md:grid-cols-1">
-                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}
               </div>
             </main>
             <LandingFooter />
@@ -93,7 +92,19 @@ function MyBookingsComponent() {
            <div className="mt-8 grid gap-4 md:grid-cols-1">
             {reservations.map((res) => (
               <Card key={res.id}>
-                <CardContent className="p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <CardContent className="p-4 flex flex-col md:flex-row items-center justify-between gap-6">
+                   <div className="w-full md:w-32 lg:w-40 flex-shrink-0">
+                      <div className="aspect-square rounded-md overflow-hidden border">
+                          <Image
+                            src="https://placehold.co/400x400.png"
+                            alt="Map of the ride"
+                            data-ai-hint="street map"
+                            width={400}
+                            height={400}
+                            className="h-full w-full object-cover"
+                          />
+                      </div>
+                    </div>
                   <div className="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm w-full">
                     <div className="flex flex-col">
                         <p className="font-semibold text-base">{format(new Date(res.date), "d MMMM yyyy", { locale: fr })}</p>
