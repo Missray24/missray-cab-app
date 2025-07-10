@@ -94,7 +94,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
         placeholder="Adresse de départ"
         onPlaceSelected={(address) => setPickupAddress(address)}
         defaultValue={pickupAddress}
-        className="h-9 text-base"
+        className="h-9 text-base bg-white"
       />
       
       {stops.map((stop, index) => (
@@ -104,7 +104,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
             placeholder={`Arrêt ${index + 1}`}
             onPlaceSelected={(address) => handleStopChange(stop.id, address)}
             defaultValue={stop.address}
-            className="h-9 text-base"
+            className="h-9 text-base bg-white"
            />
            <Button size="icon" variant="ghost" aria-label="Supprimer l'arrêt" className="h-9 w-9 shrink-0" onClick={() => handleRemoveStop(stop.id)}>
               <X className="h-5 w-5 text-muted-foreground hover:text-destructive" />
@@ -119,7 +119,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
             placeholder="Adresse d'arrivée"
             onPlaceSelected={(address) => setDropoffAddress(address)}
             defaultValue={dropoffAddress}
-            className="h-9 text-base"
+            className="h-9 text-base bg-white"
            />
         </div>
         <Button size="icon" aria-label="Ajouter un arrêt" className="h-9 w-9 shrink-0" onClick={handleAddStop} disabled={stops.length >= 4}>
