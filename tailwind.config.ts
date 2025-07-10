@@ -90,12 +90,17 @@ export default {
         'icon-pulse': {
             '0%, 100%': { opacity: '1' },
             '50%': { opacity: '0.5' },
+        },
+        'drive-by': {
+            '0%': { transform: 'translateX(-100vw)' },
+            '100%': { transform: 'translateX(100vw)' },
         }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'icon-pulse': 'icon-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'drive-by': 'drive-by 15s linear infinite',
       },
     },
   },
