@@ -154,7 +154,14 @@ export default function LandingPage() {
                 serviceTiers.map((tier) => (
                   <Card key={tier.id} className="flex flex-col">
                     <CardHeader className="flex-grow">
-                      <div className="aspect-video w-full rounded-md overflow-hidden border mb-4">
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="font-headline">{tier.name}</CardTitle>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity?.passengers || 4}</div>
+                          <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity?.suitcases || 2}</div>
+                        </div>
+                      </div>
+                      <div className="aspect-video w-full rounded-md overflow-hidden border mb-4 mt-2">
                         <Image
                           src={tier.photoUrl}
                           alt={`Photo de ${tier.name}`}
@@ -164,20 +171,8 @@ export default function LandingPage() {
                           className="h-full w-full object-cover"
                         />
                       </div>
-                      <div className="flex justify-between items-center">
-                        <CardTitle className="font-headline">{tier.name}</CardTitle>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity?.passengers || 4}</div>
-                          <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity?.suitcases || 2}</div>
-                        </div>
-                      </div>
                       <CardDescription className="mt-1">{tier.description}</CardDescription>
                     </CardHeader>
-                    <CardContent>
-                      <Button className="w-full" asChild>
-                          <Link href="/signup">Choisir cette gamme</Link>
-                      </Button>
-                    </CardContent>
                   </Card>
                 ))
               )}
