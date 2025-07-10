@@ -22,6 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
 
 
 export default function LandingPage() {
@@ -134,36 +135,39 @@ export default function LandingPage() {
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button size="lg" className="flex-1 h-9 text-base">
-                          Voir les véhicules
-                        </Button>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" size="icon" aria-label="Programmer une course" className="h-9 w-9 shrink-0">
-                                <CalendarIcon className="h-5 w-5" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-4" align="start">
-                                <Label>Date de la course</Label>
-                                <Calendar
-                                    mode="single"
-                                    selected={scheduledDateTime ?? undefined}
-                                    onSelect={(day) => handleDateTimeChange(day, scheduledDateTime ? format(scheduledDateTime, 'HH:mm') : '12:00')}
-                                    initialFocus
-                                    locale={fr}
-                                />
-                                <div className="mt-2">
-                                  <Label htmlFor="time-picker">Heure de départ</Label>
-                                  <Input 
-                                      id="time-picker"
-                                      type="time" 
-                                      defaultValue={scheduledDateTime ? format(scheduledDateTime, 'HH:mm') : '12:00'}
-                                      onChange={(e) => handleDateTimeChange(scheduledDateTime, e.target.value)}
-                                      className="mt-1"
-                                  />
-                                </div>
-                            </PopoverContent>
-                        </Popover>
+                         <div className="relative inline-flex h-9 w-full">
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="default" className="rounded-r-none h-full pl-3 pr-2">
+                                        <CalendarIcon className="h-5 w-5" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-4" align="start">
+                                    <Label>Date de la course</Label>
+                                    <Calendar
+                                        mode="single"
+                                        selected={scheduledDateTime ?? undefined}
+                                        onSelect={(day) => handleDateTimeChange(day, scheduledDateTime ? format(scheduledDateTime, 'HH:mm') : '12:00')}
+                                        initialFocus
+                                        locale={fr}
+                                    />
+                                    <div className="mt-2">
+                                      <Label htmlFor="time-picker">Heure de départ</Label>
+                                      <Input 
+                                          id="time-picker"
+                                          type="time" 
+                                          defaultValue={scheduledDateTime ? format(scheduledDateTime, 'HH:mm') : '12:00'}
+                                          onChange={(e) => handleDateTimeChange(scheduledDateTime, e.target.value)}
+                                          className="mt-1"
+                                      />
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                             <Separator orientation="vertical" className="h-full w-px bg-white/20" />
+                            <Button size="lg" className="flex-1 h-full text-base rounded-l-none">
+                              Voir les véhicules
+                            </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
