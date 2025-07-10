@@ -141,7 +141,7 @@ function ConfirmationComponent() {
                 <div className="space-y-4">
                     <h3 className="font-semibold text-lg">Véhicule et Paiement</h3>
                      <div className="flex items-center gap-3">
-                        <Image src={tier.photoUrl} alt={tier.name} width={40} height={40} className="rounded-md object-cover w-16 h-10" />
+                        <Image src={tier.photoUrl} alt={tier.name} width={40} height={40} className="rounded-md object-contain w-16 h-10" />
                         <p className="font-semibold">{tier.name}</p>
                     </div>
                     {tier.capacity?.passengers && (
