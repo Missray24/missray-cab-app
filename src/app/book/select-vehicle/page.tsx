@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info } from 'lucide-react';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
@@ -19,6 +19,12 @@ import { db } from '@/lib/firebase';
 import type { ServiceTier } from '@/lib/types';
 import { RouteMap } from '@/components/route-map';
 import { Separator } from '@/components/ui/separator';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 
 function VehicleSelectionComponent() {
   const searchParams = useSearchParams();
@@ -149,9 +155,21 @@ function VehicleSelectionComponent() {
                       </div>
                       <div className="flex-1 flex flex-col">
                          <CardHeader>
-                            <div className="flex items-baseline gap-4">
+                            <div className="flex items-baseline justify-between gap-4">
                                 <CardTitle className="font-headline flex-grow">{tier.name}</CardTitle>
-                                <span className="font-bold text-lg text-foreground whitespace-nowrap">Estimation: {tier.minimumPrice.toFixed(2)}€</span>
+                                 <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <span className="font-bold text-lg text-foreground whitespace-nowrap flex items-center gap-1.5 cursor-help">
+                                                <Info className="h-4 w-4 text-muted-foreground" />
+                                                Estimation: {tier.minimumPrice.toFixed(2)}€
+                                            </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Le prix final peut varier en fonction du trafic et des arrêts.</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                 </TooltipProvider>
                             </div>
                             <CardDescription>{tier.description}</CardDescription>
                          </CardHeader>
