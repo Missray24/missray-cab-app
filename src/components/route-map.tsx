@@ -11,6 +11,7 @@ interface RouteMapProps {
   dropoff: string;
   stops?: string[];
   onRouteInfoFetched?: (info: { distance: string; duration: string }) => void;
+  isInteractive?: boolean;
 }
 
 const libraries = ['places'];
@@ -25,13 +26,20 @@ const createNumberedIcon = (number: number) => {
     };
 };
 
-export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched }: RouteMapProps) {
+export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isInteractive = true }: RouteMapProps) {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: libraries as any,
   });
 
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  
+  const mapOptions = isInteractive ? {} : {
+    disableDefaultUI: true,
+    gestureHandling: 'none',
+    zoomControl: false,
+  };
+
 
   useEffect(() => {
     if (!isLoaded || !pickup || !dropoff) return;
@@ -39,7 +47,7 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched }: Ro
     const directionsService = new google.maps.DirectionsService();
 
     const waypoints = stops
-        .filter(stop => stop.trim() !== '')
+        .filter(stop => stop && stop.trim() !== '')
         .map(stop => ({ location: stop, stopover: true }));
 
     directionsService.route(
@@ -94,7 +102,7 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched }: Ro
   };
 
   return (
-    <GoogleMap mapContainerStyle={mapContainerStyle} center={center} zoom={12}>
+    <GoogleMap mapContainerStyle={mapContainerStyle} center={center} zoom={12} options={mapOptions}>
       {directions && (
         <>
           <DirectionsRenderer

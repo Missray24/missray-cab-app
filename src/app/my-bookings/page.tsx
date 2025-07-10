@@ -100,6 +100,7 @@ function MyBookingsComponent() {
                             pickup={res.pickup}
                             dropoff={res.dropoff}
                             stops={res.stops}
+                            isInteractive={false}
                           />
                       </div>
                     </div>
