@@ -151,7 +151,7 @@ function VehicleSelectionComponent() {
                          <CardHeader>
                             <div className="flex items-baseline gap-4">
                                 <CardTitle className="font-headline flex-grow">{tier.name}</CardTitle>
-                                <span className="font-bold text-lg text-foreground whitespace-nowrap">prix: {tier.minimumPrice.toFixed(2)}€</span>
+                                <span className="font-bold text-lg text-foreground whitespace-nowrap">Estimation: {tier.minimumPrice.toFixed(2)}€</span>
                             </div>
                             <CardDescription>{tier.description}</CardDescription>
                          </CardHeader>
