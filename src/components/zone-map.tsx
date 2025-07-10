@@ -15,23 +15,6 @@ const center = {
   lng: 2.3522,
 };
 
-const drawingManagerOptions = {
-  drawingControl: true,
-  drawingControlOptions: {
-    position: google.maps.ControlPosition.TOP_CENTER,
-    drawingModes: [google.maps.drawing.OverlayType.POLYGON],
-  },
-  polygonOptions: {
-    fillColor: '#4A90E2',
-    fillOpacity: 0.3,
-    strokeWeight: 2,
-    strokeColor: '#4A90E2',
-    clickable: true,
-    editable: true,
-    zIndex: 1,
-  },
-};
-
 interface ZoneMapProps {
   polygonPath: { lat: number; lng: number }[];
   onPolygonComplete: (path: { lat: number; lng: number }[]) => void;
@@ -41,6 +24,23 @@ interface ZoneMapProps {
 export function ZoneMap({ polygonPath, onPolygonComplete, isLoaded }: ZoneMapProps) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const polygonRef = useRef<google.maps.Polygon | null>(null);
+
+  const drawingManagerOptions: google.maps.drawing.DrawingManagerOptions | null = isLoaded ? {
+    drawingControl: true,
+    drawingControlOptions: {
+      position: google.maps.ControlPosition.TOP_CENTER,
+      drawingModes: [google.maps.drawing.OverlayType.POLYGON],
+    },
+    polygonOptions: {
+      fillColor: '#4A90E2',
+      fillOpacity: 0.3,
+      strokeWeight: 2,
+      strokeColor: '#4A90E2',
+      clickable: true,
+      editable: true,
+      zIndex: 1,
+    },
+  } : null;
 
   const onMapLoad = useCallback((mapInstance: google.maps.Map) => {
     setMap(mapInstance);
@@ -90,11 +90,11 @@ export function ZoneMap({ polygonPath, onPolygonComplete, isLoaded }: ZoneMapPro
       zoom={10}
       onLoad={onMapLoad}
     >
-      <DrawingManager
+      {drawingManagerOptions && <DrawingManager
         onLoad={onDrawingManagerLoad}
         onPolygonComplete={handlePolygonComplete}
         options={drawingManagerOptions}
-      />
+      />}
       {polygonPath && polygonPath.length > 0 && (
          <Polygon
             paths={polygonPath}
