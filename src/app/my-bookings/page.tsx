@@ -94,11 +94,13 @@ function MyBookingsComponent() {
               <Card key={res.id} className="flex flex-col">
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-lg">
-                        Course du {format(new Date(res.date), "d MMMM yyyy", { locale: fr })}
-                      </CardTitle>
-                      <CardDescription>ID: {res.id.substring(0, 8)}...</CardDescription>
+                    <div className="flex flex-col">
+                      <div className="flex items-baseline gap-2">
+                          <CardTitle className="text-lg">
+                            Course du {format(new Date(res.date), "d MMMM yyyy", { locale: fr })}
+                          </CardTitle>
+                          <CardDescription>ID: {res.id.substring(0, 8)}...</CardDescription>
+                      </div>
                     </div>
                     <Badge
                       variant={
