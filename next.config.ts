@@ -21,7 +21,13 @@ const nextConfig: NextConfig = {
         hostname: 'flagcdn.com',
         port: '',
         pathname: '/**',
-      }
+      },
+      {
+        protocol: 'https',
+        hostname: 'firebasestorage.googleapis.com',
+        port: '',
+        pathname: '/**',
+      },
     ],
   },
 };
