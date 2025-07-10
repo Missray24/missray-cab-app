@@ -62,7 +62,7 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user }: Checkout
                     clientName: clientDoc.data().name,
                     driverId: '',
                     driverName: 'Non assigné',
-                    date: bookingDetails.scheduledTime ? bookingDetails.scheduledTime.toISOString() : new Date().toISOString(),
+                    date: (bookingDetails.scheduledTime || new Date()).toISOString(),
                     pickup: bookingDetails.pickup,
                     dropoff: bookingDetails.dropoff,
                     stops: bookingDetails.stops,
