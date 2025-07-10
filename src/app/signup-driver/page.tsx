@@ -234,147 +234,149 @@ export default function SignupDriverPage() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className={cn(step !== 1 && 'hidden')}>
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="firstName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Prénom</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Jean" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="lastName"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Nom</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Dupont" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="mt-4 flex flex-col gap-1.5">
-                  <FormField
-                    control={form.control}
-                    name="phone"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Numéro de téléphone</FormLabel>
-                        <FormControl>
-                          <IntlTelInput
-                            ref={phoneInputRef}
-                            value={field.value}
-                            onChange={(value) => {
-                              field.onChange(value);
-                              form.trigger('phone');
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem className="mt-4">
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="email"
-                          placeholder="jean.dupont@email.com"
-                          {...field}
+                <div className="space-y-4">
+                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <FormField
+                            control={form.control}
+                            name="firstName"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Prénom</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Jean" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                            )}
                         />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem className="mt-4">
-                      <FormLabel>Mot de passe</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showPassword ? 'text' : 'password'}
-                            placeholder="********"
-                            {...field}
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowPassword(!showPassword)}
-                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
-                            aria-label={
-                              showPassword ? 'Hide password' : 'Show password'
-                            }
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
+                        <FormField
+                            control={form.control}
+                            name="lastName"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Nom</FormLabel>
+                                <FormControl>
+                                <Input placeholder="Dupont" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
                             )}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        />
+                    </div>
 
-                <FormField
-                  control={form.control}
-                  name="confirmPassword"
-                  render={({ field }) => (
-                    <FormItem className="mt-4">
-                      <FormLabel>Confirmer le mot de passe</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <Input
-                            type={showConfirmPassword ? 'text' : 'password'}
-                            placeholder="********"
-                            {...field}
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
-                            aria-label={
-                              showConfirmPassword
-                                ? 'Hide password'
-                                : 'Show password'
-                            }
-                          >
-                            {showConfirmPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
+                    <div className="md:col-span-2">
+                        <FormField
+                            control={form.control}
+                            name="phone"
+                            render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Numéro de téléphone</FormLabel>
+                                <FormControl>
+                                <IntlTelInput
+                                    ref={phoneInputRef}
+                                    value={field.value}
+                                    onChange={(value) => {
+                                    field.onChange(value);
+                                    form.trigger('phone');
+                                    }}
+                                />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
                             )}
-                          </button>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                        />
+                    </div>
+                    
+                    <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                            <Input
+                            type="email"
+                            placeholder="jean.dupont@email.com"
+                            {...field}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+
+                    <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Mot de passe</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                            <Input
+                                type={showPassword ? 'text' : 'password'}
+                                placeholder="********"
+                                {...field}
+                            />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                                aria-label={
+                                showPassword ? 'Hide password' : 'Show password'
+                                }
+                            >
+                                {showPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                                ) : (
+                                <Eye className="h-4 w-4" />
+                                )}
+                            </button>
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+
+                    <FormField
+                    control={form.control}
+                    name="confirmPassword"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Confirmer le mot de passe</FormLabel>
+                        <FormControl>
+                            <div className="relative">
+                            <Input
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                placeholder="********"
+                                {...field}
+                            />
+                            <button
+                                type="button"
+                                onClick={() =>
+                                setShowConfirmPassword(!showConfirmPassword)
+                                }
+                                className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
+                                aria-label={
+                                showConfirmPassword
+                                    ? 'Hide password'
+                                    : 'Show password'
+                                }
+                            >
+                                {showConfirmPassword ? (
+                                <EyeOff className="h-4 w-4" />
+                                ) : (
+                                <Eye className="h-4 w-4" />
+                                )}
+                            </button>
+                            </div>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </div>
               </div>
 
               <div className={cn(step !== 2 && 'hidden')}>

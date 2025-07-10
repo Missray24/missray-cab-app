@@ -427,7 +427,7 @@ export default function DriversPage() {
                   <Label htmlFor="email">Email</Label>
                   <Input id="email" type="email" value={editFormData.email} onChange={handleEditFormChange} />
                 </div>
-                <div className="flex flex-col gap-1.5">
+                <div className="space-y-2">
                   <Label>Numéro de téléphone</Label>
                   <IntlTelInput
                     ref={phoneInputRef}

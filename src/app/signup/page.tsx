@@ -182,28 +182,26 @@ export default function SignupPage() {
                 />
               </div>
 
-              <div className="flex flex-col gap-1.5">
-                <FormField
-                  control={form.control}
-                  name="phone"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Numéro de téléphone</FormLabel>
-                      <FormControl>
-                        <IntlTelInput
-                          ref={phoneInputRef}
-                          value={field.value}
-                          onChange={(value) => {
-                            field.onChange(value);
-                            form.trigger('phone');
-                          }}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Numéro de téléphone</FormLabel>
+                    <FormControl>
+                      <IntlTelInput
+                        ref={phoneInputRef}
+                        value={field.value}
+                        onChange={(value) => {
+                          field.onChange(value);
+                          form.trigger('phone');
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
