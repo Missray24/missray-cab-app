@@ -226,7 +226,7 @@ export default function LandingPage() {
         </section>
         
         {/* Why Choose Us Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted/40">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
             <div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
                 <div className="space-y-2">
                     <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight font-headline">L'excellence, notre standard.</h2>
