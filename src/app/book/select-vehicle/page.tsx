@@ -17,6 +17,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { db } from '@/lib/firebase';
 import type { ServiceTier } from '@/lib/types';
+import { RouteMap } from '@/components/route-map';
 
 function VehicleSelectionComponent() {
   const searchParams = useSearchParams();
@@ -114,6 +115,18 @@ function VehicleSelectionComponent() {
                         <Button variant="outline" className="w-full" onClick={() => router.push('/')}>
                             Modifier le trajet
                         </Button>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Carte du Trajet</CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-80 p-0 rounded-b-lg overflow-hidden">
+                       <RouteMap 
+                          pickup={pickup || ''}
+                          dropoff={dropoff || ''}
+                          stops={stops}
+                       />
                     </CardContent>
                 </Card>
             </div>
