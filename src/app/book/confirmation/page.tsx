@@ -112,7 +112,7 @@ function ConfirmationComponent() {
                   </div>
                    <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Statut</span>
-                    <Badge>{reservation.status}</Badge>
+                    <Badge className="bg-gradient-to-r from-[#223aff] to-[#1697ff] text-primary-foreground">{reservation.status}</Badge>
                   </div>
                 </div>
 
