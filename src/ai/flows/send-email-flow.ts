@@ -203,7 +203,7 @@ const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
   }
 };
 
-const getAdminNotificationContent = (userType: 'Client' | 'Chauffeur', params: Record<string, any> = {}) => {
+const getAdminUserNotificationContent = (userType: 'Client' | 'Chauffeur', params: Record<string, any> = {}) => {
     return {
         subject: `Nouvel utilisateur inscrit: ${userType}`,
         html: `
@@ -212,6 +212,25 @@ const getAdminNotificationContent = (userType: 'Client' | 'Chauffeur', params: R
             <li><strong>Type:</strong> ${userType}</li>
             <li><strong>Nom:</strong> ${params.name}</li>
             <li><strong>Email:</strong> ${params.email}</li>
+          </ul>
+        `,
+    };
+};
+
+const getAdminReservationNotificationContent = (params: Record<string, any> = {}) => {
+    return {
+        subject: `Nouvelle réservation reçue (n°${params.reservationId || ''})`,
+        html: `
+          <h1>Nouvelle réservation</h1>
+          <p>Une nouvelle course vient d'être réservée sur la plateforme.</p>
+          <h2>Détails:</h2>
+          <ul>
+            <li><strong>Client:</strong> ${params.clientName || 'N/A'}</li>
+            <li><strong>Date:</strong> ${params.date || 'N/A'}</li>
+            <li><strong>Départ:</strong> ${params.pickup || 'N/A'}</li>
+            <li><strong>Arrivée:</strong> ${params.dropoff || 'N/A'}</li>
+            <li><strong>Gamme:</strong> ${params.tierName || 'N/A'}</li>
+            <li><strong>Montant:</strong> ${params.amount ? `${params.amount.toFixed(2)}€` : 'N/A'} (${params.paymentMethod || 'N/A'})</li>
           </ul>
         `,
     };
@@ -254,27 +273,37 @@ const sendEmailFlow = ai.defineFlow(
       console.error(`Error sending email to ${input.to.email}:`, error);
       // We don't return here if it's a welcome email, so we still attempt to send the admin email.
       // If it's another type of email, we should return failure.
-      if (input.type !== 'new_client_welcome' && input.type !== 'new_driver_welcome') {
+      if (input.type !== 'new_client_welcome' && input.type !== 'new_driver_welcome' && input.type !== 'new_reservation_client') {
           return { success: false };
       }
     }
     
-    // 2. Send notification email to the admin for new users only
+    // 2. Send notification email to the admin for new users or new reservations
+    let shouldSendAdminEmail = false;
+    let adminEmailContent: { subject: string; html: string; };
+
     if (input.type === 'new_client_welcome' || input.type === 'new_driver_welcome') {
       const userType = input.type === 'new_client_welcome' ? 'Client' : 'Chauffeur';
-      const adminEmailContent = getAdminNotificationContent(userType, { name: input.to.name, email: input.to.email });
+      adminEmailContent = getAdminUserNotificationContent(userType, { name: input.to.name, email: input.to.email });
+      shouldSendAdminEmail = true;
+    } else if (input.type === 'new_reservation_client') {
+      adminEmailContent = getAdminReservationNotificationContent(input.params);
+      shouldSendAdminEmail = true;
+    }
+    
+    if (shouldSendAdminEmail) {
       const adminMailOptions = {
           from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
           to: `"${'Admin'}" <${ADMIN_EMAIL}>`,
-          subject: adminEmailContent.subject,
-          html: adminEmailContent.html,
+          subject: adminEmailContent!.subject,
+          html: adminEmailContent!.html,
       };
 
       try {
           const info = await transporter.sendMail(adminMailOptions);
-          console.log(`Nodemailer sent admin notification. Message ID: ${info.messageId}`);
+          console.log(`Nodemailer sent admin notification for '${input.type}'. Message ID: ${info.messageId}`);
       } catch (error: any) {
-          console.error('Error sending admin notification email:', error);
+          console.error(`Error sending admin notification email for '${input.type}':`, error);
           // If the user email failed, this will also result in a failure.
           if (!userEmailSuccess) {
               return { success: false };
@@ -286,3 +315,5 @@ const sendEmailFlow = ai.defineFlow(
     return { success: userEmailSuccess, messageId: finalMessageId };
   }
 );
+
+    
