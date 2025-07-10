@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Car, Star, CheckCircle, Smartphone, CreditCard } from 'lucide-react';
+import { Car, Star, CheckCircle, Smartphone, CreditCard, Users, Briefcase } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
@@ -152,8 +152,8 @@ export default function LandingPage() {
                 ))
               ) : (
                 serviceTiers.map((tier) => (
-                  <Card key={tier.id}>
-                    <CardHeader>
+                  <Card key={tier.id} className="flex flex-col">
+                    <CardHeader className="flex-grow">
                       <div className="aspect-video w-full rounded-md overflow-hidden border mb-4">
                         <Image
                           src={tier.photoUrl}
@@ -166,6 +166,10 @@ export default function LandingPage() {
                       </div>
                       <CardTitle className="font-headline">{tier.name}</CardTitle>
                       <CardDescription>{tier.description}</CardDescription>
+                       <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2 pt-2 border-t">
+                        <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {tier.capacity?.passengers || 4} passagers</div>
+                        <div className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" /> {tier.capacity?.suitcases || 2} valises</div>
+                      </div>
                     </CardHeader>
                     <CardContent>
                       <Button className="w-full" asChild>
