@@ -189,7 +189,7 @@ function VehicleSelectionComponent() {
                             </div>
                         </CardHeader>
                         <CardContent className="grid gap-6">
-                             <div className="h-64 rounded-lg overflow-hidden border">
+                             <div className="h-64 rounded-lg overflow-hidden">
                                <RouteMap 
                                   pickup={bookingDetails.pickup}
                                   dropoff={bookingDetails.dropoff}
@@ -357,5 +357,3 @@ export default function SelectVehiclePage() {
     </Suspense>
   )
 }
-
-    
