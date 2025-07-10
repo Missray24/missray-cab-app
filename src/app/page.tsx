@@ -11,15 +11,17 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
-import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { db } from '@/lib/firebase';
 import type { ServiceTier } from '@/lib/types';
+import { AutocompleteInput } from '@/components/autocomplete-input';
 
 
 export default function LandingPage() {
   const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pickupAddress, setPickupAddress] = useState('');
+  const [dropoffAddress, setDropoffAddress] = useState('');
 
   useEffect(() => {
     const fetchTiers = async () => {
@@ -61,14 +63,20 @@ export default function LandingPage() {
                 <div className="p-0.5 bg-gradient-to-br from-primary to-[#1697ff] rounded-xl w-full max-w-md">
                   <div className="bg-white p-6 rounded-lg shadow-lg w-full">
                     <div className="space-y-4">
-                      <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500 animate-icon-pulse" />
-                        <Input type="text" placeholder="Adresse de départ" className="pl-10 h-9 text-base" />
-                      </div>
+                      <AutocompleteInput
+                        icon={<MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500 animate-icon-pulse" />}
+                        placeholder="Adresse de départ"
+                        onPlaceSelected={(address) => setPickupAddress(address)}
+                        className="h-9 text-base"
+                      />
                       <div className="flex items-center gap-2">
                         <div className="relative flex-1">
-                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
-                          <Input type="text" placeholder="Adresse d'arrivée" className="pl-10 h-9 text-base w-full" />
+                           <AutocompleteInput
+                            icon={<MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />}
+                            placeholder="Adresse d'arrivée"
+                            onPlaceSelected={(address) => setDropoffAddress(address)}
+                            className="h-9 text-base"
+                           />
                         </div>
                         <Button size="icon" aria-label="Ajouter un arrêt" className="h-9 w-9 shrink-0">
                           <Plus className="h-5 w-5" />
