@@ -157,7 +157,7 @@ function ConfirmationComponent() {
                       </div>
                     )}
                     <div className="flex items-center gap-3">
-                        <DollarSign className="h-5 w-5 text-muted-foreground" />
+                        <span className="text-sm w-12 text-muted-foreground">Paiement</span>
                         <p>{reservation.amount.toFixed(2)}€ ({reservation.paymentMethod})</p>
                     </div>
                 </div>
