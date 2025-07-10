@@ -332,8 +332,15 @@ export default function LandingPage() {
         </section>
 
         {/* Final CTA Section */}
-        <section className="w-full py-12 md:py-16 lg:py-20 bg-white">
-          <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
+        <section className="w-full py-12 md:py-16 lg:py-20 bg-white overflow-x-hidden">
+          <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6 relative">
+            <Image
+              src="https://firebasestorage.googleapis.com/v0/b/missray-cab-kb0il.firebasestorage.app/o/service-tiers%2Fcreer_un_logo_pour_Missray_cab_en_3d-removebg-preview.png?alt=media&token=f4e20538-d03c-4dcb-9bc2-c5f400d514ed"
+              alt="Animated car"
+              width={200}
+              height={100}
+              className="absolute left-0 top-1/2 -translate-y-1/2 h-auto w-32 md:w-48 object-contain animate-drive-by"
+            />
             <div className="space-y-3">
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight font-headline">Prêt à partir ?</h2>
               <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
