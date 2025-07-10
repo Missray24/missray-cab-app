@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { collection, doc, getDoc, query, where, getDocs, addDoc } from 'firebase/firestore';
-import { CreditCard, Landmark, Car, MapPin, DollarSign } from 'lucide-react';
+import { CreditCard, Landmark, Car, MapPin, DollarSign, Calendar, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -35,11 +35,12 @@ function PaymentComponent() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('Carte');
 
   const bookingDetails = useMemo(() => {
-    const pickup = searchParams.get('pickup');
-    const dropoff = searchParams.get('dropoff');
-    const stops = searchParams.getAll('stop');
-    const scheduledTime = searchParams.get('scheduledTime');
-    const tierId = searchParams.get('tierId');
+    const params = new URLSearchParams(searchParams.toString());
+    const pickup = params.get('pickup');
+    const dropoff = params.get('dropoff');
+    const stops = params.getAll('stop');
+    const scheduledTime = params.get('scheduledTime');
+    const tierId = params.get('tierId');
 
     if (!pickup || !dropoff || !tierId) return null;
 
@@ -141,10 +142,6 @@ function PaymentComponent() {
         </div>
     );
   }
-  
-  const scheduledTimeFormatted = bookingDetails.scheduledTime 
-      ? format(bookingDetails.scheduledTime, "dd MMM yyyy 'à' HH:mm", { locale: fr })
-      : null;
 
   return (
     <div className="flex flex-col min-h-dvh bg-muted/40">
@@ -159,17 +156,31 @@ function PaymentComponent() {
             <CardContent className="space-y-6">
                 <div className="border rounded-lg p-4 space-y-4">
                     <h3 className="font-semibold text-lg">Résumé de la course</h3>
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-3 text-sm">
+                        {bookingDetails.scheduledTime && (
+                             <div className="flex items-center gap-3">
+                                <Calendar className="h-4 w-4 text-muted-foreground" />
+                                <p>{format(bookingDetails.scheduledTime, "EEEE d MMMM yyyy", { locale: fr })}</p>
+                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <p>{format(bookingDetails.scheduledTime, "HH:mm", { locale: fr })}</p>
+                            </div>
+                        )}
                         <div className="flex items-center gap-3">
                             <Car className="h-4 w-4 text-muted-foreground" />
                             <p>{tier.name}</p>
                         </div>
+                        <Separator />
                         <div className="flex items-start gap-3">
                             <MapPin className="h-4 w-4 mt-0.5 text-green-500" />
                             <p className="font-medium">{bookingDetails.pickup}</p>
                         </div>
                         {bookingDetails.stops.map((stop, i) => (
-                            <p key={i} className="pl-7 text-sm text-muted-foreground">{stop}</p>
+                            <div key={i} className="flex items-center gap-3 pl-1">
+                                <div className="flex items-center justify-center h-4 w-4 rounded-full bg-muted text-muted-foreground text-xs font-bold">
+                                    {i + 1}
+                                </div>
+                                <p className="text-sm text-muted-foreground">{stop}</p>
+                            </div>
                         ))}
                         <div className="flex items-start gap-3">
                             <MapPin className="h-4 w-4 mt-0.5 text-red-500" />
@@ -249,3 +260,5 @@ export default function PaymentPage() {
         </Suspense>
     );
 }
+
+    
