@@ -128,6 +128,14 @@ function ConfirmationComponent() {
                            <span className="font-bold text-foreground">Départ: </span>{reservation.pickup}
                         </p>
                     </div>
+                    {reservation.stops && reservation.stops.map((stop, index) => (
+                      <div key={index} className="flex items-start gap-3 pl-1">
+                          <MapPin className="h-5 w-5 mt-0.5 text-muted-foreground" />
+                          <p className="font-medium">
+                              <span className="font-bold text-foreground">Arrêt {index + 1}: </span>{stop}
+                          </p>
+                      </div>
+                    ))}
                     <div className="flex items-start gap-3">
                         <MapPin className="h-5 w-5 mt-0.5 text-red-500" />
                         <p className="font-medium">
