@@ -172,7 +172,7 @@ function MyBookingsComponent() {
                     >
                       {res.status}
                     </Badge>
-                     <Button asChild variant="outline" size="sm">
+                     <Button asChild variant="default" size="sm">
                        <Link href={`/book/confirmation?id=${res.id}`}>
                          Détails <ArrowRight className="ml-2 h-4 w-4"/>
                        </Link>
