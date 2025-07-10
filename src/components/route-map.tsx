@@ -10,6 +10,7 @@ interface RouteMapProps {
   pickup: string;
   dropoff: string;
   stops?: string[];
+  onRouteInfoFetched?: (info: { distance: string; duration: string }) => void;
 }
 
 const libraries = ['places'];
@@ -20,11 +21,11 @@ const center = { lat: 48.8566, lng: 2.3522 }; // Paris
 const createNumberedIcon = (number: number) => {
     return {
         url: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%237c3aed" stroke="white" stroke-width="2"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-size="16" font-family="Arial, sans-serif" fill="white" font-weight="bold">${number}</text></svg>`,
-        scaledSize: new google.maps.Size(32, 32),
+        scaledSize: new window.google.maps.Size(32, 32),
     };
 };
 
-export function RouteMap({ pickup, dropoff, stops = [] }: RouteMapProps) {
+export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched }: RouteMapProps) {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
     libraries: libraries as any,
@@ -51,12 +52,26 @@ export function RouteMap({ pickup, dropoff, stops = [] }: RouteMapProps) {
       (result, status) => {
         if (status === google.maps.DirectionsStatus.OK && result) {
           setDirections(result);
+          if (onRouteInfoFetched) {
+            // Calculate total distance and duration
+            const route = result.routes[0];
+            let totalDistance = 0;
+            let totalDuration = 0;
+            for (const leg of route.legs) {
+                totalDistance += leg.distance?.value || 0;
+                totalDuration += leg.duration?.value || 0;
+            }
+            onRouteInfoFetched({
+                distance: (totalDistance / 1000).toFixed(1) + ' km', // convert meters to km
+                duration: Math.round(totalDuration / 60) + ' min', // convert seconds to minutes
+            });
+          }
         } else {
           console.error(`error fetching directions ${result}`);
         }
       }
     );
-  }, [isLoaded, pickup, dropoff, stops]);
+  }, [isLoaded, pickup, dropoff, stops, onRouteInfoFetched]);
 
   if (loadError) return <div>Error loading maps</div>;
   if (!isLoaded) return <Skeleton className="h-full w-full" />;
@@ -70,12 +85,12 @@ export function RouteMap({ pickup, dropoff, stops = [] }: RouteMapProps) {
   // Custom marker SVGs
   const startIcon = {
     url: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%2322c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
-    scaledSize: new google.maps.Size(32, 32),
+    scaledSize: new window.google.maps.Size(32, 32),
   };
   
   const endIcon = {
     url: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%23ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
-    scaledSize: new google.maps.Size(32, 32),
+    scaledSize: new window.google.maps.Size(32, 32),
   };
 
   return (

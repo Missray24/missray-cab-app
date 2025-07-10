@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer } from 'lucide-react';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
@@ -26,12 +26,18 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
+interface RouteInfo {
+    distance: string;
+    duration: string;
+}
+
 function VehicleSelectionComponent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
   const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
   const [loading, setLoading] = useState(true);
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
 
   const pickup = searchParams.get('pickup');
   const dropoff = searchParams.get('dropoff');
@@ -93,6 +99,7 @@ function VehicleSelectionComponent() {
                               pickup={pickup || ''}
                               dropoff={dropoff || ''}
                               stops={stops}
+                              onRouteInfoFetched={setRouteInfo}
                            />
                         </div>
                         {scheduledTime ? (
@@ -129,7 +136,43 @@ function VehicleSelectionComponent() {
                         </div>
 
                         <Separator />
-                       
+                        
+                        {routeInfo ? (
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="flex items-center gap-3">
+                                <Milestone className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="text-xs text-muted-foreground">Distance</p>
+                                    <p className="font-semibold">{routeInfo.distance}</p>
+                                </div>
+                            </div>
+                             <div className="flex items-center gap-3">
+                                <Timer className="h-5 w-5 text-muted-foreground" />
+                                <div>
+                                    <p className="text-xs text-muted-foreground">Durée</p>
+                                    <p className="font-semibold">{routeInfo.duration}</p>
+                                </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-4">
+                              <div className="flex items-center gap-3">
+                                  <Skeleton className="h-5 w-5 rounded-full" />
+                                  <div className="space-y-1">
+                                      <Skeleton className="h-3 w-12" />
+                                      <Skeleton className="h-4 w-16" />
+                                  </div>
+                              </div>
+                               <div className="flex items-center gap-3">
+                                  <Skeleton className="h-5 w-5 rounded-full" />
+                                  <div className="space-y-1">
+                                      <Skeleton className="h-3 w-12" />
+                                      <Skeleton className="h-4 w-16" />
+                                  </div>
+                              </div>
+                          </div>
+                        )}
+
                         <Button variant="outline" className="w-full" onClick={() => router.push('/')}>
                             Modifier le trajet
                         </Button>
@@ -173,9 +216,9 @@ function VehicleSelectionComponent() {
                                     </Tooltip>
                                  </TooltipProvider>
                             </div>
-                            <CardDescription>{tier.description}</CardDescription>
                          </CardHeader>
-                         <CardContent className="flex-grow flex flex-col justify-end">
+                         <CardContent className="flex-grow flex flex-col justify-between">
+                            <p className="text-sm text-muted-foreground my-2">{tier.description}</p>
                             <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground my-2">
                                 <div className="flex items-center gap-2">
                                     <Users className="h-5 w-5 text-primary" />
@@ -186,7 +229,7 @@ function VehicleSelectionComponent() {
                                     <span className="font-medium text-foreground">{tier.capacity?.suitcases || 2} valises</span>
                                 </div>
                             </div>
-                            <Button className="w-full" asChild>
+                            <Button className="w-full mt-4" asChild>
                                <Link href={getSignupLink(tier.id)}>Choisir {tier.name} <ArrowRight className="ml-2" /></Link>
                             </Button>
                          </CardContent>
