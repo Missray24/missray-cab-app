@@ -16,6 +16,14 @@ const libraries = ['places'];
 const mapContainerStyle = { height: '100%', width: '100%' };
 const center = { lat: 48.8566, lng: 2.3522 }; // Paris
 
+// Function to generate numbered marker icons
+const createNumberedIcon = (number: number) => {
+    return {
+        url: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="14" fill="%237c3aed" stroke="white" stroke-width="2"/><text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-size="16" font-family="Arial, sans-serif" fill="white" font-weight="bold">${number}</text></svg>`,
+        scaledSize: new google.maps.Size(32, 32),
+    };
+};
+
 export function RouteMap({ pickup, dropoff, stops = [] }: RouteMapProps) {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -53,9 +61,12 @@ export function RouteMap({ pickup, dropoff, stops = [] }: RouteMapProps) {
   if (loadError) return <div>Error loading maps</div>;
   if (!isLoaded) return <Skeleton className="h-full w-full" />;
 
-  const startLocation = directions?.routes[0]?.legs[0]?.start_location;
-  const endLocation = directions?.routes[0]?.legs[directions.routes[0].legs.length - 1]?.end_location;
+  const route = directions?.routes[0];
+  const startLocation = route?.legs[0]?.start_location;
+  const endLocation = route?.legs[route.legs.length - 1]?.end_location;
   
+  const waypointLocations = route?.legs.slice(0, -1).map(leg => leg.end_location);
+
   // Custom marker SVGs
   const startIcon = {
     url: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="%2322c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>`,
@@ -82,6 +93,9 @@ export function RouteMap({ pickup, dropoff, stops = [] }: RouteMapProps) {
             }}
           />
           {startLocation && <MarkerF position={startLocation} icon={startIcon} />}
+          {waypointLocations?.map((location, index) => (
+             <MarkerF key={index} position={location} icon={createNumberedIcon(index + 1)} />
+          ))}
           {endLocation && <MarkerF position={endLocation} icon={endIcon} />}
         </>
       )}
