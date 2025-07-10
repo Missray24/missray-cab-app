@@ -12,6 +12,7 @@ interface AutocompleteInputProps {
   placeholder: string;
   onPlaceSelected: (address: string) => void;
   className?: string;
+  defaultValue?: string;
 }
 
 const libraries = ['places'];
@@ -21,6 +22,7 @@ export function AutocompleteInput({
   placeholder,
   onPlaceSelected,
   className,
+  defaultValue = '',
 }: AutocompleteInputProps) {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -28,11 +30,22 @@ export function AutocompleteInput({
   });
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const handlePlaceChanged = () => {
     if (autocompleteRef.current) {
       const place = autocompleteRef.current.getPlace();
-      onPlaceSelected(place.formatted_address || '');
+      if(place.formatted_address) {
+        onPlaceSelected(place.formatted_address);
+      }
+    }
+  };
+  
+  // This effect ensures that if the input is blurred without selecting a suggestion,
+  // the onPlaceSelected callback is still fired with the current input value.
+  const handleBlur = () => {
+    if(inputRef.current) {
+        onPlaceSelected(inputRef.current.value);
     }
   };
 
@@ -53,9 +66,12 @@ export function AutocompleteInput({
         }}
       >
         <Input
+          ref={inputRef}
           type="text"
           placeholder={placeholder}
           className={`${className || ''} pl-10`}
+          defaultValue={defaultValue}
+          onBlur={handleBlur}
         />
       </Autocomplete>
     </div>
