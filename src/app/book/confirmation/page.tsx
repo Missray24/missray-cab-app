@@ -124,11 +124,17 @@ function ConfirmationComponent() {
                     </div>
                     <div className="flex items-start gap-3">
                         <MapPin className="h-5 w-5 mt-0.5 text-green-500" />
-                        <p className="font-medium">{reservation.pickup}</p>
+                        <div>
+                            <p className="font-bold text-foreground">Départ:</p>
+                            <p className="font-medium">{reservation.pickup}</p>
+                        </div>
                     </div>
                     <div className="flex items-start gap-3">
                         <MapPin className="h-5 w-5 mt-0.5 text-red-500" />
-                        <p className="font-medium">{reservation.dropoff}</p>
+                         <div>
+                            <p className="font-bold text-foreground">Arrivée:</p>
+                            <p className="font-medium">{reservation.dropoff}</p>
+                        </div>
                     </div>
                 </div>
 
@@ -137,7 +143,7 @@ function ConfirmationComponent() {
                 <div className="space-y-4">
                     <h3 className="font-semibold text-lg">Véhicule et Paiement</h3>
                      <div className="flex items-center gap-3">
-                        <Image src={tier.photoUrl} alt={tier.name} width={40} height={40} className="rounded-md object-contain w-16 h-10" />
+                        <Image src={tier.photoUrl} alt={tier.name} width={64} height={40} className="rounded-md object-contain w-16 h-10" />
                         <p className="font-semibold">{tier.name}</p>
                     </div>
                     {tier.capacity?.passengers && (
