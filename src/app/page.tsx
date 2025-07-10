@@ -88,7 +88,7 @@ export default function LandingPage() {
               </div>
               <div className="flex items-center">
                 <div className="p-0.5 bg-gradient-to-br from-primary to-[#006df1] rounded-xl w-full max-w-md">
-                  <div className="bg-white p-6 rounded-lg shadow-lg w-full">
+                  <div className="bg-white/90 p-6 rounded-lg shadow-lg w-full">
                     <BookingForm onSubmit={handleSeeVehicles} />
                   </div>
                 </div>
