@@ -173,7 +173,6 @@ export default function LandingPage() {
                           <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity?.suitcases || 2}</div>
                         </div>
                       </div>
-                      <CardDescription className="mt-2 text-sm">{tier.description}</CardDescription>
                     </CardContent>
                   </Card>
                 ))
