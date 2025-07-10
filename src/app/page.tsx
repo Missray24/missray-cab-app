@@ -31,7 +31,7 @@ const staticTiers = [
   {
     id: 'comfort',
     name: 'Comfort',
-    photoUrl: 'https://firebasestorage.googleapis.com/v0/b/missray-cab-kb0il.firebasestorage.app/o/service-tiers%2F1752142290793_comfort.png?alt=media&token=f55bb2c2-cb7b-4013-97f0-2adc052f0aa3',
+    photoUrl: 'https://firebasestorage.googleapis.com/v0/b/missray-cab-kb0il.firebasestorage.app/o/service-tiers%2F1752130378649_e-class.png?alt=media&token=421c5010-edc3-48fa-88c6-73d705ebe4c3',
     capacity: { passengers: 4, suitcases: 2 },
     'data-ai-hint': 'luxury sedan'
   },
