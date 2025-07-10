@@ -44,24 +44,90 @@ const transporter = nodemailer.createTransport({
 });
 
 const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
+  const clientWelcomeHtml = `
+    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px; border: 1px solid #cccccc; border-radius: 8px; overflow: hidden;">
+          <tr>
+              <td align="center" bgcolor="#223aff" style="padding: 30px 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                  MISSRAY CAB
+              </td>
+          </tr>
+          <tr>
+              <td bgcolor="#ffffff" style="padding: 40px 30px 40px 30px;">
+                  <h1 style="color: #333333;">Bienvenue, ${params.clientName || 'cher client'} !</h1>
+                  <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+                      Nous sommes ravis de vous accueillir. Votre compte a été créé avec succès. Vous pouvez dès maintenant réserver des courses pour tous vos déplacements.
+                  </p>
+                  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                      <td align="center" style="padding: 20px 0 30px 0;">
+                        <a href="https://missray-cab.com/my-bookings" target="_blank" style="background: linear-gradient(to right, #223aff, #006df1); color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 5px; display: inline-block; font-weight: bold;">Voir mes réservations</a>
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+                      Merci de votre confiance.
+                  </p>
+                  <p style="color: #555555; font-size: 16px; line-height: 1.5;">L'équipe missray cab</p>
+              </td>
+          </tr>
+          <tr>
+            <td bgcolor="#eeeeee" style="padding: 20px 30px; text-align: center; color: #888888; font-size: 12px;">
+                <p>&copy; ${new Date().getFullYear()} missray cab. Tous droits réservés.</p>
+            </td>
+          </tr>
+      </table>
+    </body>`;
+
+  const driverWelcomeHtml = `
+    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px; border: 1px solid #cccccc; border-radius: 8px; overflow: hidden;">
+          <tr>
+              <td align="center" bgcolor="#223aff" style="padding: 30px 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+                  MISSRAY CAB
+              </td>
+          </tr>
+          <tr>
+              <td bgcolor="#ffffff" style="padding: 40px 30px 40px 30px;">
+                  <h1 style="color: #333333;">Bienvenue dans la flotte, ${params.driverName || 'cher chauffeur'} !</h1>
+                  <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+                      Félicitations, votre inscription est terminée ! Vous faites désormais partie de notre réseau de chauffeurs professionnels.
+                  </p>
+                   <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+                      Connectez-vous à votre tableau de bord pour gérer vos informations et consulter vos documents.
+                  </p>
+                  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                      <td align="center" style="padding: 20px 0 30px 0;">
+                        <a href="https://missray-cab.com/login" target="_blank" style="background: linear-gradient(to right, #223aff, #006df1); color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 5px; display: inline-block; font-weight: bold;">Accéder à mon espace</a>
+                      </td>
+                    </tr>
+                  </table>
+                  <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+                      Nous sommes impatients de collaborer avec vous.
+                  </p>
+                  <p style="color: #555555; font-size: 16px; line-height: 1.5;">L'équipe missray cab</p>
+              </td>
+          </tr>
+          <tr>
+            <td bgcolor="#eeeeee" style="padding: 20px 30px; text-align: center; color: #888888; font-size: 12px;">
+                <p>&copy; ${new Date().getFullYear()} missray cab. Tous droits réservés.</p>
+            </td>
+          </tr>
+      </table>
+    </body>`;
+
+
   switch (type) {
     case 'new_client_welcome':
       return {
         subject: 'Bienvenue chez missray cab !',
-        html: `
-          <h1>Bonjour ${params.clientName || 'cher client'},</h1>
-          <p>Nous sommes ravis de vous compter parmi nous. Vous pouvez dès maintenant réserver vos courses.</p>
-          <p>L'équipe missray cab</p>
-        `,
+        html: clientWelcomeHtml,
       };
     case 'new_driver_welcome':
       return {
         subject: 'Bienvenue dans la flotte missray cab !',
-        html: `
-          <h1>Bonjour ${params.driverName || 'cher chauffeur'},</h1>
-          <p>Votre inscription est confirmée. Vous pouvez commencer à recevoir des courses via notre plateforme.</p>
-          <p>L'équipe missray cab</p>
-        `,
+        html: driverWelcomeHtml,
       };
     default:
       throw new Error('Invalid email type');
