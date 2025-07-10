@@ -36,19 +36,15 @@ function LoginComponent() {
     setIsLoading(true);
 
     const isClientLogin = email.toLowerCase() !== ADMIN_EMAIL;
-    const bookingParams = searchParams.get('booking');
+    const bookingParams = searchParams.toString() ? '?' + searchParams.toString() : '';
+
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       
       if (isClientLogin) {
         if(bookingParams) {
-          // TODO: This is where we'd create the reservation after login
-          console.log("Client logged in, create reservation now with params:", bookingParams);
-          // After creating reservation, redirect to a confirmation page
-          toast({ title: "Succès", description: "Réservation confirmée !" });
-          // Redirect to a page that lists the client's reservations
-          router.push('/book/confirmation?id='); 
+          router.push(`/book/payment${bookingParams}`);
         } else {
            toast({ title: "Succès", description: "Connexion réussie." });
            // After a generic login, redirect to a page where they can see their reservations
@@ -128,7 +124,7 @@ function LoginComponent() {
            <div className="mt-4 text-center text-sm">
               <p>
                 Pas encore de compte?{' '}
-                <Link href="/signup" className="underline">
+                <Link href={`/signup?${searchParams.toString()}`} className="underline">
                     S'inscrire
                 </Link>
               </p>

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { Car, CircleUser, CalendarCheck, LogOut, LayoutDashboard } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -31,6 +31,7 @@ export function LandingHeader() {
   const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -63,6 +64,10 @@ export function LandingHeader() {
 
   const isClient = user && user.email !== ADMIN_EMAIL;
   const isAdmin = user && user.email === ADMIN_EMAIL;
+  
+  const loginHref = `/login?${searchParams.toString()}`;
+  const signupHref = `/signup?${searchParams.toString()}`;
+
 
   const renderUserMenu = () => {
     if (loading) {
@@ -77,11 +82,11 @@ export function LandingHeader() {
     if (!user) {
       return (
         <>
-          <Link href="/login" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+          <Link href={loginHref} className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
             Se connecter
           </Link>
           <Button asChild>
-            <Link href="/signup" prefetch={false}>
+            <Link href={signupHref} prefetch={false}>
               S'inscrire
             </Link>
           </Button>

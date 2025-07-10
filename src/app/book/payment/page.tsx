@@ -89,7 +89,7 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
         if (paymentMethod === 'Carte') {
             if (!stripe || !elements) return;
 
-            const { error } = await stripe.confirmPayment({
+            const { error, paymentIntent } = await stripe.confirmPayment({
                 elements,
                 redirect: 'if_required',
             });
@@ -98,9 +98,7 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                 toast({ variant: 'destructive', title: 'Erreur de paiement', description: error.message || 'Une erreur est survenue.' });
                 setIsSubmitting(false);
             } else {
-                // Payment was successful, now create the reservation.
-                // In a real app, you'd get the payment intent ID from the confirmation result.
-                await createReservationInDb("pi_placeholder_id"); 
+                await createReservationInDb(paymentIntent.id); 
             }
         } else { // Cash payment
             await createReservationInDb();

@@ -83,13 +83,6 @@ function SignupFormComponent() {
     setIsLoading(true);
     const clientName = `${values.firstName} ${values.lastName}`;
     
-    // This page is now for creating an account without an immediate booking.
-    // The booking flow is handled by AuthDialog.
-    if (searchParams.toString()) {
-        router.push(`/book/select-vehicle?${searchParams.toString()}`);
-        return;
-    }
-
     try {
       // 1. Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(
@@ -135,7 +128,8 @@ function SignupFormComponent() {
         description: 'Votre compte a été créé. Vous pouvez maintenant vous connecter.',
       });
       
-      router.push(`/login`);
+      const bookingParams = searchParams.toString() ? `?${searchParams.toString()}` : '';
+      router.push(`/login${bookingParams}`);
 
     } catch (error: any) {
       console.error("Error signing up:", error);
@@ -315,7 +309,7 @@ function SignupFormComponent() {
           <div className="mt-4 text-center text-sm space-y-2">
             <p>
               Vous avez déjà un compte?{' '}
-              <Link href="/login" className="underline">
+              <Link href={`/login?${searchParams.toString()}`} className="underline">
                 Se connecter
               </Link>
             </p>
