@@ -96,9 +96,9 @@ function ConfirmationComponent() {
       <main className="flex-1 py-12 md:py-24">
         <div className="container max-w-2xl">
           <Card>
-            <CardHeader className="text-center items-center">
+            <CardHeader className="items-center text-center">
               <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
-              <CardTitle className="text-3xl font-headline text-center">Réservation Confirmée !</CardTitle>
+              <CardTitle className="text-3xl font-headline">Réservation Confirmée !</CardTitle>
               <CardDescription>
                 Votre course est enregistrée. Vous recevrez des notifications sur son statut.
               </CardDescription>
