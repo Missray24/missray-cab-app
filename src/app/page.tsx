@@ -6,41 +6,50 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Car, Star, CheckCircle, Smartphone, CreditCard, Users, Briefcase } from 'lucide-react';
-import { collection, getDocs } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
 import { Skeleton } from '@/components/ui/skeleton';
-import { db } from '@/lib/firebase';
-import type { ServiceTier } from '@/lib/types';
 import { BookingForm, type BookingDetails } from '@/components/booking-form';
 
 
+const staticTiers = [
+  {
+    id: 'standard',
+    name: 'Standard',
+    photoUrl: 'https://placehold.co/400x225.png',
+    capacity: { passengers: 4, suitcases: 2 },
+    'data-ai-hint': 'sedan car'
+  },
+  {
+    id: 'break',
+    name: 'Break',
+    photoUrl: 'https://placehold.co/400x225.png',
+    capacity: { passengers: 4, suitcases: 3 },
+    'data-ai-hint': 'station wagon'
+  },
+  {
+    id: 'comfort',
+    name: 'Comfort',
+    photoUrl: 'https://placehold.co/400x225.png',
+    capacity: { passengers: 4, suitcases: 2 },
+    'data-ai-hint': 'luxury sedan'
+  },
+  {
+    id: 'van',
+    name: 'Van',
+    photoUrl: 'https://placehold.co/400x225.png',
+    capacity: { passengers: 7, suitcases: 5 },
+    'data-ai-hint': 'passenger van'
+  },
+];
+
+
 export default function LandingPage() {
-  const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
-  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchTiers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "serviceTiers"));
-        const tiersData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as ServiceTier[];
-        setServiceTiers(tiersData);
-      } catch (error) {
-        console.error("Error fetching service tiers: ", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchTiers();
-  }, []);
-  
   const handleSeeVehicles = (details: BookingDetails) => {
     const queryParams = new URLSearchParams();
     queryParams.set('pickup', details.pickup);
@@ -59,7 +68,7 @@ export default function LandingPage() {
       <LandingHeader />
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-r from-[#223aff] to-[#1697ff]">
+        <section className="w-full py-12 md:py-24 lg:py-32 xl:py-48 bg-gradient-to-r from-[#223aff] to-[#006df1]">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_500px]">
               <div className="flex flex-col justify-center space-y-4">
@@ -73,7 +82,7 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="flex items-center">
-                <div className="p-0.5 bg-gradient-to-br from-primary to-[#1697ff] rounded-xl w-full max-w-md">
+                <div className="p-0.5 bg-gradient-to-br from-primary to-[#006df1] rounded-xl w-full max-w-md">
                   <div className="bg-white p-6 rounded-lg shadow-lg w-full">
                     <BookingForm onSubmit={handleSeeVehicles} />
                   </div>
@@ -145,38 +154,30 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-12">
-              {loading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <Card key={i}><CardHeader><Skeleton className="aspect-video w-full" /></CardHeader><CardContent className="space-y-2"><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-full" /></CardContent></Card>
-                ))
-              ) : (
-                serviceTiers.map((tier) => (
-                  <Card key={tier.id} className="flex flex-col">
-                    <CardHeader className="p-0">
-                      <div className="aspect-video w-full rounded-t-lg overflow-hidden border-b">
-                        <Image
-                          src={tier.photoUrl}
-                          alt={`Photo de ${tier.name}`}
-                          data-ai-hint="luxury car"
-                          width={400}
-                          height={225}
-                          className="h-full w-full object-contain"
-                        />
+            <div className="mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-4 mt-12">
+              {staticTiers.map((tier) => (
+                <Card key={tier.id} className="flex flex-col overflow-hidden">
+                  <div className="aspect-video w-full border-b">
+                    <Image
+                      src={tier.photoUrl}
+                      alt={`Photo de ${tier.name}`}
+                      data-ai-hint={tier['data-ai-hint']}
+                      width={400}
+                      height={225}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="font-headline text-lg">{tier.name}</CardTitle>
+                      <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
+                        <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity.passengers}</div>
+                        <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity.suitcases}</div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-center">
-                        <CardTitle className="font-headline text-lg">{tier.name}</CardTitle>
-                        <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
-                          <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity?.passengers || 4}</div>
-                          <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity?.suitcases || 2}</div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </section>
