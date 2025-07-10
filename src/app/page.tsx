@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Car, Star, CheckCircle, Smartphone, CreditCard, MapPin, Calendar, Plus } from 'lucide-react';
+import { Car, Star, CheckCircle, Smartphone, CreditCard, MapPin, Calendar, Plus, X } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
@@ -15,12 +15,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { db } from '@/lib/firebase';
 import type { ServiceTier } from '@/lib/types';
 import { AutocompleteInput } from '@/components/autocomplete-input';
+import { cn } from '@/lib/utils';
 
 
 export default function LandingPage() {
   const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
   const [loading, setLoading] = useState(true);
+  
   const [pickupAddress, setPickupAddress] = useState('');
+  const [stops, setStops] = useState<{ id: number; address: string }[]>([]);
   const [dropoffAddress, setDropoffAddress] = useState('');
 
   useEffect(() => {
@@ -40,6 +43,21 @@ export default function LandingPage() {
     };
     fetchTiers();
   }, []);
+
+  const handleAddStop = () => {
+    if (stops.length < 4) {
+      setStops(prev => [...prev, { id: Date.now(), address: '' }]);
+    }
+  };
+
+  const handleRemoveStop = (id: number) => {
+    setStops(prev => prev.filter(stop => stop.id !== id));
+  };
+  
+  const handleStopChange = (id: number, address: string) => {
+    setStops(prev => prev.map(stop => stop.id === id ? { ...stop, address } : stop));
+  };
+
 
   return (
     <div className="flex flex-col min-h-dvh">
@@ -69,6 +87,21 @@ export default function LandingPage() {
                         onPlaceSelected={(address) => setPickupAddress(address)}
                         className="h-9 text-base"
                       />
+                      
+                      {stops.map((stop, index) => (
+                        <div key={stop.id} className="flex items-center gap-2">
+                           <AutocompleteInput
+                            icon={<MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />}
+                            placeholder={`Arrêt ${index + 1}`}
+                            onPlaceSelected={(address) => handleStopChange(stop.id, address)}
+                            className="h-9 text-base"
+                           />
+                           <Button size="icon" variant="ghost" aria-label="Supprimer l'arrêt" className="h-9 w-9 shrink-0" onClick={() => handleRemoveStop(stop.id)}>
+                              <X className="h-5 w-5 text-muted-foreground hover:text-destructive" />
+                           </Button>
+                        </div>
+                      ))}
+
                       <div className="flex items-center gap-2">
                         <div className="relative flex-1">
                            <AutocompleteInput
@@ -78,7 +111,7 @@ export default function LandingPage() {
                             className="h-9 text-base"
                            />
                         </div>
-                        <Button size="icon" aria-label="Ajouter un arrêt" className="h-9 w-9 shrink-0">
+                        <Button size="icon" aria-label="Ajouter un arrêt" className="h-9 w-9 shrink-0" onClick={handleAddStop} disabled={stops.length >= 4}>
                           <Plus className="h-5 w-5" />
                         </Button>
                       </div>
