@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -6,6 +7,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff } from 'lucide-react';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { collection, addDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -26,12 +29,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { IntlTelInput, type IntlTelInputRef } from '@/components/ui/intl-tel-input';
 import { useToast } from '@/hooks/use-toast';
+import { auth, db } from '@/lib/firebase';
 
 export default function SignupPage() {
   const phoneInputRef = useRef<IntlTelInputRef>(null);
   const { toast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const formSchema = z
     .object({
@@ -69,14 +74,49 @@ export default function SignupPage() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // NOTE: This is a mock submission for a client.
-    const fullPhoneNumber = phoneInputRef.current?.getNumber();
-    console.log({ ...values, phone: fullPhoneNumber, accountType: 'client' });
-    toast({
-      title: "Inscription Client (simulation)",
-      description: "Vérifiez la console pour voir les données du formulaire.",
-    });
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    try {
+      // 1. Create Firebase Auth user
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        values.email,
+        values.password
+      );
+      const user = userCredential.user;
+
+      // 2. Create client document in Firestore
+      await addDoc(collection(db, 'clients'), {
+        uid: user.uid,
+        name: `${values.firstName} ${values.lastName}`,
+        email: values.email,
+        phone: phoneInputRef.current?.getNumber() || '',
+        joinDate: new Date().toLocaleDateString('fr-CA'),
+        status: 'Active',
+      });
+
+      toast({
+        title: 'Inscription réussie!',
+        description: 'Votre compte a été créé. Vous pouvez maintenant vous connecter.',
+      });
+      
+      // Optionally redirect to login or dashboard
+      // router.push('/login');
+
+    } catch (error: any) {
+      console.error("Error signing up:", error);
+      const errorMessage =
+        error.code === 'auth/email-already-in-use'
+          ? 'Cette adresse email est déjà utilisée.'
+          : 'Une erreur est survenue lors de l\'inscription.';
+      toast({
+        variant: 'destructive',
+        title: 'Erreur d\'inscription',
+        description: errorMessage,
+      });
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   return (
@@ -215,8 +255,8 @@ export default function SignupPage() {
                 )}
               />
 
-              <Button type="submit" className="w-full">
-                Créer mon compte
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Création en cours...' : 'Créer mon compte'}
               </Button>
             </form>
           </Form>

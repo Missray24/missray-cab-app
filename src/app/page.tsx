@@ -1,15 +1,44 @@
 
+'use client';
+
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Car, Star, CheckCircle, Smartphone, CreditCard, MapPin, Calendar, Plus } from 'lucide-react';
+import { collection, getDocs } from 'firebase/firestore';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
-import { serviceTiers } from '@/lib/data';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { db } from '@/lib/firebase';
+import type { ServiceTier } from '@/lib/types';
+
 
 export default function LandingPage() {
+  const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTiers = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "serviceTiers"));
+        const tiersData = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as ServiceTier[];
+        setServiceTiers(tiersData);
+      } catch (error) {
+        console.error("Error fetching service tiers: ", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTiers();
+  }, []);
+
   return (
     <div className="flex flex-col min-h-dvh">
       <LandingHeader />
@@ -124,29 +153,35 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-12">
-              {serviceTiers.map((tier) => (
-                <Card key={tier.id}>
-                  <CardHeader>
-                    <div className="aspect-video w-full rounded-md overflow-hidden border mb-4">
-                      <Image
-                        src={tier.photoUrl}
-                        alt={`Photo de ${tier.name}`}
-                        data-ai-hint="luxury car"
-                        width={400}
-                        height={225}
-                        className="h-full w-full object-cover"
-                      />
-                    </div>
-                    <CardTitle className="font-headline">{tier.name}</CardTitle>
-                    <CardDescription>{tier.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                     <Button className="w-full" asChild>
-                        <Link href="/signup">Choisir cette gamme</Link>
-                     </Button>
-                  </CardContent>
-                </Card>
-              ))}
+              {loading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                  <Card key={i}><CardHeader><Skeleton className="aspect-video w-full" /></CardHeader><CardContent className="space-y-2"><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-full" /><Button disabled className="w-full mt-2"><Skeleton className="h-5 w-24" /></Button></CardContent></Card>
+                ))
+              ) : (
+                serviceTiers.map((tier) => (
+                  <Card key={tier.id}>
+                    <CardHeader>
+                      <div className="aspect-video w-full rounded-md overflow-hidden border mb-4">
+                        <Image
+                          src={tier.photoUrl}
+                          alt={`Photo de ${tier.name}`}
+                          data-ai-hint="luxury car"
+                          width={400}
+                          height={225}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <CardTitle className="font-headline">{tier.name}</CardTitle>
+                      <CardDescription>{tier.description}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <Button className="w-full" asChild>
+                          <Link href="/signup">Choisir cette gamme</Link>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         </section>

@@ -3,10 +3,12 @@
 
 import Link from 'next/link';
 import { useRef, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { collection, addDoc } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -31,6 +33,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { auth, db } from '@/lib/firebase';
 
 export default function SignupDriverPage() {
   const phoneInputRef = useRef<IntlTelInputRef>(null);
@@ -38,6 +41,7 @@ export default function SignupDriverPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [step, setStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   const formSchema = z
     .object({
@@ -90,32 +94,67 @@ export default function SignupDriverPage() {
     },
   });
 
-  const watchedFields = useWatch({ control: form.control });
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    try {
+        // 1. Create Firebase Auth user
+        const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
+        const user = userCredential.user;
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // NOTE: This is a mock submission for a driver.
-    const fullPhoneNumber = phoneInputRef.current?.getNumber();
-    const finalData = {
-        firstName: values.firstName,
-        lastName: values.lastName,
-        phone: fullPhoneNumber,
-        email: values.email,
-        password: values.password, // In a real app, hash this server-side
-        company: {
-            name: values.companyName,
-            address: values.companyAddress,
-            siret: values.siret,
-            evtcAdsNumber: values.evtcAdsNumber,
-            vatNumber: values.vatNumber,
-            isVatSubjected: values.isVatSubjected,
-        },
-        accountType: 'driver',
-    };
-    console.log(finalData);
-    toast({
-      title: "Inscription Chauffeur (simulation)",
-      description: "Vérifiez la console pour voir les données du formulaire.",
-    });
+        // 2. Create driver document in Firestore
+        const driverData = {
+            uid: user.uid,
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email,
+            phone: phoneInputRef.current?.getNumber() || '',
+            company: {
+                name: values.companyName,
+                address: values.companyAddress,
+                siret: values.siret,
+                evtcAdsNumber: values.evtcAdsNumber || '',
+                vatNumber: values.vatNumber || '',
+                isVatSubjected: values.isVatSubjected,
+                commission: 20, // Default commission
+            },
+            vehicle: { // Placeholder vehicle info
+                brand: '',
+                model: '',
+                licensePlate: '',
+                registrationDate: '',
+            },
+            status: 'Active' as const,
+            totalRides: 0,
+            totalEarnings: 0,
+            unpaidAmount: 0,
+            paymentDetails: {
+                method: 'Bank Transfer' as const,
+                account: '',
+            },
+            documents: [],
+        };
+
+        await addDoc(collection(db, 'drivers'), driverData);
+
+        toast({
+            title: "Inscription réussie !",
+            description: "Votre compte chauffeur a été créé. Vous recevrez une confirmation une fois vos documents vérifiés.",
+        });
+
+    } catch (error: any) {
+        console.error("Error signing up driver:", error);
+        const errorMessage =
+            error.code === 'auth/email-already-in-use'
+                ? 'Cette adresse email est déjà utilisée.'
+                : 'Une erreur est survenue lors de l\'inscription.';
+        toast({
+            variant: 'destructive',
+            title: 'Erreur d\'inscription',
+            description: errorMessage,
+        });
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   const handleNextStep = async () => {
@@ -367,8 +406,8 @@ export default function SignupDriverPage() {
                     Suivant
                   </Button>
                 ) : (
-                  <Button type="submit" className="flex-1">
-                    Rejoindre la flotte
+                  <Button type="submit" className="flex-1" disabled={isLoading}>
+                    {isLoading ? 'Inscription en cours...' : 'Rejoindre la flotte'}
                   </Button>
                 )}
               </div>
