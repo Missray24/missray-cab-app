@@ -20,6 +20,8 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 
+const ADMIN_EMAIL = 'contact@missray-cab.com';
+
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -31,6 +33,16 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
+    if (email.toLowerCase() !== ADMIN_EMAIL) {
+        toast({
+            variant: 'destructive',
+            title: "Accès non autorisé",
+            description: "Seul l'administrateur peut se connecter ici.",
+        });
+        setIsLoading(false);
+        return;
+    }
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
@@ -54,7 +66,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Connexion à missray cab</CardTitle>
           <CardDescription>
-            Entrez votre email ci-dessous pour vous connecter à votre compte.
+            Accès réservé à l'administration.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -65,7 +77,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@exemple.com"
+                  placeholder="admin@exemple.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -75,12 +87,6 @@ export default function LoginPage() {
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Mot de passe</Label>
-                  <Link
-                    href="#"
-                    className="ml-auto inline-block text-sm underline"
-                  >
-                    Mot de passe oublié?
-                  </Link>
                 </div>
                 <div className="relative">
                   <Input
@@ -107,12 +113,6 @@ export default function LoginPage() {
               </Button>
             </div>
           </form>
-          <div className="mt-4 text-center text-sm">
-            Vous n'avez pas de compte?{' '}
-            <Link href="/signup" className="underline">
-              S'inscrire
-            </Link>
-          </div>
         </CardContent>
       </Card>
     </div>
