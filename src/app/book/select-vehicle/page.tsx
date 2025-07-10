@@ -8,13 +8,14 @@ import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit } from 'lucide-react';
+import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import type { ServiceTier } from '@/lib/types';
 import { RouteMap } from '@/components/route-map';
 import { Separator } from '@/components/ui/separator';
@@ -37,6 +38,10 @@ function VehicleSelectionComponent() {
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formattedScheduledTime, setFormattedScheduledTime] = useState<string | null>(null);
+  
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
 
@@ -56,6 +61,14 @@ function VehicleSelectionComponent() {
       scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
     };
   }, [searchParams]);
+  
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+        setCurrentUser(user);
+        setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     if (bookingDetails?.scheduledTime) {
@@ -107,8 +120,28 @@ function VehicleSelectionComponent() {
   }
 
   const handleChooseTier = (tierId: string) => {
-    setSelectedTierId(tierId);
-    setIsAuthDialogOpen(true);
+    if (currentUser) {
+        // If user is logged in, proceed to payment
+        const params = new URLSearchParams();
+        if (bookingDetails) {
+            params.set('pickup', bookingDetails.pickup);
+            params.set('dropoff', bookingDetails.dropoff);
+            bookingDetails.stops.forEach(s => params.append('stop', s));
+            if (bookingDetails.scheduledTime) {
+                params.set('scheduledTime', bookingDetails.scheduledTime.toISOString());
+            }
+        }
+        params.set('tierId', tierId);
+        if (routeInfo) {
+            params.set('distance', routeInfo.distance);
+            params.set('duration', routeInfo.duration);
+        }
+        router.push(`/book/payment?${params.toString()}`);
+    } else {
+        // If user is not logged in, open auth dialog
+        setSelectedTierId(tierId);
+        setIsAuthDialogOpen(true);
+    }
   };
 
   if (!bookingDetails) {
@@ -240,7 +273,7 @@ function VehicleSelectionComponent() {
         
                     <div className="flex flex-col gap-6">
                         <h2 className="text-2xl font-bold tracking-tighter font-headline">Choisissez votre véhicule</h2>
-                      {loading || !routeInfo ? (
+                      {loading || !routeInfo || authLoading ? (
                         Array.from({ length: 4 }).map((_, i) => (
                           <Card key={i}><CardHeader><Skeleton className="aspect-video w-full" /></CardHeader><CardContent className="space-y-2"><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-full" /><Button disabled className="w-full mt-2"><Skeleton className="h-5 w-24" /></Button></CardContent></Card>
                         ))
@@ -324,5 +357,3 @@ export default function SelectVehiclePage() {
     </Suspense>
   )
 }
-
-    
