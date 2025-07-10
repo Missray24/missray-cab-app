@@ -149,19 +149,19 @@ function VehicleSelectionComponent() {
                       </div>
                       <div className="flex-1">
                         <CardHeader>
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                                <CardTitle className="font-headline">{tier.name}</CardTitle>
-                                <div className="flex items-center gap-4 text-sm">
-                                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                            <div className="flex items-center gap-2">
+                                <CardTitle className="font-headline flex-grow">{tier.name}</CardTitle>
+                                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                    <div className="flex items-center gap-1.5">
                                         <Users className="h-4 w-4" />
                                         <span className="font-medium text-foreground">{tier.capacity?.passengers || 4}</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                                    <div className="flex items-center gap-1.5">
                                         <Briefcase className="h-4 w-4" />
                                         <span className="font-medium text-foreground">{tier.capacity?.suitcases || 2}</span>
                                     </div>
-                                    <span className="font-bold text-lg text-foreground">{tier.minimumPrice.toFixed(2)}€</span>
                                 </div>
+                                <span className="font-bold text-lg text-foreground whitespace-nowrap">{tier.minimumPrice.toFixed(2)}€</span>
                             </div>
                             <CardDescription>{tier.description}</CardDescription>
                         </CardHeader>
