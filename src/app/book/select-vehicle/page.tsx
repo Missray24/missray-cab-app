@@ -156,8 +156,7 @@ function VehicleSelectionComponent() {
                             <CardDescription>{tier.description}</CardDescription>
                          </CardHeader>
                          <CardContent className="flex-grow flex flex-col justify-end">
-                            <Separator className="my-2" />
-                            <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground my-4">
+                            <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground my-2">
                                 <div className="flex items-center gap-2">
                                     <Users className="h-5 w-5 text-primary" />
                                     <span className="font-medium text-foreground">{tier.capacity?.passengers || 4} passagers</span>
