@@ -25,7 +25,7 @@ import { createPaymentIntent } from '@/ai/flows/create-payment-intent-flow';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-
+import { calculatePrice } from '@/lib/pricing';
 
 const stripePromise = NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? loadStripe(NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) : null;
 
@@ -34,9 +34,10 @@ interface CheckoutFormProps {
   bookingDetails: NonNullable<ReturnType<typeof useBookingDetails>>;
   tier: ServiceTier;
   user: User;
+  finalPrice: number;
 }
 
-function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user }: CheckoutFormProps) {
+function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice }: CheckoutFormProps) {
     const stripe = useStripe();
     const elements = useElements();
     const { toast } = useToast();
@@ -68,8 +69,8 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user }: Checkout
                     stops: bookingDetails.stops,
                     status: 'Nouvelle demande' as const,
                     statusHistory: [{ status: 'Nouvelle demande' as const, timestamp: new Date().toLocaleString('fr-FR') }],
-                    amount: tier.minimumPrice,
-                    driverPayout: tier.minimumPrice * 0.8,
+                    amount: finalPrice,
+                    driverPayout: finalPrice * 0.8, // Assuming 20% commission
                     paymentMethod,
                     serviceTierId: tier.id,
                     stripePaymentId: stripePaymentId || null,
@@ -167,6 +168,7 @@ function PaymentComponent() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [finalPrice, setFinalPrice] = useState<number>(0);
 
   const bookingDetails = useBookingDetails();
 
@@ -192,7 +194,16 @@ function PaymentComponent() {
         if (tierDocSnap.exists()) {
           const tierData = { id: tierDocSnap.id, ...tierDocSnap.data() } as ServiceTier;
           setTier(tierData);
-          const { clientSecret } = await createPaymentIntent({ amount: tierData.minimumPrice * 100 }); // Amount in cents
+
+          const calculatedPrice = calculatePrice(
+            tierData,
+            bookingDetails.distance,
+            bookingDetails.duration,
+            bookingDetails.stops.length
+          );
+          setFinalPrice(calculatedPrice);
+
+          const { clientSecret } = await createPaymentIntent({ amount: calculatedPrice * 100 }); // Amount in cents
           if (clientSecret) {
             setClientSecret(clientSecret);
           } else {
@@ -289,7 +300,7 @@ function PaymentComponent() {
                         <Separator />
                         <div className="flex justify-between items-center">
                             <p className="text-sm font-medium">Prix estimé</p>
-                            <p className="font-bold text-xl">{tier.minimumPrice.toFixed(2)}€</p>
+                            <p className="font-bold text-xl">{finalPrice.toFixed(2)}€</p>
                         </div>
                     </div>
                     {stripePromise && clientSecret ? (
@@ -299,6 +310,7 @@ function PaymentComponent() {
                                 bookingDetails={bookingDetails} 
                                 tier={tier} 
                                 user={user}
+                                finalPrice={finalPrice}
                             />
                         </Elements>
                     ) : (
@@ -320,3 +332,5 @@ export default function PaymentPage() {
         </Suspense>
     );
 }
+
+    

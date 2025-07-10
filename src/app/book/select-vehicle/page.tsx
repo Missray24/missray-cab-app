@@ -21,6 +21,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BookingForm, type BookingDetails } from '@/components/booking-form';
 import { AuthDialog } from '@/components/auth-dialog';
+import { calculatePrice } from '@/lib/pricing';
 
 interface RouteInfo {
     distance: string;
@@ -58,11 +59,11 @@ function VehicleSelectionComponent() {
 
   useEffect(() => {
     if (bookingDetails?.scheduledTime) {
-        setFormattedScheduledTime(
-            format(bookingDetails.scheduledTime, "dd MMM yyyy 'à' HH:mm", { locale: fr })
-        );
+      setFormattedScheduledTime(
+        format(bookingDetails.scheduledTime, "dd MMM yyyy 'à' HH:mm", { locale: fr })
+      );
     } else {
-        setFormattedScheduledTime(null);
+      setFormattedScheduledTime(null);
     }
   }, [bookingDetails?.scheduledTime]);
 
@@ -238,53 +239,61 @@ function VehicleSelectionComponent() {
         
                     <div className="flex flex-col gap-6">
                         <h2 className="text-2xl font-bold tracking-tighter font-headline">Choisissez votre véhicule</h2>
-                      {loading ? (
+                      {loading || !routeInfo ? (
                         Array.from({ length: 4 }).map((_, i) => (
-                          <Card key={i}><CardHeader><Skeleton className="aspect-video w-full" /></CardHeader><CardContent className="space-y-2"><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-full" /><Skeleton className="h-10 w-full mt-2" /></CardContent></Card>
+                          <Card key={i}><CardHeader><Skeleton className="aspect-video w-full" /></CardHeader><CardContent className="space-y-2"><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-full" /><Button disabled className="w-full mt-2"><Skeleton className="h-5 w-24" /></Button></CardContent></Card>
                         ))
                       ) : (
-                        serviceTiers.map((tier) => (
-                          <Card key={tier.id} className="flex flex-col md:flex-row md:items-center">
-                            <div className="md:w-1/4">
-                              <Image
-                                src={tier.photoUrl}
-                                alt={`Photo de ${tier.name}`}
-                                data-ai-hint="luxury car"
-                                width={400}
-                                height={225}
-                                className="h-full w-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-r-none"
-                              />
-                            </div>
-                            <div className="flex-1 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                               <div className='flex-grow'>
-                                 <p className="font-bold text-lg text-foreground">{tier.name}</p>
-                                 <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                                   <div className="flex items-center gap-1.5"><Users className="h-4 w-4" />{tier.capacity?.passengers || 4}</div>
-                                   <div className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{tier.capacity?.suitcases || 2}</div>
-                                 </div>
-                                 <p className="text-sm text-muted-foreground mt-2">{tier.description}</p>
-                               </div>
-                               <div className='flex-shrink-0 text-right'>
-                                   <TooltipProvider>
+                        serviceTiers.map((tier) => {
+                          const estimatedPrice = calculatePrice(
+                              tier,
+                              routeInfo.distance,
+                              routeInfo.duration,
+                              bookingDetails.stops.length
+                          );
+                          return (
+                            <Card key={tier.id} className="flex flex-col md:flex-row md:items-center">
+                              <div className="md:w-1/4">
+                                <Image
+                                  src={tier.photoUrl}
+                                  alt={`Photo de ${tier.name}`}
+                                  data-ai-hint="luxury car"
+                                  width={400}
+                                  height={225}
+                                  className="h-full w-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-r-none"
+                                />
+                              </div>
+                              <div className="flex-1 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div className='flex-grow'>
+                                  <p className="font-bold text-lg text-foreground">{tier.name}</p>
+                                  <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                                    <div className="flex items-center gap-1.5"><Users className="h-4 w-4" />{tier.capacity?.passengers || 4}</div>
+                                    <div className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{tier.capacity?.suitcases || 2}</div>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground mt-2">{tier.description}</p>
+                                </div>
+                                <div className='flex-shrink-0 text-right'>
+                                  <TooltipProvider>
                                       <Tooltip>
                                           <TooltipTrigger asChild>
                                               <span className="font-bold text-lg text-foreground whitespace-nowrap flex items-center justify-end gap-1.5 cursor-help">
                                                   <Info className="h-4 w-4 text-muted-foreground" />
-                                                  Estimation: {tier.minimumPrice.toFixed(2)}€
+                                                  Estimation: {estimatedPrice.toFixed(2)}€
                                               </span>
                                           </TooltipTrigger>
                                           <TooltipContent>
-                                              <p>Temps d'attente gratuit en ville: 3 minute, gare 10 minutes, aéroport 60 minutes</p>
+                                              <p>Le prix final peut varier en fonction du trafic et des arrêts.</p>
                                           </TooltipContent>
                                       </Tooltip>
-                                   </TooltipProvider>
+                                  </TooltipProvider>
                                     <Button className="w-full md:w-auto mt-2" onClick={() => handleChooseTier(tier.id)}>
                                        Choisir <ArrowRight className="ml-2" />
                                     </Button>
-                               </div>
-                            </div>
-                          </Card>
-                        ))
+                                </div>
+                              </div>
+                            </Card>
+                          );
+                        })
                       )}
                     </div>
                 </div>
@@ -314,3 +323,5 @@ export default function SelectVehiclePage() {
     </Suspense>
   )
 }
+
+    

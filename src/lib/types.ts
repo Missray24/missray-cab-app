@@ -1,4 +1,5 @@
 
+
 export type ReservationStatus =
   | 'Nouvelle demande'
   | 'Acceptée'
@@ -48,12 +49,14 @@ export interface Reservation {
   date: string;
   pickup: string;
   dropoff: string;
+  stops: string[];
   status: ReservationStatus;
   statusHistory: StatusHistory[];
   amount: number;
   driverPayout: number;
   paymentMethod: PaymentMethod;
   serviceTierId: string;
+  stripePaymentId?: string;
 }
 
 export type DocumentStatus = 'Pending' | 'Approved' | 'Rejected';
@@ -132,3 +135,5 @@ export interface Zone {
   minutesBeforeNoShow: number;
   polygon?: { lat: number; lng: number }[];
 }
+
+    
