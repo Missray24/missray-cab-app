@@ -93,7 +93,7 @@ function VehicleSelectionComponent() {
                     <CardTitle>Résumé de votre course</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-6 lg:grid-cols-2">
-                     <div className="h-80 rounded-lg overflow-hidden border">
+                     <div className="h-64 rounded-lg overflow-hidden border">
                        <RouteMap 
                           pickup={pickup || ''}
                           dropoff={dropoff || ''}
@@ -171,10 +171,8 @@ function VehicleSelectionComponent() {
                                 <p className="font-medium">{dropoff}</p>
                             </div>
                         </div>
-
-                        <Separator />
-
-                        <Button variant="outline" className="w-full" onClick={() => router.push('/')}>
+                        
+                        <Button variant="outline" className="w-full mt-auto" onClick={() => router.push('/')}>
                             Modifier le trajet
                         </Button>
                     </div>
@@ -219,7 +217,8 @@ function VehicleSelectionComponent() {
                           </div>
                        </CardHeader>
                        <CardContent className="flex-grow flex flex-col justify-between">
-                          <p className="text-sm text-muted-foreground my-2">{tier.description}</p>
+                          <p className="text-sm text-muted-foreground">{tier.description}</p>
+                          <div className="my-2" />
                           <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
                               <div className="flex items-center gap-2">
                                   <Users className="h-5 w-5 text-primary" />
