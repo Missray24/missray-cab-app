@@ -8,14 +8,13 @@ import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowRight, Calendar, Clock, MapPin } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, MapPin, Users } from 'lucide-react';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
 import { db } from '@/lib/firebase';
 import type { ServiceTier } from '@/lib/types';
 
@@ -119,38 +118,41 @@ function VehicleSelectionComponent() {
                 </Card>
             </div>
             <div className="lg:col-span-2">
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="flex flex-col gap-6">
                 {loading ? (
                   Array.from({ length: 4 }).map((_, i) => (
                     <Card key={i}><CardHeader><Skeleton className="aspect-video w-full" /></CardHeader><CardContent className="space-y-2"><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-full" /><Skeleton className="h-10 w-full mt-2" /></CardContent></Card>
                   ))
                 ) : (
                   serviceTiers.map((tier) => (
-                    <Card key={tier.id} className="flex flex-col">
-                      <CardHeader>
-                        <div className="aspect-video w-full rounded-md overflow-hidden border mb-4">
-                          <Image
-                            src={tier.photoUrl}
-                            alt={`Photo de ${tier.name}`}
-                            data-ai-hint="luxury car"
-                            width={400}
-                            height={225}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <CardTitle className="font-headline">{tier.name}</CardTitle>
-                        <CardDescription>{tier.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-grow grid gap-2 text-sm">
-                        <div className="flex justify-between"><span className="text-muted-foreground">Prise en charge</span><span className="font-medium">€{tier.baseFare.toFixed(2)}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Prix / km</span><span className="font-medium">€{tier.perKm.toFixed(2)}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">Prix minimum</span><span className="font-medium">€{tier.minimumPrice.toFixed(2)}</span></div>
-                      </CardContent>
-                      <CardContent>
-                        <Button className="w-full" asChild>
-                            <Link href={getSignupLink(tier.id)}>Choisir cette gamme <ArrowRight className="ml-2" /></Link>
-                        </Button>
-                      </CardContent>
+                    <Card key={tier.id} className="flex flex-col md:flex-row md:items-center">
+                      <div className="md:w-1/3">
+                        <Image
+                          src={tier.photoUrl}
+                          alt={`Photo de ${tier.name}`}
+                          data-ai-hint="luxury car"
+                          width={400}
+                          height={225}
+                          className="h-full w-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-r-none"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <CardHeader>
+                          <CardTitle className="font-headline">{tier.name}</CardTitle>
+                          <CardDescription>{tier.description}</CardDescription>
+                        </CardHeader>
+                        <CardContent className="grid gap-4 text-sm">
+                           <div className="flex justify-between border-t pt-4">
+                             <div className="flex items-center gap-2 text-muted-foreground">
+                                <Users className="h-4 w-4" /> <span>4</span>
+                             </div>
+                             <span className="font-bold text-lg text-foreground">€{tier.minimumPrice.toFixed(2)}</span>
+                           </div>
+                           <Button className="w-full" asChild>
+                               <Link href={getSignupLink(tier.id)}>Choisir {tier.name} <ArrowRight className="ml-2" /></Link>
+                           </Button>
+                        </CardContent>
+                      </div>
                     </Card>
                   ))
                 )}
@@ -171,5 +173,3 @@ export default function SelectVehiclePage() {
     </Suspense>
   )
 }
-
-    
