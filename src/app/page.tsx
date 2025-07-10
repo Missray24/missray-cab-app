@@ -63,22 +63,22 @@ export default function LandingPage() {
                     <div className="space-y-4">
                       <div className="relative">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input type="text" placeholder="Adresse de départ" className="pl-10 h-11 text-base" />
+                        <Input type="text" placeholder="Adresse de départ" className="pl-10 h-10 text-base" />
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="relative flex-1">
                           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                          <Input type="text" placeholder="Adresse d'arrivée" className="pl-10 h-11 text-base w-full" />
+                          <Input type="text" placeholder="Adresse d'arrivée" className="pl-10 h-10 text-base w-full" />
                         </div>
-                        <Button size="icon" aria-label="Ajouter un arrêt" className="h-11 w-11 shrink-0">
+                        <Button size="icon" aria-label="Ajouter un arrêt" className="h-10 w-10 shrink-0">
                           <Plus className="h-5 w-5" />
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button size="icon" aria-label="Programmer une course" className="h-11 w-11 shrink-0">
+                        <Button size="icon" aria-label="Programmer une course" className="h-10 w-10 shrink-0">
                             <Calendar className="h-5 w-5" />
                         </Button>
-                        <Button size="lg" className="flex-1 h-11 text-base">
+                        <Button size="lg" className="flex-1 h-10 text-base">
                           Voir les véhicules
                         </Button>
                       </div>
