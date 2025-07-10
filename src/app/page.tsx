@@ -62,12 +62,12 @@ export default function LandingPage() {
                   <div className="bg-white p-6 rounded-lg shadow-lg w-full">
                     <div className="space-y-4">
                       <div className="relative">
-                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500" />
                         <Input type="text" placeholder="Adresse de départ" className="pl-10 h-9 text-base" />
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="relative flex-1">
-                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                          <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />
                           <Input type="text" placeholder="Adresse d'arrivée" className="pl-10 h-9 text-base w-full" />
                         </div>
                         <Button size="icon" aria-label="Ajouter un arrêt" className="h-9 w-9 shrink-0">
