@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter, notFound } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { CheckCircle2, Car, MapPin, User as UserIcon, Calendar, Clock, DollarSign, Briefcase } from 'lucide-react';
+import { CheckCircle2, Car, MapPin, User as UserIcon, Calendar, Clock, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
@@ -118,8 +118,8 @@ function ConfirmationComponent() {
 
                 <div className="space-y-4">
                     <h3 className="font-semibold text-lg">Détails de la course</h3>
-                    <div className="flex items-center gap-3">
-                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                    <div className="flex items-center gap-2">
+                        <p className="font-bold text-foreground">Prise en charge le:</p>
                         <p>{format(reservationDate, "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })}</p>
                     </div>
                     <div className="flex items-start gap-3">
