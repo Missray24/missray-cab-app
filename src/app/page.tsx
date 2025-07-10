@@ -4,8 +4,10 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Car, Star, CheckCircle, Smartphone, CreditCard, MapPin, Calendar, Plus, X } from 'lucide-react';
+import { Car, Star, CheckCircle, Smartphone, CreditCard, MapPin, Calendar as CalendarIcon, Plus, X } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -16,6 +18,10 @@ import { db } from '@/lib/firebase';
 import type { ServiceTier } from '@/lib/types';
 import { AutocompleteInput } from '@/components/autocomplete-input';
 import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 
 export default function LandingPage() {
@@ -25,6 +31,7 @@ export default function LandingPage() {
   const [pickupAddress, setPickupAddress] = useState('');
   const [stops, setStops] = useState<{ id: number; address: string }[]>([]);
   const [dropoffAddress, setDropoffAddress] = useState('');
+  const [scheduledDateTime, setScheduledDateTime] = useState<Date | null>(null);
 
   useEffect(() => {
     const fetchTiers = async () => {
@@ -56,6 +63,17 @@ export default function LandingPage() {
   
   const handleStopChange = (id: number, address: string) => {
     setStops(prev => prev.map(stop => stop.id === id ? { ...stop, address } : stop));
+  };
+
+  const handleDateTimeChange = (date: Date | undefined, time: string) => {
+    if (!date) {
+        setScheduledDateTime(null);
+        return;
+    }
+    const [hours, minutes] = time.split(':').map(Number);
+    const newDateTime = new Date(date);
+    newDateTime.setHours(hours, minutes);
+    setScheduledDateTime(newDateTime);
   };
 
 
@@ -116,9 +134,44 @@ export default function LandingPage() {
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button size="icon" aria-label="Programmer une course" className="h-9 w-9 shrink-0">
-                            <Calendar className="h-5 w-5" />
-                        </Button>
+                         <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "h-9 w-[40%] justify-start text-left font-normal",
+                                  !scheduledDateTime && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {scheduledDateTime ? (
+                                  format(scheduledDateTime, "PPp", { locale: fr })
+                                ) : (
+                                  <span>Maintenant</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-4" align="start">
+                                <Label>Date de la course</Label>
+                                <Calendar
+                                    mode="single"
+                                    selected={scheduledDateTime ?? undefined}
+                                    onSelect={(day) => handleDateTimeChange(day, scheduledDateTime ? format(scheduledDateTime, 'HH:mm') : '12:00')}
+                                    initialFocus
+                                    locale={fr}
+                                />
+                                <div className="mt-2">
+                                  <Label htmlFor="time-picker">Heure de départ</Label>
+                                  <Input 
+                                      id="time-picker"
+                                      type="time" 
+                                      defaultValue={scheduledDateTime ? format(scheduledDateTime, 'HH:mm') : '12:00'}
+                                      onChange={(e) => handleDateTimeChange(scheduledDateTime, e.target.value)}
+                                      className="mt-1"
+                                  />
+                                </div>
+                            </PopoverContent>
+                        </Popover>
                         <Button size="lg" className="flex-1 h-9 text-base">
                           Voir les véhicules
                         </Button>
