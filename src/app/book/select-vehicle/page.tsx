@@ -58,9 +58,11 @@ function VehicleSelectionComponent() {
 
   useEffect(() => {
     if (bookingDetails?.scheduledTime) {
-      setFormattedScheduledTime(
-        format(bookingDetails.scheduledTime, "dd MMM yyyy 'à' HH:mm", { locale: fr })
-      );
+        setFormattedScheduledTime(
+            format(bookingDetails.scheduledTime, "dd MMM yyyy 'à' HH:mm", { locale: fr })
+        );
+    } else {
+        setFormattedScheduledTime(null);
     }
   }, [bookingDetails?.scheduledTime]);
 
