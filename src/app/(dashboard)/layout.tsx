@@ -126,7 +126,9 @@ function DashboardLayoutContent({
     <>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <h2 className="text-lg font-headline font-semibold group-data-[state=collapsed]:hidden">missray cab</h2>
+          <Link href="/dashboard" className="flex items-center gap-2">
+            <h2 className="text-lg font-headline font-semibold group-data-[state=collapsed]:hidden">missray cab</h2>
+          </Link>
         </SidebarHeader>
         <SidebarContent>
           <SidebarMenu>
