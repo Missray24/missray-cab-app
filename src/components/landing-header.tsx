@@ -4,7 +4,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { onAuthStateChanged, signOut, type User } from 'firebase/auth';
-import { Car, CircleUser, CalendarCheck, LogOut } from 'lucide-react';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { Car, CircleUser, CalendarCheck, LogOut, LayoutDashboard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
@@ -16,19 +17,40 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 import { Skeleton } from './ui/skeleton';
 
 const ADMIN_EMAIL = 'contact@missray-cab.com';
 
+// Extend the Firebase User type to include our custom 'name' field
+interface AppUser extends User {
+    name?: string;
+}
+
 export function LandingHeader() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+          // If a user is logged in, fetch their details from Firestore
+          const usersRef = collection(db, "users");
+          const q = query(usersRef, where("uid", "==", currentUser.uid));
+          const querySnapshot = await getDocs(q);
+
+          if (!querySnapshot.empty) {
+              const userDoc = querySnapshot.docs[0].data();
+              // Combine Firebase Auth user with Firestore data
+              setUser({ ...currentUser, name: userDoc.name });
+          } else {
+              // Fallback to just the Auth user if no Firestore doc is found
+              setUser(currentUser);
+          }
+      } else {
+          setUser(null);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
@@ -76,7 +98,7 @@ export function LandingHeader() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+          <DropdownMenuLabel>{user.name || user.email}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           {isClient && (
              <DropdownMenuItem asChild>
@@ -89,7 +111,7 @@ export function LandingHeader() {
            {isAdmin && (
              <DropdownMenuItem asChild>
                 <Link href="/dashboard">
-                    <CalendarCheck className="mr-2 h-4 w-4" />
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
                     <span>Tableau de bord</span>
                 </Link>
              </DropdownMenuItem>
