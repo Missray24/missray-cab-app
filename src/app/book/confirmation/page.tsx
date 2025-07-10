@@ -143,14 +143,18 @@ function ConfirmationComponent() {
                         <Car className="h-5 w-5 text-muted-foreground" />
                         <p>{tier.name}</p>
                     </div>
-                     <div className="flex items-center gap-3">
-                        <UserIcon className="h-5 w-5 text-muted-foreground" />
-                        <p>{tier.capacity.passengers} passagers</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Briefcase className="h-5 w-5 text-muted-foreground" />
-                        <p>{tier.capacity.suitcases} valises</p>
-                    </div>
+                    {tier.capacity?.passengers && (
+                      <div className="flex items-center gap-3">
+                         <UserIcon className="h-5 w-5 text-muted-foreground" />
+                         <p>{tier.capacity.passengers} passagers</p>
+                     </div>
+                    )}
+                    {tier.capacity?.suitcases && (
+                      <div className="flex items-center gap-3">
+                          <Briefcase className="h-5 w-5 text-muted-foreground" />
+                          <p>{tier.capacity.suitcases} valises</p>
+                      </div>
+                    )}
                     <div className="flex items-center gap-3">
                         <DollarSign className="h-5 w-5 text-muted-foreground" />
                         <p>{reservation.amount.toFixed(2)}€ ({reservation.paymentMethod})</p>
@@ -177,4 +181,3 @@ export default function ConfirmationPage() {
         </Suspense>
     );
 }
-
