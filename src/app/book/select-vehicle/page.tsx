@@ -294,7 +294,7 @@ function VehicleSelectionComponent() {
                                   data-ai-hint="luxury car"
                                   width={400}
                                   height={225}
-                                  className="h-full w-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-r-none"
+                                  className="h-full w-full object-contain rounded-t-lg md:rounded-l-lg md:rounded-r-none"
                                 />
                               </div>
                               <div className="flex-1 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
