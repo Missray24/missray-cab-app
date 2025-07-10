@@ -26,7 +26,7 @@ export type SendEmailInput = z.infer<typeof SendEmailInputSchema>;
 
 // IMPORTANT: This email must be a validated sender in your Brevo account.
 const ADMIN_EMAIL = 'contact@missray-cab.com';
-const ADMIN_NAME = 'Admin missray cab';
+const ADMIN_NAME = 'missray cab';
 
 const getTemplateIdForType = (type: EmailType): number => {
     switch (type) {
