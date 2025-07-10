@@ -17,7 +17,7 @@ const staticTiers = [
   {
     id: 'standard',
     name: 'Standard',
-    photoUrl: '/images/vehicules/berline.png',
+    photoUrl: 'https://firebasestorage.googleapis.com/v0/b/missray-cab-kb0il.firebasestorage.app/o/service-tiers%2F1752142290793_comfort.png?alt=media&token=f55bb2c2-cb7b-4013-97f0-2adc052f0aa3',
     capacity: { passengers: 4, suitcases: 2 },
     'data-ai-hint': 'sedan car'
   },
