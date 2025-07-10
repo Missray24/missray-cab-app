@@ -11,6 +11,13 @@ import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
 import { BookingForm, type BookingDetails } from '@/components/booking-form';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 
 const staticTiers = [
@@ -152,7 +159,45 @@ export default function LandingPage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-4 mt-12">
+            <div className="md:hidden mt-8">
+                <Carousel
+                    opts={{
+                        align: "start",
+                    }}
+                    className="w-full"
+                >
+                    <CarouselContent>
+                        {staticTiers.map((tier) => (
+                            <CarouselItem key={tier.id} className="basis-11/12">
+                                <Card className="overflow-hidden">
+                                  <CardContent className="p-0">
+                                    <div className="aspect-video w-full border-b">
+                                      <Image
+                                        src={tier.photoUrl}
+                                        alt={`Photo de ${tier.name}`}
+                                        data-ai-hint={tier['data-ai-hint']}
+                                        width={400}
+                                        height={225}
+                                        className="h-full w-full object-contain"
+                                      />
+                                    </div>
+                                    <div className="p-4">
+                                      <CardTitle className="font-headline text-lg">{tier.name}</CardTitle>
+                                      <div className="flex items-center gap-3 text-sm font-semibold text-foreground mt-2">
+                                        <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity.passengers}</div>
+                                        <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity.suitcases}</div>
+                                      </div>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                            </CarouselItem>
+                        ))}
+                    </CarouselContent>
+                    <CarouselPrevious />
+                    <CarouselNext />
+                </Carousel>
+            </div>
+            <div className="hidden md:grid gap-6 md:grid-cols-2 lg:grid-cols-4 mt-12">
               {staticTiers.map((tier) => (
                 <Card key={tier.id} className="overflow-hidden">
                   <CardContent className="p-0">
