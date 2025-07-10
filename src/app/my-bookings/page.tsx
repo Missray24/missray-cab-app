@@ -4,7 +4,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
@@ -41,17 +41,21 @@ function MyBookingsComponent() {
             const clientDocId = userSnapshot.docs[0].id;
             
             const reservationsRef = collection(db, "reservations");
+            // Query without server-side ordering to avoid needing a composite index
             const q = query(
               reservationsRef, 
-              where("clientId", "==", clientDocId),
-              orderBy("date", "desc")
+              where("clientId", "==", clientDocId)
             );
             const querySnapshot = await getDocs(q);
             
-            const userReservations = querySnapshot.docs.map(doc => ({
+            let userReservations = querySnapshot.docs.map(doc => ({
               id: doc.id,
               ...doc.data(),
             })) as Reservation[];
+            
+            // Sort the reservations on the client-side
+            userReservations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
             setReservations(userReservations);
           }
         } catch (error) {
