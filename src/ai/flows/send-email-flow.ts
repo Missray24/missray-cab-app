@@ -37,6 +37,7 @@ const getTemplateIdForType = (type: EmailType): number => {
         case 'admin_new_user':
             return 9; // Notification for admin about a new user
         default:
+            // This case should not be reachable due to Zod validation
             throw new Error('Invalid email type');
     }
 }
@@ -54,6 +55,7 @@ const sendEmailFlow = ai.defineFlow(
   async (input) => {
     if (!BREVO_API_KEY) {
       console.error('Brevo API key is not configured. Email not sent. Please set it in your .env file.');
+      // Return success: false but don't throw, so the user flow is not interrupted.
       return { success: false };
     }
     
@@ -69,7 +71,7 @@ const sendEmailFlow = ai.defineFlow(
     // The sender must be a validated sender in your Brevo account.
     sendSmtpEmail.sender = { email: ADMIN_EMAIL, name: ADMIN_NAME };
 
-    // Set recipient based on email type
+    // Set recipient based on email type. The 'to' property must be an array.
     if (input.type === 'admin_new_user') {
       sendSmtpEmail.to = [{ email: ADMIN_EMAIL, name: ADMIN_NAME }];
     } else {
@@ -81,6 +83,7 @@ const sendEmailFlow = ai.defineFlow(
       console.log('Brevo API sent email successfully. Message ID: ' + (body.messageId || 'N/A'));
       return { success: true, messageId: body.messageId };
     } catch (error: any) {
+      // The Brevo API client might throw errors with a 'body' property containing details.
       console.error('Error sending email via Brevo API:', error.body || error.message);
       return { success: false };
     }
