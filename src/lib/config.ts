@@ -5,13 +5,12 @@
 
 // Server-side keys (should not be exposed to the client)
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-export const BREVO_API_KEY = process.env.BREVO_API_KEY;
 
-// Brevo SMTP credentials
-export const BREVO_SMTP_HOST = process.env.BREVO_SMTP_HOST;
-export const BREVO_SMTP_PORT = process.env.BREVO_SMTP_PORT;
-export const BREVO_SMTP_USER = process.env.BREVO_SMTP_USER;
-export const BREVO_SMTP_PASS = process.env.BREVO_SMTP_PASS;
+// IONOS SMTP credentials
+export const IONOS_SMTP_HOST = process.env.IONOS_SMTP_HOST;
+export const IONOS_SMTP_PORT = process.env.IONOS_SMTP_PORT;
+export const IONOS_SMTP_USER = process.env.IONOS_SMTP_USER;
+export const IONOS_SMTP_PASS = process.env.IONOS_SMTP_PASS;
 
 
 // Client-side keys (prefixed with NEXT_PUBLIC_ to be exposed to the browser)
