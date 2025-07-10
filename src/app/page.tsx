@@ -134,21 +134,13 @@ export default function LandingPage() {
                         </Button>
                       </div>
                       <div className="flex items-center gap-2">
-                         <Popover>
+                        <Button size="lg" className="flex-1 h-9 text-base">
+                          Voir les véhicules
+                        </Button>
+                        <Popover>
                             <PopoverTrigger asChild>
-                              <Button
-                                variant="outline"
-                                className={cn(
-                                  "h-9 w-[40%] justify-start text-left font-normal",
-                                  !scheduledDateTime && "text-muted-foreground"
-                                )}
-                              >
-                                <CalendarIcon className="mr-2 h-4 w-4" />
-                                {scheduledDateTime ? (
-                                  format(scheduledDateTime, "PPp", { locale: fr })
-                                ) : (
-                                  <span>Maintenant</span>
-                                )}
+                              <Button variant="outline" size="icon" aria-label="Programmer une course" className="h-9 w-9 shrink-0">
+                                <CalendarIcon className="h-5 w-5" />
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-4" align="start">
@@ -172,9 +164,6 @@ export default function LandingPage() {
                                 </div>
                             </PopoverContent>
                         </Popover>
-                        <Button size="lg" className="flex-1 h-9 text-base">
-                          Voir les véhicules
-                        </Button>
                       </div>
                     </div>
                   </div>
