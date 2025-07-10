@@ -1,0 +1,95 @@
+'use server';
+/**
+ * @fileOverview A flow for sending transactional emails via Brevo API.
+ * - sendEmail - A function that handles sending different types of emails.
+ * - SendEmailInput - The input type for the sendEmail function.
+ */
+
+import { ai } from '@/ai/genkit';
+import { z } from 'zod';
+import * as brevo from '@getbrevo/brevo';
+import { BREVO_API_KEY } from '@/lib/config';
+
+const EmailTypeSchema = z.enum(['new_client_welcome', 'new_driver_welcome', 'admin_new_user']);
+export type EmailType = z.infer<typeof EmailTypeSchema>;
+
+const SendEmailInputSchema = z.object({
+  type: EmailTypeSchema,
+  to: z.object({
+    email: z.string().email(),
+    name: z.string(),
+  }),
+  params: z.record(z.any()).optional(),
+});
+export type SendEmailInput = z.infer<typeof SendEmailInputSchema>;
+
+const ADMIN_EMAIL = 'contact@missray-cab.com';
+const ADMIN_NAME = 'Admin missray cab';
+
+// Configure Brevo API
+const apiInstance = new brevo.TransactionalEmailsApi();
+apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, BREVO_API_KEY || '');
+
+
+export async function sendEmail(input: SendEmailInput): Promise<{ success: boolean; messageId?: string }> {
+  return sendEmailFlow(input);
+}
+
+const sendEmailFlow = ai.defineFlow(
+  {
+    name: 'sendEmailFlow',
+    inputSchema: SendEmailInputSchema,
+    outputSchema: z.object({ success: z.boolean(), messageId: z.string().optional() }),
+  },
+  async (input) => {
+    if (!BREVO_API_KEY) {
+      console.error('Brevo API key is not configured.');
+      return { success: false };
+    }
+
+    let templateId: number | undefined;
+    let subject: string = '';
+    const to = [input.to];
+    let bcc: brevo.SendSmtpEmailBcc[] | undefined;
+
+    switch (input.type) {
+      case 'new_client_welcome':
+        templateId = 1; // Use your actual Brevo template ID
+        subject = 'Bienvenue chez missray cab !';
+        break;
+      case 'new_driver_welcome':
+        templateId = 2; // Use your actual Brevo template ID
+        subject = 'Bienvenue dans la flotte missray cab !';
+        break;
+      case 'admin_new_user':
+        templateId = 3; // Use your actual Brevo template ID
+        subject = `Nouvelle inscription: ${input.params?.userType || 'Utilisateur'}`;
+        // Override recipient to be the admin
+        to[0] = { email: ADMIN_EMAIL, name: ADMIN_NAME };
+        break;
+      default:
+        throw new Error('Invalid email type');
+    }
+    
+    if (!templateId) {
+        console.error(`No template configured for email type: ${input.type}`);
+        return { success: false };
+    }
+
+
+    const sendSmtpEmail = new brevo.SendSmtpEmail();
+    sendSmtpEmail.templateId = templateId;
+    sendSmtpEmail.to = to;
+    sendSmtpEmail.sender = { email: ADMIN_EMAIL, name: ADMIN_NAME };
+    sendSmtpEmail.params = input.params;
+
+    try {
+      const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
+      console.log('Brevo API called successfully. Returned data: ' + JSON.stringify(data));
+      return { success: true, messageId: data.body.messageId };
+    } catch (error) {
+      console.error('Error sending email via Brevo:', error);
+      return { success: false };
+    }
+  }
+);

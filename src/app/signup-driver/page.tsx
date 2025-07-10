@@ -38,6 +38,7 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { auth, db } from '@/lib/firebase';
+import { sendEmail } from '@/ai/flows/send-email-flow';
 
 export default function SignupDriverPage() {
   const phoneInputRef = useRef<IntlTelInputRef>(null);
@@ -106,6 +107,7 @@ export default function SignupDriverPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+    const driverName = `${values.firstName} ${values.lastName}`;
     try {
       // 1. Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(
@@ -150,6 +152,25 @@ export default function SignupDriverPage() {
       };
 
       await addDoc(collection(db, 'drivers'), driverData);
+      
+      // 3. Send emails
+      await Promise.all([
+        sendEmail({
+            type: 'new_driver_welcome',
+            to: { email: values.email, name: driverName },
+            params: { driverName: driverName },
+        }),
+        sendEmail({
+            type: 'admin_new_user',
+            to: { email: 'contact@missray-cab.com', name: 'Admin' }, // This will be overridden
+            params: {
+              userType: 'Chauffeur',
+              name: driverName,
+              email: values.email,
+            },
+        }),
+      ]);
+
 
       toast({
         title: 'Inscription réussie !',

@@ -31,6 +31,8 @@ import { Input } from '@/components/ui/input';
 import { IntlTelInput, type IntlTelInputRef } from '@/components/ui/intl-tel-input';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
+import { sendEmail } from '@/ai/flows/send-email-flow';
+
 
 export default function SignupPage() {
   const phoneInputRef = useRef<IntlTelInputRef>(null);
@@ -78,6 +80,7 @@ export default function SignupPage() {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
+    const clientName = `${values.firstName} ${values.lastName}`;
     try {
       // 1. Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(
@@ -90,12 +93,30 @@ export default function SignupPage() {
       // 2. Create client document in Firestore
       await addDoc(collection(db, 'clients'), {
         uid: user.uid,
-        name: `${values.firstName} ${values.lastName}`,
+        name: clientName,
         email: values.email,
         phone: phoneInputRef.current?.getNumber() || '',
         joinDate: new Date().toLocaleDateString('fr-CA'),
         status: 'Active',
       });
+      
+      // 3. Send emails
+      await Promise.all([
+        sendEmail({
+          type: 'new_client_welcome',
+          to: { email: values.email, name: clientName },
+          params: { clientName: clientName },
+        }),
+        sendEmail({
+            type: 'admin_new_user',
+            to: { email: 'contact@missray-cab.com', name: 'Admin' }, // This will be overridden in the flow
+            params: {
+              userType: 'Client',
+              name: clientName,
+              email: values.email,
+            },
+        }),
+      ]);
 
       toast({
         title: 'Inscription réussie!',
