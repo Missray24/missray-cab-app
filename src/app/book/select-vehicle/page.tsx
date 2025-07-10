@@ -20,6 +20,7 @@ import { RouteMap } from '@/components/route-map';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { BookingForm, type BookingDetails } from '@/components/booking-form';
+import { AuthDialog } from '@/components/auth-dialog';
 
 interface RouteInfo {
     distance: string;
@@ -35,6 +36,8 @@ function VehicleSelectionComponent() {
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formattedScheduledTime, setFormattedScheduledTime] = useState<string | null>(null);
+  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
+  const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
 
   // Memoize booking details to prevent re-parsing on every render
   const bookingDetails = useMemo(() => {
@@ -99,15 +102,14 @@ function VehicleSelectionComponent() {
     setIsEditing(false);
   }
 
+  const handleChooseTier = (tierId: string) => {
+    setSelectedTierId(tierId);
+    setIsAuthDialogOpen(true);
+  };
+
   if (!bookingDetails) {
     // Render loading or null while redirecting
     return <div className="flex flex-col min-h-dvh bg-muted/40"><LandingHeader /><main className="flex-1"></main><LandingFooter /></div>;
-  }
-
-  const getSignupLink = (tierId: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('tierId', tierId);
-    return `/signup?${params.toString()}`;
   }
 
   return (
@@ -274,8 +276,8 @@ function VehicleSelectionComponent() {
                                           </TooltipContent>
                                       </Tooltip>
                                    </TooltipProvider>
-                                    <Button className="w-full md:w-auto mt-2" asChild>
-                                       <a href={getSignupLink(tier.id)}>Choisir <ArrowRight className="ml-2" /></a>
+                                    <Button className="w-full md:w-auto mt-2" onClick={() => handleChooseTier(tier.id)}>
+                                       Choisir <ArrowRight className="ml-2" />
                                     </Button>
                                </div>
                             </div>
@@ -288,6 +290,13 @@ function VehicleSelectionComponent() {
         </div>
       </main>
       <LandingFooter />
+      {bookingDetails && (
+        <AuthDialog
+            open={isAuthDialogOpen}
+            onOpenChange={setIsAuthDialogOpen}
+            bookingDetails={{...bookingDetails, tierId: selectedTierId!}}
+        />
+      )}
     </div>
   );
 }
@@ -299,3 +308,5 @@ export default function SelectVehiclePage() {
     </Suspense>
   )
 }
+
+    

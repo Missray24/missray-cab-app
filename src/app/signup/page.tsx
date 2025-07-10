@@ -82,6 +82,14 @@ function SignupFormComponent() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     const clientName = `${values.firstName} ${values.lastName}`;
+    
+    // This page is now for creating an account without an immediate booking.
+    // The booking flow is handled by AuthDialog.
+    if (searchParams.toString()) {
+        router.push(`/book/select-vehicle?${searchParams.toString()}`);
+        return;
+    }
+
     try {
       // 1. Create Firebase Auth user
       const userCredential = await createUserWithEmailAndPassword(
@@ -103,21 +111,6 @@ function SignupFormComponent() {
         joinDate: new Date().toLocaleDateString('fr-CA'),
         status: 'Active',
       });
-      
-      // TODO: Create the reservation if booking params are present
-      const tierId = searchParams.get('tierId');
-      if (tierId) {
-        // Here you would create the reservation document in Firestore
-        // using the booking details from searchParams and the new user's ID.
-        console.log("Creating reservation for new user...", {
-          pickup: searchParams.get('pickup'),
-          dropoff: searchParams.get('dropoff'),
-          stops: searchParams.getAll('stop'),
-          scheduledTime: searchParams.get('scheduledTime'),
-          tierId: tierId,
-          clientId: user.uid,
-        });
-      }
       
       // 3. Send emails
       await Promise.all([
@@ -142,11 +135,7 @@ function SignupFormComponent() {
         description: 'Votre compte a été créé. Vous pouvez maintenant vous connecter.',
       });
       
-      const loginParams = new URLSearchParams();
-      if(searchParams.toString()){
-        loginParams.set('booking', searchParams.toString());
-      }
-      router.push(`/login?${loginParams.toString()}`);
+      router.push(`/login`);
 
     } catch (error: any) {
       console.error("Error signing up:", error);
@@ -170,10 +159,7 @@ function SignupFormComponent() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Créer votre compte client</CardTitle>
           <CardDescription>
-            {searchParams.has('tierId') 
-                ? "Finalisez votre inscription pour confirmer votre réservation."
-                : "Inscrivez-vous pour réserver vos courses en quelques clics."
-            }
+            Inscrivez-vous pour réserver vos courses en quelques clics.
           </CardDescription>
         </CardHeader>
         <CardContent>
