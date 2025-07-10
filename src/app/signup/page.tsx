@@ -2,14 +2,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { Suspense, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Eye, EyeOff } from 'lucide-react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, addDoc } from 'firebase/firestore';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -34,10 +34,11 @@ import { auth, db } from '@/lib/firebase';
 import { sendEmail } from '@/ai/flows/send-email-flow';
 
 
-export default function SignupPage() {
+function SignupFormComponent() {
   const phoneInputRef = useRef<IntlTelInputRef>(null);
   const { toast } = useToast();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -103,6 +104,21 @@ export default function SignupPage() {
         status: 'Active',
       });
       
+      // TODO: Create the reservation if booking params are present
+      const tierId = searchParams.get('tierId');
+      if (tierId) {
+        // Here you would create the reservation document in Firestore
+        // using the booking details from searchParams and the new user's ID.
+        console.log("Creating reservation for new user...", {
+          pickup: searchParams.get('pickup'),
+          dropoff: searchParams.get('dropoff'),
+          stops: searchParams.getAll('stop'),
+          scheduledTime: searchParams.get('scheduledTime'),
+          tierId: tierId,
+          clientId: user.uid,
+        });
+      }
+      
       // 3. Send emails
       await Promise.all([
         sendEmail({
@@ -126,7 +142,11 @@ export default function SignupPage() {
         description: 'Votre compte a été créé. Vous pouvez maintenant vous connecter.',
       });
       
-      router.push('/login');
+      const loginParams = new URLSearchParams();
+      if(searchParams.toString()){
+        loginParams.set('booking', searchParams.toString());
+      }
+      router.push(`/login?${loginParams.toString()}`);
 
     } catch (error: any) {
       console.error("Error signing up:", error);
@@ -150,7 +170,10 @@ export default function SignupPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Créer votre compte client</CardTitle>
           <CardDescription>
-            Inscrivez-vous pour réserver vos courses en quelques clics.
+            {searchParams.has('tierId') 
+                ? "Finalisez votre inscription pour confirmer votre réservation."
+                : "Inscrivez-vous pour réserver vos courses en quelques clics."
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -322,3 +345,13 @@ export default function SignupPage() {
     </div>
   );
 }
+
+export default function SignupPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <SignupFormComponent />
+        </Suspense>
+    )
+}
+
+    

@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Car, Star, CheckCircle, Smartphone, CreditCard, MapPin, Calendar as CalendarIcon, Plus, X } from 'lucide-react';
 import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
@@ -23,11 +24,14 @@ import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
 
 
 export default function LandingPage() {
   const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const { toast } = useToast();
   
   const [pickupAddress, setPickupAddress] = useState('');
   const [stops, setStops] = useState<{ id: number; address: string }[]>([]);
@@ -76,6 +80,27 @@ export default function LandingPage() {
     newDateTime.setHours(hours, minutes);
     setScheduledDateTime(newDateTime);
   };
+  
+  const handleSeeVehicles = () => {
+    if (!pickupAddress || !dropoffAddress) {
+      toast({
+        variant: 'destructive',
+        title: 'Champs requis',
+        description: 'Veuillez renseigner une adresse de départ et d\'arrivée.',
+      });
+      return;
+    }
+    
+    const queryParams = new URLSearchParams();
+    queryParams.set('pickup', pickupAddress);
+    queryParams.set('dropoff', dropoffAddress);
+    stops.forEach(stop => queryParams.append('stop', stop.address));
+    if (scheduledDateTime) {
+      queryParams.set('scheduledTime', scheduledDateTime.toISOString());
+    }
+
+    router.push(`/book/select-vehicle?${queryParams.toString()}`);
+  }
 
 
   return (
@@ -164,7 +189,7 @@ export default function LandingPage() {
                                 </PopoverContent>
                             </Popover>
                              <Separator orientation="vertical" className="h-full w-px bg-white/20" />
-                            <Button size="lg" className="flex-1 h-full text-base rounded-l-none">
+                            <Button size="lg" className="flex-1 h-full text-base rounded-l-none" onClick={handleSeeVehicles}>
                               Voir les véhicules
                             </Button>
                         </div>
@@ -409,3 +434,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    

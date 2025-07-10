@@ -2,8 +2,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 
@@ -22,32 +22,43 @@ import { auth } from '@/lib/firebase';
 
 const ADMIN_EMAIL = 'contact@missray-cab.com';
 
-export default function LoginPage() {
+function LoginComponent() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    if (email.toLowerCase() !== ADMIN_EMAIL) {
-        toast({
-            variant: 'destructive',
-            title: "Accès non autorisé",
-            description: "Seul l'administrateur peut se connecter ici.",
-        });
-        setIsLoading(false);
-        return;
-    }
+    const isClientLogin = email.toLowerCase() !== ADMIN_EMAIL;
+    const bookingParams = searchParams.get('booking');
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      toast({ title: "Succès", description: "Connexion réussie. Redirection..." });
-      router.push('/dashboard');
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      if (isClientLogin) {
+        if(bookingParams) {
+          // TODO: This is where we'd create the reservation after login
+          console.log("Client logged in, create reservation now with params:", bookingParams);
+          // After creating reservation, redirect to a confirmation page
+          toast({ title: "Succès", description: "Réservation confirmée !" });
+          router.push('/dashboard/reservations'); // Placeholder, should be a client-side confirmation
+        } else {
+          // Redirect to client dashboard if it exists, or home
+           toast({ title: "Succès", description: "Connexion réussie." });
+           router.push('/'); // Or a future client dashboard
+        }
+      } else {
+        // Admin login
+        toast({ title: "Succès", description: "Connexion réussie. Redirection..." });
+        router.push('/dashboard');
+      }
+
     } catch (error: any) {
       console.error("Error signing in: ", error);
       let description = "Une erreur est survenue lors de la connexion.";
@@ -66,7 +77,7 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-headline">Connexion à missray cab</CardTitle>
           <CardDescription>
-            Accès réservé à l'administration.
+             Entrez vos identifiants pour continuer.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -77,7 +88,7 @@ export default function LoginPage() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="admin@exemple.com"
+                  placeholder="votre@email.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -113,8 +124,26 @@ export default function LoginPage() {
               </Button>
             </div>
           </form>
+           <div className="mt-4 text-center text-sm">
+              <p>
+                Pas encore de compte?{' '}
+                <Link href="/signup" className="underline">
+                    S'inscrire
+                </Link>
+              </p>
+          </div>
         </CardContent>
       </Card>
     </div>
   );
 }
+
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <LoginComponent />
+        </Suspense>
+    )
+}
+
+    
