@@ -147,29 +147,30 @@ function VehicleSelectionComponent() {
                           className="h-full w-full object-cover rounded-t-lg md:rounded-l-lg md:rounded-r-none"
                         />
                       </div>
-                      <div className="flex-1">
-                        <CardHeader>
+                      <div className="flex-1 flex flex-col">
+                         <CardHeader>
                             <div className="flex items-center gap-2">
                                 <CardTitle className="font-headline flex-grow">{tier.name}</CardTitle>
-                                <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                    <div className="flex items-center gap-1.5">
-                                        <Users className="h-4 w-4" />
-                                        <span className="font-medium text-foreground">{tier.capacity?.passengers || 4}</span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Briefcase className="h-4 w-4" />
-                                        <span className="font-medium text-foreground">{tier.capacity?.suitcases || 2}</span>
-                                    </div>
-                                </div>
                                 <span className="font-bold text-lg text-foreground whitespace-nowrap">{tier.minimumPrice.toFixed(2)}€</span>
                             </div>
                             <CardDescription>{tier.description}</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                           <Button className="w-full" asChild>
+                         </CardHeader>
+                         <CardContent className="flex-grow flex flex-col justify-end">
+                            <Separator className="my-4" />
+                            <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Users className="h-5 w-5 text-primary" />
+                                    <span className="font-medium text-foreground">{tier.capacity?.passengers || 4} passagers</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Briefcase className="h-5 w-5 text-primary" />
+                                    <span className="font-medium text-foreground">{tier.capacity?.suitcases || 2} valises</span>
+                                </div>
+                            </div>
+                            <Button className="w-full" asChild>
                                <Link href={getSignupLink(tier.id)}>Choisir {tier.name} <ArrowRight className="ml-2" /></Link>
-                           </Button>
-                        </CardContent>
+                            </Button>
+                         </CardContent>
                       </div>
                     </Card>
                   ))
