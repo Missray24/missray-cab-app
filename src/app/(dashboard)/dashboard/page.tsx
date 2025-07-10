@@ -112,7 +112,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$45,231.89</div>
+            <div className="text-2xl font-bold">45,231.89€</div>
             <p className="text-xs text-muted-foreground">
               +20.1% depuis le mois dernier
             </p>
@@ -213,7 +213,7 @@ export default function DashboardPage() {
                     <TableCell>{reservation.date}</TableCell>
                     <TableCell>{reservation.paymentMethod}</TableCell>
                     <TableCell className="text-right">
-                      ${reservation.amount.toFixed(2)}
+                      {reservation.amount.toFixed(2)}€
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

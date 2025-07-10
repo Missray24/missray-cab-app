@@ -160,7 +160,7 @@ function VehicleSelectionComponent() {
                                         <Briefcase className="h-4 w-4" />
                                         <span className="font-medium text-foreground">{tier.capacity?.suitcases || 2}</span>
                                     </div>
-                                    <span className="font-bold text-lg text-foreground">€{tier.minimumPrice.toFixed(2)}</span>
+                                    <span className="font-bold text-lg text-foreground">{tier.minimumPrice.toFixed(2)}€</span>
                                 </div>
                             </div>
                             <CardDescription>{tier.description}</CardDescription>

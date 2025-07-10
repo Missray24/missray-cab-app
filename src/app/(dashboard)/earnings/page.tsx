@@ -114,9 +114,9 @@ export default function DriverEarningsPage() {
                         <div className="text-sm text-muted-foreground">{driver.email}</div>
                       </TableCell>
                       <TableCell className="text-right">{totalRides}</TableCell>
-                      <TableCell className="text-right">${totalEarnings.toFixed(2)}</TableCell>
-                      <TableCell className="text-right">${commissionAmount.toFixed(2)}</TableCell>
-                      <TableCell className="text-right font-medium text-primary">${unpaidAmount.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">{totalEarnings.toFixed(2)}€</TableCell>
+                      <TableCell className="text-right">{commissionAmount.toFixed(2)}€</TableCell>
+                      <TableCell className="text-right font-medium text-primary">{unpaidAmount.toFixed(2)}€</TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>

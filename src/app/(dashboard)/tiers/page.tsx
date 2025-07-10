@@ -324,10 +324,10 @@ export default function ServiceTiersPage() {
                 <CardDescription>{tier.description}</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-2 text-sm flex-grow">
-                <div className="flex justify-between"><span className="text-muted-foreground">Prise en charge</span><span className="font-medium">€{tier.baseFare.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Prix / km</span><span className="font-medium">€{tier.perKm.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Prix / minute</span><span className="font-medium">€{tier.perMinute.toFixed(2)}</span></div>
-                <div className="flex justify-between"><span className="text-muted-foreground">Prix minimum</span><span className="font-medium">€{tier.minimumPrice.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Prise en charge</span><span className="font-medium">{tier.baseFare.toFixed(2)}€</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Prix / km</span><span className="font-medium">{tier.perKm.toFixed(2)}€</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Prix / minute</span><span className="font-medium">{tier.perMinute.toFixed(2)}€</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Prix minimum</span><span className="font-medium">{tier.minimumPrice.toFixed(2)}€</span></div>
               </CardContent>
               <CardFooter>
                 <Button variant="outline" className="w-full" onClick={() => handleOpenModal('edit', tier)}>

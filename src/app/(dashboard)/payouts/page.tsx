@@ -182,8 +182,8 @@ export default function PayoutsPage() {
                       <div>{driverProfile.paymentDetails.method}</div>
                       <div className="text-sm text-muted-foreground">{driverProfile.paymentDetails.account}</div>
                     </TableCell>
-                    <TableCell className="text-right">${(commissionAmount - unpaidAmount).toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-medium text-primary">${unpaidAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">{(commissionAmount - unpaidAmount).toFixed(2)}€</TableCell>
+                    <TableCell className="text-right font-medium text-primary">{unpaidAmount.toFixed(2)}€</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
