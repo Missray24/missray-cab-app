@@ -102,6 +102,7 @@ function VehicleSelectionComponent() {
     }
     // Use router.replace to update URL without adding to history
     router.replace(`/book/select-vehicle?${queryParams.toString()}`);
+    setRouteInfo(null); // Reset route info to trigger recalculation
     setIsEditing(false);
   }
 
