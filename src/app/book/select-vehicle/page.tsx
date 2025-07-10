@@ -155,7 +155,7 @@ function VehicleSelectionComponent() {
                       </div>
                       <div className="flex-1 flex flex-col">
                          <CardHeader>
-                            <div className="flex items-baseline justify-between gap-4">
+                            <div className="flex items-center justify-between gap-4">
                                 <CardTitle className="font-headline flex-grow">{tier.name}</CardTitle>
                                  <TooltipProvider>
                                     <Tooltip>
@@ -166,7 +166,7 @@ function VehicleSelectionComponent() {
                                             </span>
                                         </TooltipTrigger>
                                         <TooltipContent>
-                                            <p>Le prix final peut varier en fonction du trafic et des arrêts.</p>
+                                            <p>Temps d'attente gratuit en ville: 3 minute, gare 10 minutes, aéroport 60 minutes</p>
                                         </TooltipContent>
                                     </Tooltip>
                                  </TooltipProvider>
