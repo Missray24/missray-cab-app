@@ -186,7 +186,7 @@ export default function SignupPage() {
                 control={form.control}
                 name="phone"
                 render={({ field }) => (
-                  <FormItem>
+                  <FormItem className="flex flex-col">
                     <FormLabel>Numéro de téléphone</FormLabel>
                     <FormControl>
                       <IntlTelInput
