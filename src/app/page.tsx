@@ -1,17 +1,15 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Car, Star, CheckCircle, Smartphone, CreditCard, Users, Briefcase } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
-import { Skeleton } from '@/components/ui/skeleton';
 import { BookingForm, type BookingDetails } from '@/components/booking-form';
 
 
@@ -156,24 +154,26 @@ export default function LandingPage() {
             </div>
             <div className="mx-auto grid gap-6 md:grid-cols-2 lg:grid-cols-4 mt-12">
               {staticTiers.map((tier) => (
-                <Card key={tier.id} className="flex flex-col overflow-hidden">
-                  <div className="aspect-video w-full border-b">
-                    <Image
-                      src={tier.photoUrl}
-                      alt={`Photo de ${tier.name}`}
-                      data-ai-hint={tier['data-ai-hint']}
-                      width={400}
-                      height={225}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-center">
-                      <CardTitle className="font-headline text-lg">{tier.name}</CardTitle>
-                      <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
-                        <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity.passengers}</div>
-                        <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity.suitcases}</div>
-                      </div>
+                <Card key={tier.id} className="overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="aspect-video w-full border-b">
+                      <Image
+                        src={tier.photoUrl}
+                        alt={`Photo de ${tier.name}`}
+                        data-ai-hint={tier['data-ai-hint']}
+                        width={400}
+                        height={225}
+                        className="h-full w-full object-contain"
+                      />
+                    </div>
+                    <div className="p-4">
+                        <div className="flex justify-between items-center">
+                          <CardTitle className="font-headline text-lg">{tier.name}</CardTitle>
+                          <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
+                            <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity.passengers}</div>
+                            <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity.suitcases}</div>
+                          </div>
+                        </div>
                     </div>
                   </CardContent>
                 </Card>
