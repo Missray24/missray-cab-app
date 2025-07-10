@@ -169,6 +169,23 @@ export default function LandingPage() {
                             </Button>
                         </div>
                       </div>
+
+                      {scheduledDateTime && (
+                        <div className="flex items-center justify-between text-sm text-foreground bg-primary/10 p-2 rounded-md">
+                          <span className="font-medium">
+                            Programmé pour le {format(scheduledDateTime, 'dd MMM. yyyy \'à\' HH:mm', { locale: fr })}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6"
+                            onClick={() => setScheduledDateTime(null)}
+                            aria-label="Annuler la programmation"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
