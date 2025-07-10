@@ -286,7 +286,7 @@ function VehicleSelectionComponent() {
                               bookingDetails.stops.length
                           );
                           return (
-                            <Card key={tier.id} className="flex flex-col md:flex-row md:items-center">
+                            <div key={tier.id} className="bg-card rounded-lg shadow-sm flex flex-col md:flex-row md:items-center overflow-hidden">
                               <div className="md:w-1/4">
                                 <Image
                                   src={tier.photoUrl}
@@ -294,7 +294,7 @@ function VehicleSelectionComponent() {
                                   data-ai-hint="luxury car"
                                   width={400}
                                   height={225}
-                                  className="h-full w-full object-contain rounded-t-lg md:rounded-l-lg md:rounded-r-none"
+                                  className="h-full w-full object-contain"
                                 />
                               </div>
                               <div className="flex-1 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -325,7 +325,7 @@ function VehicleSelectionComponent() {
                                     </Button>
                                 </div>
                               </div>
-                            </Card>
+                            </div>
                           );
                         })
                       )}
@@ -357,3 +357,5 @@ export default function SelectVehiclePage() {
     </Suspense>
   )
 }
+
+    
