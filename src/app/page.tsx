@@ -148,7 +148,7 @@ export default function LandingPage() {
         </section>
 
         {/* Fleet Section */}
-        <section id="fleet" className="w-full py-12">
+        <section id="fleet" className="w-full py-12 md:py-16 lg:py-20">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -226,7 +226,7 @@ export default function LandingPage() {
         </section>
         
         {/* Why Choose Us Section */}
-        <section className="w-full py-12 bg-white">
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
             <div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
                 <div className="space-y-4">
                     <Image 
@@ -237,33 +237,35 @@ export default function LandingPage() {
                         height={400}
                         className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
                     />
+                </div>
+                <div className="space-y-8">
                     <div className="space-y-2">
                         <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight font-headline">L'excellence, notre standard.</h2>
                         <p className="max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                             Nous nous engageons à vous offrir une expérience de transport irréprochable.
                         </p>
                     </div>
-                </div>
-                <div className="grid gap-4">
-                    <div className="flex items-start gap-4">
-                        <CheckCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-                        <div>
-                            <h3 className="text-lg font-bold">Chauffeurs Professionnels</h3>
-                            <p className="text-sm text-muted-foreground">Nos chauffeurs sont expérimentés, courtois et formés pour vous garantir un service de qualité.</p>
+                    <div className="grid gap-4">
+                        <div className="flex items-start gap-4">
+                            <CheckCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+                            <div>
+                                <h3 className="text-lg font-bold">Chauffeurs Professionnels</h3>
+                                <p className="text-sm text-muted-foreground">Nos chauffeurs sont expérimentés, courtois et formés pour vous garantir un service de qualité.</p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                        <CheckCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-                        <div>
-                            <h3 className="text-lg font-bold">Disponibilité 24/7</h3>
-                            <p className="text-sm text-muted-foreground">Commandez une course à tout moment, de jour comme de nuit. Nous sommes toujours là pour vous.</p>
+                        <div className="flex items-start gap-4">
+                            <CheckCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+                            <div>
+                                <h3 className="text-lg font-bold">Disponibilité 24/7</h3>
+                                <p className="text-sm text-muted-foreground">Commandez une course à tout moment, de jour comme de nuit. Nous sommes toujours là pour vous.</p>
+                            </div>
                         </div>
-                    </div>
-                    <div className="flex items-start gap-4">
-                        <CheckCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-                        <div>
-                            <h3 className="text-lg font-bold">Tarifs Transparents</h3>
-                            <p className="text-sm text-muted-foreground">Pas de mauvaise surprise. Le prix de votre course est fixe et connu à l'avance.</p>
+                        <div className="flex items-start gap-4">
+                            <CheckCircle className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
+                            <div>
+                                <h3 className="text-lg font-bold">Tarifs Transparents</h3>
+                                <p className="text-sm text-muted-foreground">Pas de mauvaise surprise. Le prix de votre course est fixe et connu à l'avance.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
