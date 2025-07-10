@@ -168,7 +168,7 @@ export default function LandingPage() {
                     <CardContent className="p-4 flex-grow">
                       <div className="flex justify-between items-center">
                         <CardTitle className="font-headline text-lg">{tier.name}</CardTitle>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-3 text-sm font-semibold text-primary">
                           <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity?.passengers || 4}</div>
                           <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity?.suitcases || 2}</div>
                         </div>
