@@ -201,7 +201,7 @@ function PaymentComponent() {
           );
           setFinalPrice(calculatedPrice);
 
-          const { clientSecret, error } = await createPaymentIntent({ amount: Math.round(calculatedPrice * 100) }); // Amount in cents
+          const { clientSecret, error } = await createPaymentIntent({ amount: Math.round(calculatedPrice * 100), currency: 'eur' });
           if (clientSecret) {
             setClientSecret(clientSecret);
           } else {
