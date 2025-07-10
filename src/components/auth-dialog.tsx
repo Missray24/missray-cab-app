@@ -176,7 +176,7 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
                     </div></FormControl><FormMessage />
                   </FormItem>
                 )} />
-                <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? 'Connexion...' : 'Se connecter et Réserver'}</Button>
+                <Button type="submit" className="w-full" disabled={isLoading} variant="default">{isLoading ? 'Connexion...' : 'Se connecter et Réserver'}</Button>
               </form>
             </Form>
           </TabsContent>
@@ -201,7 +201,7 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
                     <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center">{showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}</button>
                   </div></FormControl><FormMessage /></FormItem>
                 )} />
-                <Button type="submit" className="w-full" disabled={isLoading}>{isLoading ? 'Inscription...' : 'S\'inscrire et Réserver'}</Button>
+                <Button type="submit" className="w-full" disabled={isLoading} variant="default">{isLoading ? 'Inscription...' : 'S\'inscrire et Réserver'}</Button>
               </form>
             </Form>
           </TabsContent>
