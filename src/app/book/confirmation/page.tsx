@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter, notFound } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { CheckCircle2, Car, MapPin, User as UserIcon, Calendar, Clock, Briefcase } from 'lucide-react';
+import { CheckCircle2, MapPin, User as UserIcon, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
@@ -172,7 +172,7 @@ function ConfirmationComponent() {
 
                 <Separator />
                 <Button asChild className="w-full" size="lg">
-                    <Link href="/book/confirmation?id=">Voir mes réservations</Link>
+                    <Link href="/my-bookings">Voir mes réservations</Link>
                 </Button>
             </CardContent>
           </Card>

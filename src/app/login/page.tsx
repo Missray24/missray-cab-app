@@ -48,7 +48,7 @@ function LoginComponent() {
         } else {
            toast({ title: "Succès", description: "Connexion réussie." });
            // After a generic login, redirect to a page where they can see their reservations
-           router.push('/book/confirmation?id=');
+           router.push('/my-bookings');
         }
       } else {
         // Admin login

@@ -107,7 +107,7 @@ export function LandingHeader() {
           <DropdownMenuSeparator />
           {isClient && (
              <DropdownMenuItem asChild>
-                <Link href="/book/confirmation?id=">
+                <Link href="/my-bookings">
                     <CalendarCheck className="mr-2 h-4 w-4" />
                     <span>Mes réservations</span>
                 </Link>
