@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { collection, doc, getDoc, query, where, getDocs, addDoc } from 'firebase/firestore';
-import { CreditCard, Landmark, Car, MapPin, DollarSign, Calendar, Clock } from 'lucide-react';
+import { CreditCard, Landmark, Car, MapPin, DollarSign, Calendar, Clock, Milestone, Timer } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -41,6 +41,8 @@ function PaymentComponent() {
     const stops = params.getAll('stop');
     const scheduledTime = params.get('scheduledTime');
     const tierId = params.get('tierId');
+    const distance = params.get('distance');
+    const duration = params.get('duration');
 
     if (!pickup || !dropoff || !tierId) return null;
 
@@ -50,6 +52,8 @@ function PaymentComponent() {
       stops,
       scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
       tierId,
+      distance,
+      duration,
     };
   }, [searchParams]);
 
@@ -157,18 +161,33 @@ function PaymentComponent() {
                 <div className="border rounded-lg p-4 space-y-4">
                     <h3 className="font-semibold text-lg">Résumé de la course</h3>
                     <div className="space-y-3 text-sm">
+                        <div className="grid grid-cols-2 gap-4">
+                            {bookingDetails.distance && (
+                                <div className="flex items-center gap-3">
+                                    <Milestone className="h-4 w-4 text-muted-foreground" />
+                                    <p>{bookingDetails.distance}</p>
+                                </div>
+                            )}
+                             {bookingDetails.duration && (
+                                <div className="flex items-center gap-3">
+                                    <Timer className="h-4 w-4 text-muted-foreground" />
+                                    <p>{bookingDetails.duration}</p>
+                                </div>
+                            )}
+                        </div>
+                         <div className="flex items-center gap-3">
+                            <Car className="h-4 w-4 text-muted-foreground" />
+                            <p>{tier.name}</p>
+                        </div>
                         {bookingDetails.scheduledTime && (
                              <div className="flex items-center gap-3">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
                                 <p>{format(bookingDetails.scheduledTime, "EEEE d MMMM yyyy", { locale: fr })}</p>
-                                <Clock className="h-4 w-4 text-muted-foreground" />
+                                <Clock className="h-4 w-4 text-muted-foreground ml-2" />
                                 <p>{format(bookingDetails.scheduledTime, "HH:mm", { locale: fr })}</p>
                             </div>
                         )}
-                        <div className="flex items-center gap-3">
-                            <Car className="h-4 w-4 text-muted-foreground" />
-                            <p>{tier.name}</p>
-                        </div>
+                       
                         <Separator />
                         <div className="flex items-start gap-3">
                             <MapPin className="h-4 w-4 mt-0.5 text-green-500" />
@@ -260,5 +279,3 @@ export default function PaymentPage() {
         </Suspense>
     );
 }
-
-    

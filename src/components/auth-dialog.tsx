@@ -43,6 +43,7 @@ interface AuthDialogProps {
     stops: string[];
     scheduledTime: Date | null;
     tierId: string;
+    routeInfo: { distance: string; duration: string } | null;
   };
 }
 
@@ -98,6 +99,10 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
       params.set('scheduledTime', bookingDetails.scheduledTime.toISOString());
     }
     params.set('tierId', bookingDetails.tierId);
+    if (bookingDetails.routeInfo) {
+      params.set('distance', bookingDetails.routeInfo.distance);
+      params.set('duration', bookingDetails.routeInfo.duration);
+    }
     
     router.push(`/book/payment?${params.toString()}`);
     onOpenChange(false);

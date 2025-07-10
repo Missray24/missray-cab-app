@@ -294,7 +294,11 @@ function VehicleSelectionComponent() {
         <AuthDialog
             open={isAuthDialogOpen}
             onOpenChange={setIsAuthDialogOpen}
-            bookingDetails={{...bookingDetails, tierId: selectedTierId!}}
+            bookingDetails={{
+                ...bookingDetails, 
+                tierId: selectedTierId!, 
+                routeInfo: routeInfo,
+            }}
         />
       )}
     </div>
@@ -308,5 +312,3 @@ export default function SelectVehiclePage() {
     </Suspense>
   )
 }
-
-    
