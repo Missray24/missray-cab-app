@@ -82,6 +82,13 @@ function VehicleSelectionComponent() {
                         <CardTitle>Résumé de votre course</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4 text-sm">
+                         <div className="h-80 rounded-lg overflow-hidden border">
+                           <RouteMap 
+                              pickup={pickup || ''}
+                              dropoff={dropoff || ''}
+                              stops={stops}
+                           />
+                        </div>
                         {scheduledTime ? (
                             <div className="flex items-center gap-3 text-primary font-semibold bg-primary/10 p-3 rounded-lg">
                                 <Calendar className="h-5 w-5" />
@@ -114,14 +121,6 @@ function VehicleSelectionComponent() {
                         </div>
 
                         <Separator />
-
-                        <div className="h-80 rounded-lg overflow-hidden border">
-                           <RouteMap 
-                              pickup={pickup || ''}
-                              dropoff={dropoff || ''}
-                              stops={stops}
-                           />
-                        </div>
                        
                         <Button variant="outline" className="w-full" onClick={() => router.push('/')}>
                             Modifier le trajet
