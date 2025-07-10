@@ -165,7 +165,7 @@ export default function LandingPage() {
                         />
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4 flex-grow">
+                    <CardContent className="p-4">
                       <div className="flex justify-between items-center">
                         <CardTitle className="font-headline text-lg">{tier.name}</CardTitle>
                         <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
