@@ -98,7 +98,7 @@ function ConfirmationComponent() {
           <Card>
             <CardHeader className="text-center items-center">
               <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
-              <CardTitle className="text-3xl font-headline">Réservation Confirmée !</CardTitle>
+              <CardTitle className="text-3xl font-headline text-center">Réservation Confirmée !</CardTitle>
               <CardDescription>
                 Votre course est enregistrée. Vous recevrez des notifications sur son statut.
               </CardDescription>
@@ -163,7 +163,7 @@ function ConfirmationComponent() {
 
                 <Separator />
                 <Button asChild className="w-full" size="lg">
-                    <Link href="/dashboard/reservations">Voir mes réservations</Link>
+                    <Link href="/book/confirmation?id=">Voir mes réservations</Link>
                 </Button>
             </CardContent>
           </Card>
