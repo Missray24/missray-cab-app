@@ -91,19 +91,8 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
           bounds.extend(leg.end_location);
       });
       mapRef.current.fitBounds(bounds);
-
-      // Add a listener to adjust zoom after bounds are fitted
-      const listener = google.maps.event.addListenerOnce(mapRef.current, 'idle', () => {
-         const currentZoom = mapRef.current?.getZoom();
-         if (currentZoom && !isInteractive) {
-             // We can increase zoom slightly for a closer view on static maps.
-             mapRef.current?.setZoom(currentZoom + 1);
-         }
-      });
-      // Cleanup listener
-      return () => google.maps.event.removeListener(listener);
     }
-  }, [directions, isInteractive]);
+  }, [directions]);
 
   if (loadError) return <div>Error loading maps</div>;
   if (!isLoaded) return <Skeleton className="h-full w-full" />;
