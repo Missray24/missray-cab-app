@@ -8,7 +8,6 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 
 import { LandingHeader } from '@/components/landing-header';
@@ -20,6 +19,7 @@ import { db, auth } from '@/lib/firebase';
 import type { Reservation } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { PageHeader } from '@/components/page-header';
+import { RouteMap } from '@/components/route-map';
 
 function MyBookingsComponent() {
   const router = useRouter();
@@ -54,6 +54,7 @@ function MyBookingsComponent() {
               ...doc.data(),
             })) as Reservation[];
             
+            // Sort reservations by date client-side to avoid needing a composite index
             userReservations.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
             setReservations(userReservations);
@@ -75,7 +76,7 @@ function MyBookingsComponent() {
             <main className="flex-1 container py-12">
               <PageHeader title="Mes Courses" />
               <div className="mt-8 grid gap-4 md:grid-cols-1">
-                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}
+                {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
               </div>
             </main>
             <LandingFooter />
@@ -93,15 +94,12 @@ function MyBookingsComponent() {
             {reservations.map((res) => (
               <Card key={res.id}>
                 <CardContent className="p-4 flex flex-col md:flex-row items-center justify-between gap-6">
-                   <div className="w-full md:w-32 lg:w-40 flex-shrink-0">
-                      <div className="aspect-square rounded-md overflow-hidden border">
-                          <Image
-                            src="https://placehold.co/400x400.png"
-                            alt="Map of the ride"
-                            data-ai-hint="street map"
-                            width={400}
-                            height={400}
-                            className="h-full w-full object-cover"
+                   <div className="w-full md:w-48 lg:w-64 flex-shrink-0">
+                      <div className="aspect-video rounded-md overflow-hidden border">
+                          <RouteMap 
+                            pickup={res.pickup}
+                            dropoff={res.dropoff}
+                            stops={res.stops}
                           />
                       </div>
                     </div>
