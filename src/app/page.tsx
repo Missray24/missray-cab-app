@@ -38,7 +38,7 @@ const staticTiers = [
   {
     id: 'van',
     name: 'Van',
-    photoUrl: '/images/vehicules/van.png',
+    photoUrl: 'https://firebasestorage.googleapis.com/v0/b/missray-cab-kb0il.firebasestorage.app/o/service-tiers%2F1752142005263_suv%20(1).png?alt=media&token=7d5d01b9-9acb-45c6-9021-be9b57b3cb53',
     capacity: { passengers: 7, suitcases: 5 },
     'data-ai-hint': 'passenger van'
   },
