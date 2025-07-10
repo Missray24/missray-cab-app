@@ -93,55 +93,52 @@ function VehicleSelectionComponent() {
                     <CardTitle>Résumé de votre course</CardTitle>
                 </CardHeader>
                 <CardContent className="grid gap-6 lg:grid-cols-2">
-                     <div>
-                       <div className="h-80 rounded-lg overflow-hidden border">
-                         <RouteMap 
-                            pickup={pickup || ''}
-                            dropoff={dropoff || ''}
-                            stops={stops}
-                            onRouteInfoFetched={setRouteInfo}
-                         />
-                      </div>
-                      <div className="pt-4">
-                        {routeInfo ? (
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="flex items-center gap-3">
-                                <Milestone className="h-5 w-5 text-muted-foreground" />
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Distance</p>
-                                    <p className="font-semibold">{routeInfo.distance}</p>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Timer className="h-5 w-5 text-muted-foreground" />
-                                <div>
-                                    <p className="text-xs text-muted-foreground">Durée</p>
-                                    <p className="font-semibold">{routeInfo.duration}</p>
-                                </div>
-                            </div>
-                        </div>
-                        ) : (
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="flex items-center gap-3">
-                                <Skeleton className="h-5 w-5 rounded-full" />
-                                <div className="space-y-1">
-                                    <Skeleton className="h-3 w-12" />
-                                    <Skeleton className="h-4 w-16" />
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <Skeleton className="h-5 w-5 rounded-full" />
-                                <div className="space-y-1">
-                                    <Skeleton className="h-3 w-12" />
-                                    <Skeleton className="h-4 w-16" />
-                                </div>
-                            </div>
-                        </div>
-                        )}
-                      </div>
-                     </div>
+                     <div className="h-80 rounded-lg overflow-hidden border">
+                       <RouteMap 
+                          pickup={pickup || ''}
+                          dropoff={dropoff || ''}
+                          stops={stops}
+                          onRouteInfoFetched={setRouteInfo}
+                       />
+                    </div>
 
                     <div className="space-y-4 text-sm">
+                        {routeInfo ? (
+                          <div className="grid grid-cols-2 gap-4">
+                              <div className="flex items-center gap-3">
+                                  <Milestone className="h-5 w-5 text-muted-foreground" />
+                                  <div>
+                                      <p className="text-xs text-muted-foreground">Distance</p>
+                                      <p className="font-semibold">{routeInfo.distance}</p>
+                                  </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                  <Timer className="h-5 w-5 text-muted-foreground" />
+                                  <div>
+                                      <p className="text-xs text-muted-foreground">Durée</p>
+                                      <p className="font-semibold">{routeInfo.duration}</p>
+                                  </div>
+                              </div>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-4">
+                              <div className="flex items-center gap-3">
+                                  <Skeleton className="h-5 w-5 rounded-full" />
+                                  <div className="space-y-1">
+                                      <Skeleton className="h-3 w-12" />
+                                      <Skeleton className="h-4 w-16" />
+                                  </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                  <Skeleton className="h-5 w-5 rounded-full" />
+                                  <div className="space-y-1">
+                                      <Skeleton className="h-3 w-12" />
+                                      <Skeleton className="h-4 w-16" />
+                                  </div>
+                              </div>
+                          </div>
+                        )}
+                        <Separator />
                         {scheduledTime ? (
                             <div className="flex items-center gap-3 text-primary font-semibold bg-primary/10 p-3 rounded-lg">
                                 <Calendar className="h-5 w-5" />
@@ -223,7 +220,6 @@ function VehicleSelectionComponent() {
                        </CardHeader>
                        <CardContent className="flex-grow flex flex-col justify-between">
                           <p className="text-sm text-muted-foreground my-2">{tier.description}</p>
-                          <div className="my-2" />
                           <div className="flex items-center justify-center gap-8 text-sm text-muted-foreground">
                               <div className="flex items-center gap-2">
                                   <Users className="h-5 w-5 text-primary" />
