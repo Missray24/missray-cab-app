@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow for sending transactional emails via Brevo API.
@@ -23,6 +24,7 @@ const SendEmailInputSchema = z.object({
 });
 export type SendEmailInput = z.infer<typeof SendEmailInputSchema>;
 
+// IMPORTANT: This email must be a validated sender in your Brevo account.
 const ADMIN_EMAIL = 'contact@missray-cab.com';
 const ADMIN_NAME = 'Admin missray cab';
 
@@ -42,8 +44,9 @@ const sendEmailFlow = ai.defineFlow(
     outputSchema: z.object({ success: z.boolean(), messageId: z.string().optional() }),
   },
   async (input) => {
+    // Ensure the Brevo API key is set in the environment variables.
     if (!BREVO_API_KEY) {
-      console.error('Brevo API key is not configured.');
+      console.error('Brevo API key is not configured. Email not sent.');
       return { success: false };
     }
 
@@ -71,7 +74,6 @@ const sendEmailFlow = ai.defineFlow(
         return { success: false };
     }
 
-
     const sendSmtpEmail = new brevo.SendSmtpEmail();
     sendSmtpEmail.templateId = templateId;
     sendSmtpEmail.to = to;
@@ -82,8 +84,9 @@ const sendEmailFlow = ai.defineFlow(
       const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
       console.log('Brevo API called successfully. Returned data: ' + JSON.stringify(data.body));
       return { success: true, messageId: data.body.messageId };
-    } catch (error) {
-      console.error('Error sending email via Brevo:', error);
+    } catch (error: any) {
+      // Log the detailed error from Brevo API for better debugging
+      console.error('Error sending email via Brevo:', error.body?.message || error.message || error);
       return { success: false };
     }
   }
