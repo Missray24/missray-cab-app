@@ -17,28 +17,28 @@ const staticTiers = [
   {
     id: 'standard',
     name: 'Standard',
-    photoUrl: 'https://placehold.co/400x225.png',
+    photoUrl: '/images/vehicules/berline.png',
     capacity: { passengers: 4, suitcases: 2 },
     'data-ai-hint': 'sedan car'
   },
   {
     id: 'break',
     name: 'Break',
-    photoUrl: 'https://placehold.co/400x225.png',
+    photoUrl: '/images/vehicules/break.png',
     capacity: { passengers: 4, suitcases: 3 },
     'data-ai-hint': 'station wagon'
   },
   {
     id: 'comfort',
     name: 'Comfort',
-    photoUrl: 'https://placehold.co/400x225.png',
+    photoUrl: 'https://firebasestorage.googleapis.com/v0/b/missray-cab-kb0il.firebasestorage.app/o/service-tiers%2F1752142290793_comfort.png?alt=media&token=f55bb2c2-cb7b-4013-97f0-2adc052f0aa3',
     capacity: { passengers: 4, suitcases: 2 },
     'data-ai-hint': 'luxury sedan'
   },
   {
     id: 'van',
     name: 'Van',
-    photoUrl: 'https://placehold.co/400x225.png',
+    photoUrl: '/images/vehicules/van.png',
     capacity: { passengers: 7, suitcases: 5 },
     'data-ai-hint': 'passenger van'
   },
