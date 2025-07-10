@@ -31,11 +31,11 @@ const ADMIN_NAME = 'Admin missray cab';
 const getTemplateIdForType = (type: EmailType): number => {
     switch (type) {
         case 'new_client_welcome':
-            return 7; // Remplacez par votre ID de template Brevo
+            return 7; // Welcome email for new clients
         case 'new_driver_welcome':
-            return 8; // Remplacez par votre ID de template Brevo
+            return 8; // Welcome email for new drivers
         case 'admin_new_user':
-            return 9; // Remplacez par votre ID de template Brevo
+            return 9; // Notification for admin about a new user
         default:
             throw new Error('Invalid email type');
     }
@@ -62,17 +62,20 @@ const sendEmailFlow = ai.defineFlow(
     
     const sendSmtpEmail = new Brevo.SendSmtpEmail();
 
-    const templateId = getTemplateIdForType(input.type);
-    
-    sendSmtpEmail.templateId = templateId;
+    // Common properties for all emails
+    sendSmtpEmail.templateId = getTemplateIdForType(input.type);
     sendSmtpEmail.params = input.params;
+    
+    // The sender must be a validated sender in your Brevo account.
+    sendSmtpEmail.sender = { email: ADMIN_EMAIL, name: ADMIN_NAME };
 
+    // Set recipient based on email type
     if (input.type === 'admin_new_user') {
       sendSmtpEmail.to = [{ email: ADMIN_EMAIL, name: ADMIN_NAME }];
     } else {
       sendSmtpEmail.to = [input.to];
     }
-
+    
     try {
       const { body } = await apiInstance.sendTransacEmail(sendSmtpEmail);
       console.log('Brevo API sent email successfully. Message ID: ' + (body.messageId || 'N/A'));
