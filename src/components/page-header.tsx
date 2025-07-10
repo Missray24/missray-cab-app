@@ -5,13 +5,17 @@ interface PageHeaderProps {
   title: string;
   className?: string;
   children?: ReactNode;
+  action?: ReactNode;
 }
 
-export const PageHeader: FC<PageHeaderProps> = ({ title, className, children }) => {
+export const PageHeader: FC<PageHeaderProps> = ({ title, className, children, action }) => {
   return (
     <div className={cn("flex flex-col gap-2 md:flex-row md:items-center md:justify-between", className)}>
-      <h1 className="text-3xl font-bold font-headline text-primary">{title}</h1>
-      {children && <div className="flex items-center gap-2">{children}</div>}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold font-headline text-primary">{title}</h1>
+        {children}
+      </div>
+      {action && <div className="flex items-center gap-2">{action}</div>}
     </div>
   );
 };

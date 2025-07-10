@@ -8,7 +8,7 @@ import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/fire
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, PlusCircle } from 'lucide-react';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
@@ -32,6 +32,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { cn } from '@/lib/utils';
 
 function MyBookingsComponent() {
   const router = useRouter();
@@ -120,7 +121,7 @@ function MyBookingsComponent() {
         <div className="flex flex-col min-h-dvh bg-muted/40">
             <LandingHeader />
             <main className="flex-1 container py-12">
-              <PageHeader title="Mes Courses" />
+              <PageHeader title="Mes Courses" action={<Skeleton className="h-10 w-36" />} />
               <div className="mt-8 grid gap-4 md:grid-cols-1">
                 {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-48 w-full" />)}
               </div>
@@ -134,7 +135,17 @@ function MyBookingsComponent() {
     <div className="flex flex-col min-h-dvh bg-muted/40">
       <LandingHeader />
       <main className="flex-1 container py-12">
-        <PageHeader title="Mes Courses" />
+        <PageHeader 
+          title="Mes Courses" 
+          action={
+            <Button asChild>
+              <Link href="/">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Nouvelle course
+              </Link>
+            </Button>
+          }
+        />
         {reservations.length > 0 ? (
            <div className="mt-8 grid gap-4 md:grid-cols-1">
             {reservations.map((res) => (
@@ -152,16 +163,18 @@ function MyBookingsComponent() {
                     </div>
                   <div className="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm w-full">
                     <div className="flex flex-col gap-2">
-                        <Badge
-                          variant={
-                            res.status === 'Terminée' ? 'default'
-                            : res.status.startsWith('Annulée') || res.status === 'No-show' ? 'destructive'
-                            : 'secondary'
-                          }
-                          className="capitalize whitespace-nowrap w-fit"
-                        >
-                          {res.status}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={
+                              res.status === 'Terminée' ? 'default'
+                              : res.status.startsWith('Annulée') || res.status === 'No-show' ? 'destructive'
+                              : 'secondary'
+                            }
+                            className={cn("capitalize whitespace-nowrap", res.status === 'Nouvelle demande' && 'bg-gradient-to-r from-[#223aff] to-[#1697ff] text-primary-foreground')}
+                          >
+                            {res.status}
+                          </Badge>
+                        </div>
                         <div>
                           <p className="font-semibold text-base">{format(new Date(res.date), "d MMMM yyyy", { locale: fr })}</p>
                           <p className="text-xs text-muted-foreground">ID: {res.id.substring(0,8)}...</p>
