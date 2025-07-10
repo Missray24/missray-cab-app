@@ -124,17 +124,15 @@ function ConfirmationComponent() {
                     </div>
                     <div className="flex items-start gap-3">
                         <MapPin className="h-5 w-5 mt-0.5 text-green-500" />
-                        <div>
-                            <p className="font-bold text-foreground">Départ:</p>
-                            <p className="font-medium">{reservation.pickup}</p>
-                        </div>
+                        <p className="font-medium">
+                           <span className="font-bold text-foreground">Départ: </span>{reservation.pickup}
+                        </p>
                     </div>
                     <div className="flex items-start gap-3">
                         <MapPin className="h-5 w-5 mt-0.5 text-red-500" />
-                         <div>
-                            <p className="font-bold text-foreground">Arrivée:</p>
-                            <p className="font-medium">{reservation.dropoff}</p>
-                        </div>
+                        <p className="font-medium">
+                           <span className="font-bold text-foreground">Arrivée: </span>{reservation.dropoff}
+                        </p>
                     </div>
                 </div>
 
@@ -159,7 +157,7 @@ function ConfirmationComponent() {
                       </div>
                     )}
                     <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold text-foreground">Paiement:</span>
+                        <span className="font-bold text-foreground">Paiement:</span>
                         <p className="font-bold text-foreground">{reservation.amount.toFixed(2)}€ ({reservation.paymentMethod})</p>
                     </div>
                 </div>
