@@ -26,6 +26,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { calculatePrice } from '@/lib/pricing';
+import { sendEmail } from '@/ai/flows/send-email-flow';
 
 const stripePromise = NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? loadStripe(NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY) : null;
 
@@ -57,13 +58,16 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
 
                 if (querySnapshot.empty) throw new Error("Client details not found.");
                 const clientDoc = querySnapshot.docs[0];
+                const clientData = clientDoc.data();
+
+                const reservationDate = bookingDetails.scheduledTime || new Date();
 
                 const reservationData = {
                     clientId: clientDoc.id,
-                    clientName: clientDoc.data().name,
+                    clientName: clientData.name,
                     driverId: '',
                     driverName: 'Non assigné',
-                    date: (bookingDetails.scheduledTime || new Date()).toISOString(),
+                    date: reservationDate.toISOString(),
                     pickup: bookingDetails.pickup,
                     dropoff: bookingDetails.dropoff,
                     stops: bookingDetails.stops,
@@ -77,6 +81,21 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                 };
 
                 const docRef = await addDoc(collection(db, "reservations"), reservationData);
+                
+                // Send confirmation email
+                await sendEmail({
+                    type: 'new_reservation_client',
+                    to: { email: clientData.email, name: clientData.name },
+                    params: {
+                        reservationId: docRef.id.substring(0, 8).toUpperCase(),
+                        clientName: clientData.name,
+                        date: format(reservationDate, "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr }),
+                        pickup: reservationData.pickup,
+                        dropoff: reservationData.dropoff,
+                        amount: reservationData.amount,
+                    },
+                });
+
                 toast({ title: 'Réservation confirmée!', description: 'Votre course a été enregistrée.' });
                 onPaymentSuccess(docRef.id);
             } catch (err) {
