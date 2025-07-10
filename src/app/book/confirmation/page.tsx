@@ -82,7 +82,7 @@ function ConfirmationComponent() {
     return (
         <div className="flex flex-col min-h-dvh bg-muted/40">
             <LandingHeader />
-            <main className="flex-1 py-12 md:py-24"><div className="container max-w-2xl"><Skeleton className="h-96 w-full" /></div></main>
+            <main className="flex-1 flex items-center justify-center p-4"><div className="container max-w-2xl"><Skeleton className="h-96 w-full" /></div></main>
             <LandingFooter />
         </div>
     );
@@ -93,7 +93,7 @@ function ConfirmationComponent() {
   return (
     <div className="flex flex-col min-h-dvh bg-muted/40">
       <LandingHeader />
-      <main className="flex-1 py-12 md:py-24">
+      <main className="flex-1 flex items-center justify-center p-4">
         <div className="container max-w-2xl">
           <Card>
             <CardHeader className="items-center text-center">
