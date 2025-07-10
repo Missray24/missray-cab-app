@@ -164,12 +164,14 @@ export default function LandingPage() {
                           className="h-full w-full object-cover"
                         />
                       </div>
-                      <CardTitle className="font-headline">{tier.name}</CardTitle>
-                      <CardDescription>{tier.description}</CardDescription>
-                       <div className="flex items-center gap-4 text-sm text-muted-foreground mt-2 pt-2 border-t">
-                        <div className="flex items-center gap-1.5"><Users className="h-4 w-4" /> {tier.capacity?.passengers || 4} passagers</div>
-                        <div className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" /> {tier.capacity?.suitcases || 2} valises</div>
+                      <div className="flex justify-between items-center">
+                        <CardTitle className="font-headline">{tier.name}</CardTitle>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity?.passengers || 4}</div>
+                          <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity?.suitcases || 2}</div>
+                        </div>
                       </div>
+                      <CardDescription className="mt-1">{tier.description}</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <Button className="w-full" asChild>
