@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -29,9 +30,10 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { db } from '@/lib/firebase';
+import { db, storage } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import { Upload } from 'lucide-react';
 
 const initialFormState = {
   name: '',
@@ -58,6 +60,9 @@ export default function ServiceTiersPage() {
   const [loading, setLoading] = useState(true);
   const [modalState, setModalState] = useState<ModalState>({ mode: 'add', tier: null, isOpen: false });
   const [formData, setFormData] = useState(initialFormState);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -82,14 +87,18 @@ export default function ServiceTiersPage() {
   
   useEffect(() => {
     if (modalState.mode === 'edit' && modalState.tier) {
-      const { availableZoneIds, ...rest } = modalState.tier;
+      const { availableZoneIds, photoUrl, ...rest } = modalState.tier;
       setFormData({
         ...Object.fromEntries(Object.entries(rest).map(([key, value]) => [key, String(value)])),
+        photoUrl: photoUrl,
         availableZoneIds,
       } as any);
+      setPreviewUrl(photoUrl);
     } else {
       setFormData(initialFormState);
+      setPreviewUrl(null);
     }
+    setSelectedFile(null);
   }, [modalState]);
 
   const handleOpenModal = (mode: 'add' | 'edit', tier: ServiceTier | null = null) => {
@@ -105,6 +114,14 @@ export default function ServiceTiersPage() {
     setFormData(prev => ({ ...prev, [id]: value }));
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const handleZoneChange = (zoneId: string, checked: boolean | 'indeterminate') => {
     if (typeof checked === 'boolean') {
       setFormData(prev => ({
@@ -117,9 +134,29 @@ export default function ServiceTiersPage() {
   }
 
   const handleSubmit = async () => {
+    setIsUploading(true);
+    let photoDownloadUrl = formData.photoUrl;
+
+    if (selectedFile) {
+        const storageRef = ref(storage, `service-tiers/${Date.now()}_${selectedFile.name}`);
+        try {
+            const snapshot = await uploadBytes(storageRef, selectedFile);
+            photoDownloadUrl = await getDownloadURL(snapshot.ref);
+        } catch (error) {
+            console.error("Error uploading file: ", error);
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de télécharger l\'image.' });
+            setIsUploading(false);
+            return;
+        }
+    }
+    
+    if (!photoDownloadUrl) {
+       photoDownloadUrl = 'https://placehold.co/600x400.png';
+    }
+    
     const dataToSave = {
       ...formData,
-      photoUrl: formData.photoUrl || 'https://placehold.co/600x400.png',
+      photoUrl: photoDownloadUrl,
       baseFare: parseFloat(formData.baseFare),
       perKm: parseFloat(formData.perKm),
       perMinute: parseFloat(formData.perMinute),
@@ -147,6 +184,7 @@ export default function ServiceTiersPage() {
         toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible d\'ajouter la gamme.' });
       }
     }
+    setIsUploading(false);
     handleCloseModal();
   }
 
@@ -154,22 +192,37 @@ export default function ServiceTiersPage() {
     <>
       <ScrollArea className="max-h-[70vh]">
         <div className="p-1 pr-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nom de la gamme</Label>
-            <Input id="name" placeholder="Ex: Berline" value={formData.name} onChange={handleFormChange} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Nom de la gamme</Label>
+                <Input id="name" placeholder="Ex: Berline" value={formData.name} onChange={handleFormChange} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reference">Référence (interne)</Label>
+                <Input id="reference" placeholder="Ex: BER-01" value={formData.reference} onChange={handleFormChange}/>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" placeholder="Description courte de la gamme" value={formData.description} onChange={handleFormChange} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Photo du véhicule</Label>
+              <div className="aspect-video w-full rounded-md overflow-hidden border relative flex items-center justify-center bg-muted/40">
+                {previewUrl ? (
+                  <Image src={previewUrl} alt="Aperçu" layout="fill" objectFit="cover" />
+                ) : (
+                  <div className="text-center text-muted-foreground p-4">
+                    <Upload className="mx-auto h-8 w-8 mb-2" />
+                    <p className="text-sm">Aucune image</p>
+                  </div>
+                )}
+              </div>
+               <Input id="photo" type="file" accept="image/*" onChange={handleFileChange} className="mt-2" />
+            </div>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="reference">Référence (interne)</Label>
-            <Input id="reference" placeholder="Ex: BER-01" value={formData.reference} onChange={handleFormChange}/>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" placeholder="Description courte de la gamme" value={formData.description} onChange={handleFormChange} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="photoUrl">URL de la photo</Label>
-            <Input id="photoUrl" placeholder="https://..." value={formData.photoUrl} onChange={handleFormChange}/>
-          </div>
+          
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 pt-2">
             <div className="space-y-2"><Label htmlFor="baseFare">Prise en charge (€)</Label><Input id="baseFare" type="number" value={formData.baseFare} onChange={handleFormChange} /></div>
             <div className="space-y-2"><Label htmlFor="perKm">Prix / km (€)</Label><Input id="perKm" type="number" value={formData.perKm} onChange={handleFormChange} /></div>
@@ -177,6 +230,7 @@ export default function ServiceTiersPage() {
             <div className="space-y-2"><Label htmlFor="perStop">Prix / arrêt (€)</Label><Input id="perStop" type="number" value={formData.perStop} onChange={handleFormChange} /></div>
             <div className="space-y-2"><Label htmlFor="minimumPrice">Prix minimum (€)</Label><Input id="minimumPrice" type="number" value={formData.minimumPrice} onChange={handleFormChange} /></div>
           </div>
+
           <div className="space-y-2 pt-2">
             <Label>Zones de disponibilité</Label>
             <div className="grid grid-cols-2 gap-2 rounded-md border p-4 max-h-48 overflow-y-auto">
@@ -196,7 +250,9 @@ export default function ServiceTiersPage() {
       </ScrollArea>
       <DialogFooter>
         <Button variant="outline" onClick={handleCloseModal}>Annuler</Button>
-        <Button onClick={handleSubmit}>{modalState.mode === 'edit' ? 'Sauvegarder' : 'Ajouter'}</Button>
+        <Button onClick={handleSubmit} disabled={isUploading}>
+          {isUploading ? 'Sauvegarde...' : (modalState.mode === 'edit' ? 'Sauvegarder' : 'Ajouter')}
+        </Button>
       </DialogFooter>
     </>
   );
@@ -208,7 +264,7 @@ export default function ServiceTiersPage() {
       </PageHeader>
       
       <Dialog open={modalState.isOpen} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-4xl">
             <DialogHeader>
               <DialogTitle>{modalState.mode === 'edit' ? 'Modifier la gamme' : 'Ajouter une nouvelle gamme'}</DialogTitle>
               <DialogDescription>
