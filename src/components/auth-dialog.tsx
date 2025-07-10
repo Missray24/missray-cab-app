@@ -153,7 +153,7 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white dark:bg-card">
         <DialogHeader>
           <DialogTitle className="text-center font-headline">Finalisez votre réservation</DialogTitle>
           <DialogDescription className="text-center">Connectez-vous ou créez un compte pour continuer.</DialogDescription>
