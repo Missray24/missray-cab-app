@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { MoreHorizontal } from "lucide-react";
-import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, doc, query, where } from "firebase/firestore";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,7 +50,7 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import { reservationStatuses, paymentMethods, type Reservation, type ReservationStatus, type PaymentMethod, type Client, type ServiceTier, type Driver } from '@/lib/types';
+import { reservationStatuses, paymentMethods, type Reservation, type ReservationStatus, type PaymentMethod, type User, type ServiceTier } from '@/lib/types';
 import { db } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 
@@ -68,8 +68,8 @@ const initialFormData = {
 
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
-  const [clients, setClients] = useState<Client[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [clients, setClients] = useState<User[]>([]);
+  const [drivers, setDrivers] = useState<User[]>([]);
   const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -84,17 +84,20 @@ export default function ReservationsPage() {
     const fetchData = async () => {
       setLoading(true);
       try {
+        const clientsQuery = query(collection(db, "users"), where("role", "==", "client"));
+        const driversQuery = query(collection(db, "users"), where("role", "==", "driver"));
+
         const [reservationsSnap, clientsSnap, tiersSnap, driversSnap] = await Promise.all([
           getDocs(collection(db, "reservations")),
-          getDocs(collection(db, "clients")),
+          getDocs(clientsQuery),
           getDocs(collection(db, "serviceTiers")),
-          getDocs(collection(db, "drivers")),
+          getDocs(driversQuery),
         ]);
         
         setReservations(reservationsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Reservation[]);
-        setClients(clientsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Client[]);
+        setClients(clientsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[]);
         setServiceTiers(tiersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as ServiceTier[]);
-        setDrivers(driversSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Driver[]);
+        setDrivers(driversSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[]);
 
       } catch (error) {
         console.error("Error fetching data: ", error);
@@ -142,7 +145,7 @@ export default function ReservationsPage() {
       const newReservationData = {
         ...addFormData,
         clientName: selectedClient.name,
-        driverName: `${selectedDriver.firstName} ${selectedDriver.lastName}`,
+        driverName: selectedDriver.name,
         amount: parseFloat(addFormData.amount) || 0,
         driverPayout: parseFloat(addFormData.driverPayout) || 0,
         date: new Date().toLocaleDateString('fr-CA'),
@@ -174,7 +177,7 @@ export default function ReservationsPage() {
           ...editingReservation,
           ...editFormData,
           clientName: selectedClient.name,
-          driverName: `${selectedDriver.firstName} ${selectedDriver.lastName}`,
+          driverName: selectedDriver.name,
           amount: parseFloat(editFormData.amount) || 0,
           driverPayout: parseFloat(editFormData.driverPayout) || 0,
         };
@@ -205,7 +208,7 @@ export default function ReservationsPage() {
           <Label htmlFor="driverId">Chauffeur</Label>
           <Select value={formData.driverId} onValueChange={(value) => selectChangeHandler('driverId', value)}>
             <SelectTrigger id="driverId"><SelectValue placeholder="Sélectionner un chauffeur" /></SelectTrigger>
-            <SelectContent>{drivers.map(d => <SelectItem key={d.id} value={d.id}>{d.firstName} {d.lastName}</SelectItem>)}</SelectContent>
+            <SelectContent>{drivers.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
           </Select>
         </div>
       </div>

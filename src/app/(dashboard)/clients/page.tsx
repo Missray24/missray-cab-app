@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { MoreHorizontal } from "lucide-react";
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -52,15 +52,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Client } from "@/lib/types";
+import type { User } from "@/lib/types";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 
 export default function ClientsPage() {
-  const [clients, setClients] = useState<Client[]>([]);
+  const [clients, setClients] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
-  const [deletingClient, setDeletingClient] = useState<Client | null>(null);
+  const [editingClient, setEditingClient] = useState<User | null>(null);
+  const [deletingClient, setDeletingClient] = useState<User | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [addFormData, setAddFormData] = useState({ name: '', email: '', phone: '' });
   const [editFormData, setEditFormData] = useState({ name: '', email: '', phone: '' });
@@ -69,11 +69,13 @@ export default function ClientsPage() {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const querySnapshot = await getDocs(collection(db, "clients"));
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("role", "==", "client"));
+      const querySnapshot = await getDocs(q);
       const clientsData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-      })) as Client[];
+      })) as User[];
       setClients(clientsData);
     } catch (error) {
       console.error("Error fetching clients: ", error);
@@ -93,9 +95,9 @@ export default function ClientsPage() {
     }
   }, [editingClient]);
 
-  const handleToggleBlock = async (clientToToggle: Client) => {
+  const handleToggleBlock = async (clientToToggle: User) => {
     try {
-      const clientRef = doc(db, "clients", clientToToggle.id);
+      const clientRef = doc(db, "users", clientToToggle.id);
       const newStatus = clientToToggle.status === 'Active' ? 'Blocked' : 'Active';
       await updateDoc(clientRef, { status: newStatus });
       setClients(clients.map(client =>
@@ -113,7 +115,7 @@ export default function ClientsPage() {
   const handleDelete = async () => {
     if (!deletingClient) return;
     try {
-      await deleteDoc(doc(db, "clients", deletingClient.id));
+      await deleteDoc(doc(db, "users", deletingClient.id));
       setClients(clients.filter(client => client.id !== deletingClient.id));
       toast({ title: "Succès", description: "Le client a été supprimé." });
     } catch (error) {
@@ -137,7 +139,7 @@ export default function ClientsPage() {
   const handleSaveChanges = async () => {
     if (!editingClient) return;
     try {
-      const clientRef = doc(db, "clients", editingClient.id);
+      const clientRef = doc(db, "users", editingClient.id);
       await updateDoc(clientRef, editFormData);
       setClients(clients.map(client =>
         client.id === editingClient.id
@@ -161,10 +163,11 @@ export default function ClientsPage() {
     try {
       const newClient = {
         ...addFormData,
+        role: 'client' as const,
         joinDate: new Date().toLocaleDateString('fr-CA'), // YYYY-MM-DD
         status: 'Active' as const,
       };
-      const docRef = await addDoc(collection(db, "clients"), newClient);
+      const docRef = await addDoc(collection(db, "users"), newClient);
       setClients(prev => [...prev, { id: docRef.id, ...newClient }]);
       setIsAddDialogOpen(false);
       setAddFormData({ name: '', email: '', phone: '' });

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Driver } from "@/lib/types";
+import type { User } from "@/lib/types";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -46,20 +46,20 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function PayoutsPage() {
-  const [driversWithPendingPayouts, setDriversWithPendingPayouts] = useState<Driver[]>([]);
+  const [driversWithPendingPayouts, setDriversWithPendingPayouts] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchDrivers = async () => {
     setLoading(true);
     try {
-      const driversRef = collection(db, "drivers");
-      const q = query(driversRef, where("unpaidAmount", ">", 0));
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("role", "==", "driver"), where("driverProfile.unpaidAmount", ">", 0));
       const querySnapshot = await getDocs(q);
       const driversData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-      })) as Driver[];
+      })) as User[];
       setDriversWithPendingPayouts(driversData);
     } catch (error) {
       console.error("Error fetching drivers for payouts: ", error);
@@ -75,8 +75,8 @@ export default function PayoutsPage() {
 
   const handleMarkAsPaid = async (driverId: string) => {
     try {
-      const driverRef = doc(db, "drivers", driverId);
-      await updateDoc(driverRef, { unpaidAmount: 0 });
+      const driverRef = doc(db, "users", driverId);
+      await updateDoc(driverRef, { "driverProfile.unpaidAmount": 0 });
       setDriversWithPendingPayouts(prev => prev.filter(d => d.id !== driverId));
       toast({ title: "Succès", description: "Le chauffeur a été marqué comme payé." });
     } catch (error) {
@@ -88,8 +88,8 @@ export default function PayoutsPage() {
   const handleBulkPayout = async () => {
     const batch = writeBatch(db);
     driversWithPendingPayouts.forEach(driver => {
-      const driverRef = doc(db, "drivers", driver.id);
-      batch.update(driverRef, { unpaidAmount: 0 });
+      const driverRef = doc(db, "users", driver.id);
+      batch.update(driverRef, { "driverProfile.unpaidAmount": 0 });
     });
 
     try {
@@ -162,18 +162,28 @@ export default function PayoutsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                driversWithPendingPayouts.map((driver) => (
+                driversWithPendingPayouts.map((driver) => {
+                  const driverProfile = driver.driverProfile;
+                  if (!driverProfile) return null;
+                  
+                  const totalEarnings = driverProfile.totalEarnings || 0;
+                  const commissionRate = driverProfile.company?.commission || 20;
+                  const unpaidAmount = driverProfile.unpaidAmount || 0;
+                  const commissionAmount = totalEarnings * (commissionRate / 100);
+
+
+                  return (
                   <TableRow key={driver.id}>
                     <TableCell>
-                      <div className="font-medium">{driver.firstName} {driver.lastName}</div>
+                      <div className="font-medium">{driver.name}</div>
                       <div className="text-sm text-muted-foreground">{driver.email}</div>
                     </TableCell>
                     <TableCell>
-                      <div>{driver.paymentDetails.method}</div>
-                      <div className="text-sm text-muted-foreground">{driver.paymentDetails.account}</div>
+                      <div>{driverProfile.paymentDetails.method}</div>
+                      <div className="text-sm text-muted-foreground">{driverProfile.paymentDetails.account}</div>
                     </TableCell>
-                    <TableCell className="text-right">${(driver.totalEarnings * (driver.company?.commission || 20) / 100 - driver.unpaidAmount).toFixed(2)}</TableCell>
-                    <TableCell className="text-right font-medium text-primary">${driver.unpaidAmount.toFixed(2)}</TableCell>
+                    <TableCell className="text-right">${(commissionAmount - unpaidAmount).toFixed(2)}</TableCell>
+                    <TableCell className="text-right font-medium text-primary">${unpaidAmount.toFixed(2)}</TableCell>
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -190,7 +200,8 @@ export default function PayoutsPage() {
                       </DropdownMenu>
                     </TableCell>
                   </TableRow>
-                ))
+                  )
+                })
               )}
             </TableBody>
           </Table>

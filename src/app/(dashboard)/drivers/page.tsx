@@ -4,7 +4,7 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { MoreHorizontal, FileText, CheckCircle, XCircle, AlertCircle } from "lucide-react";
-import { collection, getDocs, addDoc, updateDoc, doc } from "firebase/firestore";
+import { collection, getDocs, addDoc, updateDoc, doc, query, where } from "firebase/firestore";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Driver, DocumentStatus } from '@/lib/types';
+import type { User, DocumentStatus } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -76,14 +76,14 @@ const initialFormState = {
 
 type ModalState = {
   mode: 'add' | 'edit';
-  driver: Driver | null;
+  driver: User | null;
   isOpen: boolean;
 }
 
 export default function DriversPage() {
-  const [drivers, setDrivers] = useState<Driver[]>([]);
+  const [drivers, setDrivers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewingDriver, setViewingDriver] = useState<Driver | null>(null);
+  const [viewingDriver, setViewingDriver] = useState<User | null>(null);
   const [modalState, setModalState] = useState<ModalState>({ mode: 'add', driver: null, isOpen: false });
   const [editFormData, setEditFormData] = useState<any>(initialFormState);
   const { toast } = useToast();
@@ -92,11 +92,13 @@ export default function DriversPage() {
   const fetchDrivers = async () => {
     setLoading(true);
     try {
-      const querySnapshot = await getDocs(collection(db, "drivers"));
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("role", "==", "driver"));
+      const querySnapshot = await getDocs(q);
       const driversData = querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data(),
-      })) as Driver[];
+      })) as User[];
       setDrivers(driversData);
     } catch (error) {
       console.error("Error fetching drivers: ", error);
@@ -117,15 +119,15 @@ export default function DriversPage() {
         lastName: modalState.driver.lastName || '',
         email: modalState.driver.email || '',
         phone: modalState.driver.phone || '',
-        company: { ...modalState.driver.company, commission: String(modalState.driver.company?.commission || '') } || {},
-        vehicle: modalState.driver.vehicle || {},
+        company: { ...(modalState.driver.driverProfile?.company || {}), commission: String(modalState.driver.driverProfile?.company?.commission || '') },
+        vehicle: modalState.driver.driverProfile?.vehicle || {},
       });
     } else {
       setEditFormData(initialFormState);
     }
   }, [modalState]);
   
-  const handleOpenModal = (mode: 'add' | 'edit', driver: Driver | null = null) => {
+  const handleOpenModal = (mode: 'add' | 'edit', driver: User | null = null) => {
     setModalState({ mode, driver, isOpen: true });
   };
   
@@ -138,7 +140,7 @@ export default function DriversPage() {
     const keys = id.split('.');
   
     if (keys.length === 2) {
-      const [section, field] = keys as [keyof typeof editFormData, string];
+      const [section, field] = keys as ['company' | 'vehicle', string];
       setEditFormData(prev => ({
         ...prev,
         [section]: { ...(prev[section] as object), [field]: value },
@@ -170,21 +172,32 @@ export default function DriversPage() {
       return;
     }
 
+    const { firstName, lastName, email, ...restOfForm } = editFormData;
     const driverData = {
-      ...editFormData,
+      firstName,
+      lastName,
+      email,
       phone: phoneInputRef.current?.getNumber() || editFormData.phone,
-      company: {
-        ...editFormData.company,
-        commission: parseFloat(String(editFormData.company.commission)) || 0,
+      driverProfile: {
+        company: {
+          ...restOfForm.company,
+          commission: parseFloat(String(restOfForm.company.commission)) || 0,
+        },
+        vehicle: restOfForm.vehicle,
+        totalRides: modalState.driver?.driverProfile?.totalRides || 0,
+        totalEarnings: modalState.driver?.driverProfile?.totalEarnings || 0,
+        unpaidAmount: modalState.driver?.driverProfile?.unpaidAmount || 0,
+        paymentDetails: modalState.driver?.driverProfile?.paymentDetails || { method: 'Bank Transfer' as const, account: '' },
+        documents: modalState.driver?.driverProfile?.documents || [],
       }
     };
-
+    
     if (modalState.mode === 'edit' && modalState.driver) {
       // Update existing driver
       try {
-        const driverRef = doc(db, "drivers", modalState.driver.id);
+        const driverRef = doc(db, "users", modalState.driver.id);
         await updateDoc(driverRef, driverData);
-        setDrivers(prev => prev.map(d => d.id === modalState.driver!.id ? { ...d, ...driverData } as Driver : d));
+        setDrivers(prev => prev.map(d => d.id === modalState.driver!.id ? { ...d, ...driverData, name: `${driverData.firstName} ${driverData.lastName}` } as User : d));
         toast({ title: "Succès", description: "Chauffeur mis à jour." });
       } catch (error) {
         console.error("Error updating driver: ", error);
@@ -195,14 +208,12 @@ export default function DriversPage() {
       try {
         const fullDriverData = {
           ...driverData,
+          name: `${driverData.firstName} ${driverData.lastName}`,
+          role: 'driver' as const,
           status: 'Active' as const,
-          totalRides: 0,
-          totalEarnings: 0,
-          unpaidAmount: 0,
-          paymentDetails: { method: 'Bank Transfer' as const, account: '' },
-          documents: [],
+          joinDate: new Date().toLocaleDateString('fr-CA'),
         };
-        const docRef = await addDoc(collection(db, "drivers"), fullDriverData);
+        const docRef = await addDoc(collection(db, "users"), fullDriverData);
         setDrivers(prev => [...prev, { id: docRef.id, ...fullDriverData }]);
         toast({ title: "Succès", description: "Chauffeur ajouté." });
       } catch (error) {
@@ -213,10 +224,10 @@ export default function DriversPage() {
     handleCloseModal();
   };
 
-  const handleStatusToggle = async (driverToToggle: Driver) => {
+  const handleStatusToggle = async (driverToToggle: User) => {
     const newStatus = driverToToggle.status === 'Active' ? 'Suspended' : 'Active';
     try {
-      const driverRef = doc(db, "drivers", driverToToggle.id);
+      const driverRef = doc(db, "users", driverToToggle.id);
       await updateDoc(driverRef, { status: newStatus });
       setDrivers(prev => prev.map(d => d.id === driverToToggle.id ? { ...d, status: newStatus } : d));
       toast({ title: "Succès", description: "Statut du chauffeur mis à jour." });
@@ -228,16 +239,16 @@ export default function DriversPage() {
   
   const handleDocumentStatusChange = async (driverId: string, docIndex: number, newStatus: DocumentStatus) => {
      const driverToUpdate = drivers.find(d => d.id === driverId);
-    if (!driverToUpdate) return;
+    if (!driverToUpdate || !driverToUpdate.driverProfile) return;
     
-    const newDocuments = [...driverToUpdate.documents];
+    const newDocuments = [...(driverToUpdate.driverProfile.documents || [])];
     newDocuments[docIndex] = { ...newDocuments[docIndex], status: newStatus };
     
     try {
-        const driverRef = doc(db, "drivers", driverId);
-        await updateDoc(driverRef, { documents: newDocuments });
+        const driverRef = doc(db, "users", driverId);
+        await updateDoc(driverRef, { "driverProfile.documents": newDocuments });
 
-        const updatedDriver = { ...driverToUpdate, documents: newDocuments };
+        const updatedDriver = { ...driverToUpdate, driverProfile: { ...driverToUpdate.driverProfile, documents: newDocuments }};
         setDrivers(drivers.map(d => d.id === driverId ? updatedDriver : d));
         if (viewingDriver && viewingDriver.id === driverId) {
             setViewingDriver(updatedDriver);
@@ -289,9 +300,9 @@ export default function DriversPage() {
                 ) : (
                   drivers.map((driver) => (
                     <TableRow key={driver.id}>
-                      <TableCell className="font-medium">{driver.firstName} {driver.lastName}</TableCell>
-                      <TableCell>{driver.vehicle.brand} {driver.vehicle.model}</TableCell>
-                      <TableCell>{driver.vehicle.licensePlate}</TableCell>
+                      <TableCell className="font-medium">{driver.name}</TableCell>
+                      <TableCell>{driver.driverProfile?.vehicle?.brand} {driver.driverProfile?.vehicle?.model}</TableCell>
+                      <TableCell>{driver.driverProfile?.vehicle?.licensePlate}</TableCell>
                       <TableCell>
                         <Badge variant={driver.status === 'Active' ? 'secondary' : 'destructive'}>
                           {driver.status}
@@ -331,13 +342,13 @@ export default function DriversPage() {
       <Dialog open={!!viewingDriver} onOpenChange={(isOpen) => !isOpen && setViewingDriver(null)}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Documents for {viewingDriver?.firstName} {viewingDriver?.lastName}</DialogTitle>
+            <DialogTitle>Documents for {viewingDriver?.name}</DialogTitle>
             <DialogDescription>
               Review the uploaded documents for this driver.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4 grid-cols-1 sm:grid-cols-2">
-            {viewingDriver?.documents.map((doc, index) => (
+            {viewingDriver?.driverProfile?.documents?.map((doc, index) => (
               <Card key={index} className="flex flex-col">
                  <CardHeader>
                    <div className="flex items-center justify-between">
@@ -390,7 +401,7 @@ export default function DriversPage() {
                  </CardFooter>
               </Card>
             ))}
-            {viewingDriver?.documents.length === 0 && (
+            {(!viewingDriver?.driverProfile?.documents || viewingDriver.driverProfile.documents.length === 0) && (
               <p className="text-muted-foreground text-center col-span-full">No documents uploaded.</p>
             )}
           </div>
@@ -400,7 +411,7 @@ export default function DriversPage() {
       <Dialog open={modalState.isOpen} onOpenChange={(isOpen) => !isOpen && handleCloseModal()}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>{modalState.mode === 'edit' ? `Edit Driver: ${modalState.driver?.firstName} ${modalState.driver?.lastName}` : 'Add New Driver'}</DialogTitle>
+            <DialogTitle>{modalState.mode === 'edit' ? `Edit Driver: ${modalState.driver?.name}` : 'Add New Driver'}</DialogTitle>
             <DialogDescription>
               Update the driver's details below.
             </DialogDescription>

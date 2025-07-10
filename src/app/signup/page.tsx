@@ -90,12 +90,15 @@ export default function SignupPage() {
       );
       const user = userCredential.user;
 
-      // 2. Create client document in Firestore
-      await addDoc(collection(db, 'clients'), {
+      // 2. Create user document in Firestore
+      await addDoc(collection(db, 'users'), {
         uid: user.uid,
         name: clientName,
+        firstName: values.firstName,
+        lastName: values.lastName,
         email: values.email,
         phone: phoneInputRef.current?.getNumber() || '',
+        role: 'client',
         joinDate: new Date().toLocaleDateString('fr-CA'),
         status: 'Active',
       });

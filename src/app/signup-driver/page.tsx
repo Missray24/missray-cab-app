@@ -117,41 +117,46 @@ export default function SignupDriverPage() {
       );
       const user = userCredential.user;
 
-      // 2. Create driver document in Firestore
+      // 2. Create driver document in Firestore's users collection
       const driverData = {
         uid: user.uid,
+        name: driverName,
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
         phone: phoneInputRef.current?.getNumber() || '',
-        company: {
-          name: values.companyName,
-          address: values.companyAddress,
-          siret: values.siret,
-          evtcAdsNumber: values.evtcAdsNumber || '',
-          vatNumber: values.vatNumber || '',
-          isVatSubjected: values.isVatSubjected,
-          commission: 20, // Default commission
-        },
-        vehicle: {
-          // Placeholder vehicle info
-          brand: '',
-          model: '',
-          licensePlate: '',
-          registrationDate: '',
-        },
+        role: 'driver',
+        joinDate: new Date().toLocaleDateString('fr-CA'),
         status: 'Active' as const,
-        totalRides: 0,
-        totalEarnings: 0,
-        unpaidAmount: 0,
-        paymentDetails: {
-          method: 'Bank Transfer' as const,
-          account: '',
-        },
-        documents: [],
+        driverProfile: {
+          company: {
+            name: values.companyName,
+            address: values.companyAddress,
+            siret: values.siret,
+            evtcAdsNumber: values.evtcAdsNumber || '',
+            vatNumber: values.vatNumber || '',
+            isVatSubjected: values.isVatSubjected,
+            commission: 20, // Default commission
+          },
+          vehicle: {
+            // Placeholder vehicle info
+            brand: '',
+            model: '',
+            licensePlate: '',
+            registrationDate: '',
+          },
+          totalRides: 0,
+          totalEarnings: 0,
+          unpaidAmount: 0,
+          paymentDetails: {
+            method: 'Bank Transfer' as const,
+            account: '',
+          },
+          documents: [],
+        }
       };
 
-      await addDoc(collection(db, 'drivers'), driverData);
+      await addDoc(collection(db, 'users'), driverData);
       
       // 3. Send emails
       await Promise.all([
@@ -264,28 +269,26 @@ export default function SignupDriverPage() {
                         />
                     </div>
 
-                    <div className="md:col-span-2">
-                        <FormField
-                            control={form.control}
-                            name="phone"
-                            render={({ field }) => (
-                            <FormItem className="flex flex-col">
-                                <FormLabel>Numéro de téléphone</FormLabel>
-                                <FormControl>
-                                <IntlTelInput
-                                    ref={phoneInputRef}
-                                    value={field.value}
-                                    onChange={(value) => {
-                                    field.onChange(value);
-                                    form.trigger('phone');
-                                    }}
-                                />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                            )}
-                        />
-                    </div>
+                    <FormField
+                        control={form.control}
+                        name="phone"
+                        render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                            <FormLabel>Numéro de téléphone</FormLabel>
+                            <FormControl>
+                            <IntlTelInput
+                                ref={phoneInputRef}
+                                value={field.value}
+                                onChange={(value) => {
+                                field.onChange(value);
+                                form.trigger('phone');
+                                }}
+                            />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
                     
                     <FormField
                     control={form.control}

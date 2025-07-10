@@ -1,3 +1,4 @@
+
 export type ReservationStatus =
   | 'Nouvelle demande'
   | 'Acceptée'
@@ -55,15 +56,6 @@ export interface Reservation {
   serviceTierId: string;
 }
 
-export interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  joinDate: string;
-  status: 'Active' | 'Blocked';
-}
-
 export type DocumentStatus = 'Pending' | 'Approved' | 'Rejected';
 
 export interface DriverDocument {
@@ -72,41 +64,45 @@ export interface DriverDocument {
   status: DocumentStatus;
 }
 
-export interface Driver {
+export interface DriverProfile {
+    company: {
+      name?: string;
+      address?: string;
+      siret?: string;
+      vatNumber?: string;
+      isVatSubjected?: boolean;
+      evtcAdsNumber?: string;
+      commission?: number;
+    };
+    vehicle: {
+      brand: string;
+      model: string;
+      licensePlate: string;
+      registrationDate: string;
+    };
+    totalRides: number;
+    totalEarnings: number;
+    unpaidAmount: number;
+    paymentDetails: {
+      method: 'Bank Transfer' | 'PayPal';
+      account: string;
+    };
+    documents: DriverDocument[];
+}
+
+export interface User {
   id: string;
-  // Personal
+  uid: string;
+  role: 'client' | 'driver' | 'admin';
+  name: string;
   firstName: string;
   lastName: string;
   email: string;
-  phone: string; // E.164 format
-  // Company
-  company: {
-    name?: string;
-    address?: string;
-    siret?: string;
-    vatNumber?: string;
-    isVatSubjected?: boolean;
-    evtcAdsNumber?: string;
-    commission?: number;
-  };
-  // Vehicle
-  vehicle: {
-    brand: string;
-    model: string;
-    licensePlate: string;
-    registrationDate: string;
-  };
-  status: 'Active' | 'Suspended';
-  totalRides: number;
-  totalEarnings: number;
-  unpaidAmount: number;
-  paymentDetails: {
-    method: 'Bank Transfer' | 'PayPal';
-    account: string;
-  };
-  documents: DriverDocument[];
+  phone: string;
+  joinDate: string;
+  status: 'Active' | 'Blocked' | 'Suspended';
+  driverProfile?: DriverProfile;
 }
-
 
 export interface ServiceTier {
   id: string;
