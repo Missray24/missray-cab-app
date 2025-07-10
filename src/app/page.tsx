@@ -226,7 +226,7 @@ export default function LandingPage() {
         </section>
         
         {/* Why Choose Us Section */}
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-white">
+        <section className="w-full py-12 md:py-16 lg:py-20 bg-white">
             <div className="container grid items-center gap-6 px-4 md:px-6 lg:grid-cols-2 lg:gap-10">
                 <div className="space-y-4">
                     <Image 
@@ -334,9 +334,17 @@ export default function LandingPage() {
         </section>
 
         {/* Final CTA Section */}
-        <section className="w-full py-12 md:py-16 lg:py-20 bg-white border-t">
+        <section className="w-full py-12 md:py-16 lg:py-20 bg-white">
           <div className="container grid items-center justify-center gap-4 px-4 text-center md:px-6">
             <div className="space-y-3">
+              <Image
+                  src="https://firebasestorage.googleapis.com/v0/b/missray-cab-kb0il.firebasestorage.app/o/service-tiers%2Fcreer_un_logo_pour_Missray_cab_en_3d-removebg-preview.png?alt=media&token=f4e20538-d03c-4dcb-9bc2-c5f400d514ed"
+                  alt="Missray Cab Logo"
+                  data-ai-hint="logo design"
+                  width={150}
+                  height={150}
+                  className="mx-auto mb-4"
+              />
               <h2 className="text-3xl font-bold tracking-tighter md:text-4xl/tight font-headline">Prêt à partir ?</h2>
               <p className="mx-auto max-w-[600px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
                 N'attendez plus. Réservez votre chauffeur et voyagez l'esprit tranquille.
