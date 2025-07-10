@@ -47,11 +47,12 @@ function LoginComponent() {
           console.log("Client logged in, create reservation now with params:", bookingParams);
           // After creating reservation, redirect to a confirmation page
           toast({ title: "Succès", description: "Réservation confirmée !" });
-          router.push('/dashboard/reservations'); // Placeholder, should be a client-side confirmation
+          // Redirect to a page that lists the client's reservations
+          router.push('/book/confirmation?id='); 
         } else {
-          // Redirect to client dashboard if it exists, or home
            toast({ title: "Succès", description: "Connexion réussie." });
-           router.push('/'); // Or a future client dashboard
+           // After a generic login, redirect to a page where they can see their reservations
+           router.push('/book/confirmation?id=');
         }
       } else {
         // Admin login
@@ -145,5 +146,3 @@ export default function LoginPage() {
         </Suspense>
     )
 }
-
-    
