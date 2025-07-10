@@ -3,9 +3,6 @@
  * It reads environment variables and exports them for use throughout the application.
  */
 
-// Force loading of environment variables from .env.local
-require('dotenv').config();
-
 // Server-side keys (should not be exposed to the client)
 export const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 export const BREVO_API_KEY = process.env.BREVO_API_KEY;
