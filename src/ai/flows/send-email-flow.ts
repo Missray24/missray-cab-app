@@ -28,12 +28,6 @@ export type SendEmailInput = z.infer<typeof SendEmailInputSchema>;
 const ADMIN_EMAIL = 'contact@missray-cab.com';
 const ADMIN_NAME = 'Admin missray cab';
 
-// Configure Brevo API
-const apiInstance = new brevo.TransactionalEmailsApi();
-// The API key is set here from the environment variable.
-// Make sure BREVO_API_KEY is set in your .env file.
-apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, BREVO_API_KEY || '');
-
 
 export async function sendEmail(input: SendEmailInput): Promise<{ success: boolean; messageId?: string }> {
   return sendEmailFlow(input);
@@ -51,6 +45,10 @@ const sendEmailFlow = ai.defineFlow(
       console.error('Brevo API key is not configured. Email not sent. Please set BREVO_API_KEY in your .env file.');
       return { success: false };
     }
+    
+    // Initialize the API client inside the flow to ensure env vars are loaded.
+    const apiInstance = new brevo.TransactionalEmailsApi();
+    apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, BREVO_API_KEY);
 
     let templateId: number | undefined;
     const to = [input.to];
@@ -79,7 +77,7 @@ const sendEmailFlow = ai.defineFlow(
     const sendSmtpEmail = new brevo.SendSmtpEmail();
     sendSmtpEmail.templateId = templateId;
     sendSmtpEmail.to = to;
-    // The sender must be an object with email and name.
+    // The sender must be an object with email and name, and must be a validated sender in Brevo.
     sendSmtpEmail.sender = { email: ADMIN_EMAIL, name: 'missray cab' };
     sendSmtpEmail.params = input.params;
 
