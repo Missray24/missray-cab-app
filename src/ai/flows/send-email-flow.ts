@@ -11,7 +11,7 @@ import { z } from 'zod';
 import * as nodemailer from 'nodemailer';
 import { IONOS_SMTP_HOST, IONOS_SMTP_PORT, IONOS_SMTP_USER, IONOS_SMTP_PASS } from '@/lib/config';
 
-const EmailTypeSchema = z.enum(['new_client_welcome', 'new_driver_welcome']);
+const EmailTypeSchema = z.enum(['new_client_welcome', 'new_driver_welcome', 'new_reservation_client']);
 export type EmailType = z.infer<typeof EmailTypeSchema>;
 
 const SendEmailInputSchema = z.object({
@@ -46,14 +46,14 @@ const transporter = nodemailer.createTransport({
 const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
   const clientWelcomeHtml = `
     <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-      <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px; border: 1px solid #cccccc; border-radius: 8px; overflow: hidden;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px; border: 1px solid #cccccc; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
           <tr>
               <td align="center" bgcolor="#223aff" style="padding: 30px 0; color: #ffffff; font-size: 28px; font-weight: bold;">
                   MISSRAY CAB
               </td>
           </tr>
           <tr>
-              <td bgcolor="#ffffff" style="padding: 40px 30px 40px 30px;">
+              <td style="padding: 40px 30px 40px 30px;">
                   <h1 style="color: #333333;">Bienvenue, ${params.clientName || 'cher client'} !</h1>
                   <p style="color: #555555; font-size: 16px; line-height: 1.5;">
                       Nous sommes ravis de vous accueillir. Votre compte a été créé avec succès. Vous pouvez dès maintenant réserver des courses pour tous vos déplacements.
@@ -81,14 +81,14 @@ const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
 
   const driverWelcomeHtml = `
     <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
-      <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px; border: 1px solid #cccccc; border-radius: 8px; overflow: hidden;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px; border: 1px solid #cccccc; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
           <tr>
               <td align="center" bgcolor="#223aff" style="padding: 30px 0; color: #ffffff; font-size: 28px; font-weight: bold;">
                   MISSRAY CAB
               </td>
           </tr>
           <tr>
-              <td bgcolor="#ffffff" style="padding: 40px 30px 40px 30px;">
+              <td style="padding: 40px 30px 40px 30px;">
                   <h1 style="color: #333333;">Bienvenue dans la flotte, ${params.driverName || 'cher chauffeur'} !</h1>
                   <p style="color: #555555; font-size: 16px; line-height: 1.5;">
                       Félicitations, votre inscription est terminée ! Vous faites désormais partie de notre réseau de chauffeurs professionnels.
@@ -116,6 +116,62 @@ const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
           </tr>
       </table>
     </body>`;
+    
+  const reservationConfirmationHtml = `
+    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px; border: 1px solid #cccccc; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+        <tr>
+          <td align="center" bgcolor="#223aff" style="padding: 30px 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+            MISSRAY CAB
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 40px 30px;">
+            <h1 style="color: #333333;">Confirmation de votre réservation</h1>
+            <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+              Bonjour ${params.clientName || ''},<br>
+              Votre réservation a bien été enregistrée. Voici les détails :
+            </p>
+            <table border="0" cellpadding="10" cellspacing="0" width="100%" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px;">
+              <tr style="border-bottom: 1px solid #eeeeee;">
+                <td style="color: #555555; font-size: 16px; width: 150px;">Date et heure :</td>
+                <td style="color: #333333; font-size: 16px; font-weight: bold;">${params.date || ''}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #eeeeee;">
+                <td style="color: #555555; font-size: 16px;">Départ :</td>
+                <td style="color: #333333; font-size: 16px; font-weight: bold;">${params.pickup || ''}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #eeeeee;">
+                <td style="color: #555555; font-size: 16px;">Arrivée :</td>
+                <td style="color: #333333; font-size: 16px; font-weight: bold;">${params.dropoff || ''}</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #eeeeee;">
+                <td style="color: #555555; font-size: 16px;">Montant total :</td>
+                <td style="color: #333333; font-size: 16px; font-weight: bold;">${params.amount ? `${params.amount.toFixed(2)}€` : 'N/A'}</td>
+              </tr>
+            </table>
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+              <tr>
+                <td align="center" style="padding: 20px 0 30px 0;">
+                  <a href="https://missray-cab.com/my-bookings" target="_blank" style="background: linear-gradient(to right, #223aff, #006df1); color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 5px; display: inline-block; font-weight: bold;">Voir mes réservations</a>
+                </td>
+              </tr>
+            </table>
+            <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+              Nous vous notifierons dès qu'un chauffeur aura accepté votre course.
+            </p>
+            <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+              Merci d'avoir choisi missray cab.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#eeeeee" style="padding: 20px 30px; text-align: center; color: #888888; font-size: 12px;">
+            <p>&copy; ${new Date().getFullYear()} missray cab. Tous droits réservés.</p>
+          </td>
+        </tr>
+      </table>
+    </body>`;
 
 
   switch (type) {
@@ -128,6 +184,11 @@ const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
       return {
         subject: 'Bienvenue dans la flotte missray cab !',
         html: driverWelcomeHtml,
+      };
+    case 'new_reservation_client':
+      return {
+        subject: `Confirmation de votre réservation n°${params.reservationId || ''}`,
+        html: reservationConfirmationHtml,
       };
     default:
       throw new Error('Invalid email type');
@@ -164,7 +225,7 @@ const sendEmailFlow = ai.defineFlow(
       return { success: false };
     }
 
-    // 1. Send welcome email to the user
+    // 1. Send main email to the user
     const userEmailContent = getEmailContent(input.type, input.params);
     const userMailOptions = {
       from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
@@ -178,36 +239,42 @@ const sendEmailFlow = ai.defineFlow(
 
     try {
       const info = await transporter.sendMail(userMailOptions);
-      console.log(`Nodemailer sent welcome email to ${input.to.email}. Message ID: ${info.messageId}`);
+      console.log(`Nodemailer sent email type '${input.type}' to ${input.to.email}. Message ID: ${info.messageId}`);
       userEmailSuccess = true;
       finalMessageId = info.messageId;
     } catch (error: any) {
-      console.error(`Error sending welcome email to ${input.to.email}:`, error);
-      // We don't return here, so we still attempt to send the admin email.
+      console.error(`Error sending email to ${input.to.email}:`, error);
+      // We don't return here if it's a welcome email, so we still attempt to send the admin email.
+      // If it's another type of email, we should return failure.
+      if (input.type !== 'new_client_welcome' && input.type !== 'new_driver_welcome') {
+          return { success: false };
+      }
     }
     
-    // 2. Send notification email to the admin
-    const userType = input.type === 'new_client_welcome' ? 'Client' : 'Chauffeur';
-    const adminEmailContent = getAdminNotificationContent(userType, { name: input.to.name, email: input.to.email });
-    const adminMailOptions = {
-        from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
-        to: `"${'Admin'}" <${ADMIN_EMAIL}>`,
-        subject: adminEmailContent.subject,
-        html: adminEmailContent.html,
-    };
+    // 2. Send notification email to the admin for new users only
+    if (input.type === 'new_client_welcome' || input.type === 'new_driver_welcome') {
+      const userType = input.type === 'new_client_welcome' ? 'Client' : 'Chauffeur';
+      const adminEmailContent = getAdminNotificationContent(userType, { name: input.to.name, email: input.to.email });
+      const adminMailOptions = {
+          from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
+          to: `"${'Admin'}" <${ADMIN_EMAIL}>`,
+          subject: adminEmailContent.subject,
+          html: adminEmailContent.html,
+      };
 
-    try {
-        const info = await transporter.sendMail(adminMailOptions);
-        console.log(`Nodemailer sent admin notification. Message ID: ${info.messageId}`);
-    } catch (error: any) {
-        console.error('Error sending admin notification email:', error);
-        // If the user email failed, this will also result in a failure.
-        if (!userEmailSuccess) {
-            return { success: false };
-        }
+      try {
+          const info = await transporter.sendMail(adminMailOptions);
+          console.log(`Nodemailer sent admin notification. Message ID: ${info.messageId}`);
+      } catch (error: any) {
+          console.error('Error sending admin notification email:', error);
+          // If the user email failed, this will also result in a failure.
+          if (!userEmailSuccess) {
+              return { success: false };
+          }
+      }
     }
     
-    // Return success if at least the user email was sent.
+    // Return success if the main user email was sent.
     return { success: userEmailSuccess, messageId: finalMessageId };
   }
 );
