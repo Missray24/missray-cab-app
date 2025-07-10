@@ -1,15 +1,15 @@
 
 'use server';
 /**
- * @fileOverview A flow for sending transactional emails via Brevo SMTP.
+ * @fileOverview A flow for sending transactional emails via the Brevo API.
  * - sendEmail - A function that handles sending different types of emails.
  * - SendEmailInput - The input type for the sendEmail function.
  */
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
-import nodemailer from 'nodemailer';
-import { BREVO_SMTP_HOST, BREVO_SMTP_PORT, BREVO_SMTP_USER, BREVO_SMTP_PASS } from '@/lib/config';
+import * as Brevo from '@getbrevo/brevo';
+import { BREVO_API_KEY } from '@/lib/config';
 
 const EmailTypeSchema = z.enum(['new_client_welcome', 'new_driver_welcome', 'admin_new_user']);
 export type EmailType = z.infer<typeof EmailTypeSchema>;
@@ -33,30 +33,33 @@ const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
     case 'new_client_welcome':
       return {
         subject: 'Bienvenue chez missray cab !',
-        html: `
+        htmlContent: `
           <h1>Bonjour ${params.clientName},</h1>
           <p>Nous sommes ravis de vous accueillir sur notre plateforme. Vous pouvez dès maintenant réserver votre chauffeur.</p>
           <p>L'équipe missray cab</p>
         `,
+        textContent: `Bonjour ${params.clientName},\nNous sommes ravis de vous accueillir sur notre plateforme. Vous pouvez dès maintenant réserver votre chauffeur.\nL'équipe missray cab`,
       };
     case 'new_driver_welcome':
       return {
         subject: 'Bienvenue dans la flotte missray cab !',
-        html: `
+        htmlContent: `
           <h1>Bonjour ${params.driverName},</h1>
           <p>Votre inscription est terminée ! Nous sommes heureux de vous compter parmi nos chauffeurs partenaires.</p>
           <p>L'équipe missray cab</p>
         `,
+        textContent: `Bonjour ${params.driverName},\nVotre inscription est terminée ! Nous sommes heureux de vous compter parmi nos chauffeurs partenaires.\nL'équipe missray cab`,
       };
     case 'admin_new_user':
       return {
         subject: `Nouvel utilisateur inscrit : ${params.userType}`,
-        html: `
+        htmlContent: `
           <h1>Un nouvel utilisateur vient de s'inscrire.</h1>
           <p><strong>Type:</strong> ${params.userType}</p>
           <p><strong>Nom:</strong> ${params.name}</p>
           <p><strong>Email:</strong> ${params.email}</p>
         `,
+        textContent: `Un nouvel utilisateur vient de s'inscrire.\nType: ${params.userType}\nNom: ${params.name}\nEmail: ${params.email}`,
       };
     default:
       throw new Error('Invalid email type');
@@ -74,22 +77,13 @@ const sendEmailFlow = ai.defineFlow(
     outputSchema: z.object({ success: z.boolean(), messageId: z.string().optional() }),
   },
   async (input) => {
-    // Ensure the Brevo SMTP credentials are set in the environment variables.
-    if (!BREVO_SMTP_HOST || !BREVO_SMTP_PORT || !BREVO_SMTP_USER || !BREVO_SMTP_PASS) {
-      console.error('Brevo SMTP credentials are not configured. Email not sent. Please set them in your .env file.');
+    if (!BREVO_API_KEY) {
+      console.error('Brevo API key is not configured. Email not sent. Please set it in your .env file.');
       return { success: false };
     }
     
-    // Initialize the Nodemailer transporter inside the flow
-    const transporter = nodemailer.createTransport({
-      host: BREVO_SMTP_HOST,
-      port: Number(BREVO_SMTP_PORT),
-      secure: Number(BREVO_SMTP_PORT) === 465, // true for 465, false for other ports
-      auth: {
-        user: BREVO_SMTP_USER,
-        pass: BREVO_SMTP_PASS,
-      },
-    });
+    const apiInstance = new Brevo.TransactionalEmailsApi();
+    apiInstance.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, BREVO_API_KEY);
 
     let to = input.to;
     let contentParams = input.params || {};
@@ -98,21 +92,20 @@ const sendEmailFlow = ai.defineFlow(
       to = { email: ADMIN_EMAIL, name: ADMIN_NAME };
     }
     
-    const { subject, html } = getEmailContent(input.type, contentParams);
+    const { subject, htmlContent } = getEmailContent(input.type, contentParams);
 
-    const mailOptions = {
-      from: `"${ADMIN_NAME}" <${ADMIN_EMAIL}>`, // sender address
-      to: `"${to.name}" <${to.email}>`, // list of receivers
-      subject: subject,
-      html: html,
-    };
+    const sendSmtpEmail = new Brevo.SendSmtpEmail();
+    sendSmtpEmail.sender = { name: ADMIN_NAME, email: ADMIN_EMAIL };
+    sendSmtpEmail.to = [{ email: to.email, name: to.name }];
+    sendSmtpEmail.subject = subject;
+    sendSmtpEmail.htmlContent = htmlContent;
 
     try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log('Nodemailer sent email successfully. Message ID: ' + info.messageId);
-      return { success: true, messageId: info.messageId };
+      const { body } = await apiInstance.sendTransacEmail(sendSmtpEmail);
+      console.log('Brevo API sent email successfully. Message ID: ' + (body.messageId || 'N/A'));
+      return { success: true, messageId: body.messageId };
     } catch (error: any) {
-      console.error('Error sending email via Nodemailer:', error);
+      console.error('Error sending email via Brevo API:', error.message);
       return { success: false };
     }
   }
