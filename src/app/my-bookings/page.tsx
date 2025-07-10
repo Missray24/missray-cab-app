@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from '@/lib/utils';
 import { BookingForm, type BookingDetails } from '@/components/booking-form';
+import { sendEmail } from '@/ai/flows/send-email-flow';
 
 function MyBookingsComponent() {
   const router = useRouter();
@@ -42,6 +43,8 @@ function MyBookingsComponent() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
+  const [clientDetails, setClientDetails] = useState<{ id: string; name: string; email: string; } | null>(null);
+
 
   const fetchReservations = async (currentUser: User) => {
     setLoading(true);
@@ -51,12 +54,13 @@ function MyBookingsComponent() {
       const userSnapshot = await getDocs(userQuery);
 
       if (!userSnapshot.empty) {
-        const clientDocId = userSnapshot.docs[0].id;
+        const clientDoc = userSnapshot.docs[0];
+        setClientDetails({ id: clientDoc.id, ...clientDoc.data() } as { id: string; name: string; email: string; });
         
         const reservationsRef = collection(db, "reservations");
         const q = query(
           reservationsRef, 
-          where("clientId", "==", clientDocId)
+          where("clientId", "==", clientDoc.id)
         );
         const querySnapshot = await getDocs(q);
         
@@ -90,14 +94,14 @@ function MyBookingsComponent() {
   }, [router, toast]);
 
   const handleCancelReservation = async (reservationId: string) => {
+    const currentReservation = reservations.find(r => r.id === reservationId);
+    if (!currentReservation || !clientDetails) return;
+
     try {
       const resRef = doc(db, "reservations", reservationId);
       const newStatus: ReservationStatus = 'Annulée par le client (sans frais)';
       const statusHistoryEntry = { status: newStatus, timestamp: new Date().toLocaleString('fr-FR') };
       
-      const currentReservation = reservations.find(r => r.id === reservationId);
-      if (!currentReservation) return;
-
       await updateDoc(resRef, {
         status: newStatus,
         statusHistory: [...currentReservation.statusHistory, statusHistoryEntry]
@@ -106,6 +110,28 @@ function MyBookingsComponent() {
       setReservations(prev => prev.map(res => 
         res.id === reservationId ? { ...res, status: newStatus, statusHistory: [...res.statusHistory, statusHistoryEntry] } : res
       ));
+      
+      // Send client notification
+      await sendEmail({
+        type: 'reservation_cancelled_client',
+        to: { name: clientDetails.name, email: clientDetails.email },
+        params: {
+          clientName: clientDetails.name,
+          reservationId: reservationId.substring(0, 8).toUpperCase(),
+          status: newStatus,
+        },
+      });
+
+      // Send admin notification
+      await sendEmail({
+        type: 'reservation_cancelled_admin',
+        to: { name: 'Admin', email: 'admin@example.com' }, // to.email is ignored for this type, but required by schema
+        params: {
+            clientName: clientDetails.name,
+            reservationId: reservationId.substring(0, 8).toUpperCase(),
+            status: newStatus,
+        }
+      });
 
       toast({ title: 'Réservation annulée', description: 'Votre course a bien été annulée.' });
     } catch (error) {

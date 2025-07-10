@@ -11,7 +11,7 @@ import { z } from 'zod';
 import * as nodemailer from 'nodemailer';
 import { IONOS_SMTP_HOST, IONOS_SMTP_PORT, IONOS_SMTP_USER, IONOS_SMTP_PASS } from '@/lib/config';
 
-const EmailTypeSchema = z.enum(['new_client_welcome', 'new_driver_welcome', 'new_reservation_client']);
+const EmailTypeSchema = z.enum(['new_client_welcome', 'new_driver_welcome', 'new_reservation_client', 'reservation_cancelled_client', 'reservation_cancelled_admin']);
 export type EmailType = z.infer<typeof EmailTypeSchema>;
 
 const SendEmailInputSchema = z.object({
@@ -181,6 +181,44 @@ const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
       </table>
     </body>`;
 
+  const cancellationClientHtml = `
+    <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="600" style="border-collapse: collapse; margin-top: 20px; margin-bottom: 20px; border: 1px solid #cccccc; border-radius: 8px; overflow: hidden; background-color: #ffffff;">
+        <tr>
+          <td align="center" bgcolor="#ff4b5c" style="padding: 30px 0; color: #ffffff; font-size: 28px; font-weight: bold;">
+            MISSRAY CAB
+          </td>
+        </tr>
+        <tr>
+          <td style="padding: 40px 30px;">
+            <h1 style="color: #333333;">Annulation de votre réservation</h1>
+            <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+              Bonjour ${params.clientName || ''},<br>
+              Nous vous confirmons l'annulation de votre réservation n°${params.reservationId || ''}.
+            </p>
+            <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+              <strong>Statut de l'annulation :</strong> ${params.status || 'Annulée'}
+            </p>
+            <table border="0" cellpadding="0" cellspacing="0" width="100%">
+              <tr>
+                <td align="center" style="padding: 20px 0 30px 0;">
+                  <a href="https://missray-cab.com/my-bookings" target="_blank" style="background: linear-gradient(to right, #223aff, #006df1); color: #ffffff; text-decoration: none; padding: 15px 25px; border-radius: 5px; display: inline-block; font-weight: bold;">Voir mes réservations</a>
+                </td>
+              </tr>
+            </table>
+            <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+              Nous restons à votre disposition si vous souhaitez planifier une autre course.
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#eeeeee" style="padding: 20px 30px; text-align: center; color: #888888; font-size: 12px;">
+            <p>&copy; ${new Date().getFullYear()} missray cab. Tous droits réservés.</p>
+          </td>
+        </tr>
+      </table>
+    </body>`;
+
 
   switch (type) {
     case 'new_client_welcome':
@@ -198,6 +236,11 @@ const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
         subject: `Confirmation de votre réservation n°${params.reservationId || ''}`,
         html: reservationConfirmationHtml,
       };
+    case 'reservation_cancelled_client':
+        return {
+            subject: `Annulation de votre réservation n°${params.reservationId || ''}`,
+            html: cancellationClientHtml,
+        };
     default:
       throw new Error('Invalid email type');
   }
@@ -236,6 +279,21 @@ const getAdminReservationNotificationContent = (params: Record<string, any> = {}
     };
 };
 
+const getAdminCancellationNotificationContent = (params: Record<string, any> = {}) => {
+    return {
+        subject: `Réservation annulée (n°${params.reservationId || ''})`,
+        html: `
+          <h1>Une réservation a été annulée</h1>
+          <p>La réservation n°${params.reservationId || ''} a été annulée.</p>
+          <h2>Détails:</h2>
+          <ul>
+            <li><strong>Client:</strong> ${params.clientName || 'N/A'}</li>
+            <li><strong>Statut:</strong> ${params.status || 'N/A'}</li>
+          </ul>
+        `,
+    };
+};
+
 export async function sendEmail(input: SendEmailInput): Promise<{ success: boolean; messageId?: string }> {
   return sendEmailFlow(input);
 }
@@ -251,6 +309,25 @@ const sendEmailFlow = ai.defineFlow(
       console.error('IONOS SMTP configuration is incomplete. Email not sent.');
       return { success: false };
     }
+
+    // Handle Admin-only emails
+    if (input.type === 'reservation_cancelled_admin') {
+        const adminEmailContent = getAdminCancellationNotificationContent(input.params);
+        try {
+            await transporter.sendMail({
+                from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
+                to: `"${'Admin'}" <${ADMIN_EMAIL}>`,
+                subject: adminEmailContent.subject,
+                html: adminEmailContent.html,
+            });
+            console.log(`Nodemailer sent admin cancellation notification for '${input.type}'.`);
+            return { success: true };
+        } catch (error) {
+            console.error(`Error sending admin cancellation email for '${input.type}':`, error);
+            return { success: false };
+        }
+    }
+
 
     // 1. Send main email to the user
     const userEmailContent = getEmailContent(input.type, input.params);
