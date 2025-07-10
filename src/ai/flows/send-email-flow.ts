@@ -11,7 +11,7 @@ import { z } from 'zod';
 import * as nodemailer from 'nodemailer';
 import { IONOS_SMTP_HOST, IONOS_SMTP_PORT, IONOS_SMTP_USER, IONOS_SMTP_PASS } from '@/lib/config';
 
-const EmailTypeSchema = z.enum(['new_client_welcome', 'new_driver_welcome', 'admin_new_user']);
+const EmailTypeSchema = z.enum(['new_client_welcome', 'new_driver_welcome']);
 export type EmailType = z.infer<typeof EmailTypeSchema>;
 
 const SendEmailInputSchema = z.object({
@@ -26,8 +26,12 @@ export type SendEmailInput = z.infer<typeof SendEmailInputSchema>;
 
 // IMPORTANT: This email must be a valid sender address on your IONOS account.
 const SENDER_EMAIL = 'contact@missray-cab.com';
-const SENDER_NAME = 'missray cab';
+const SENDER_NAME = 'MISSRAY CAB';
 const ADMIN_EMAIL = 'contact@missray-cab.com';
+
+if (!IONOS_SMTP_HOST || !IONOS_SMTP_USER || !IONOS_SMTP_PASS) {
+  console.warn('IONOS SMTP configuration is incomplete. Email functionality will be disabled.');
+}
 
 const transporter = nodemailer.createTransport({
   host: IONOS_SMTP_HOST,
@@ -59,21 +63,23 @@ const getEmailContent = (type: EmailType, params: Record<string, any> = {}) => {
           <p>L'équipe missray cab</p>
         `,
       };
-    case 'admin_new_user':
-      return {
-        subject: `Nouvel utilisateur inscrit: ${params.userType}`,
+    default:
+      throw new Error('Invalid email type');
+  }
+};
+
+const getAdminNotificationContent = (userType: 'Client' | 'Chauffeur', params: Record<string, any> = {}) => {
+    return {
+        subject: `Nouvel utilisateur inscrit: ${userType}`,
         html: `
           <h1>Un nouvel utilisateur s'est inscrit</h1>
           <ul>
-            <li><strong>Type:</strong> ${params.userType}</li>
+            <li><strong>Type:</strong> ${userType}</li>
             <li><strong>Nom:</strong> ${params.name}</li>
             <li><strong>Email:</strong> ${params.email}</li>
           </ul>
         `,
-      };
-    default:
-      throw new Error('Invalid email type');
-  }
+    };
 };
 
 export async function sendEmail(input: SendEmailInput): Promise<{ success: boolean; messageId?: string }> {
@@ -92,26 +98,50 @@ const sendEmailFlow = ai.defineFlow(
       return { success: false };
     }
 
-    const { subject, html } = getEmailContent(input.type, input.params);
-    
-    // For admin notifications, the recipient is always the admin.
-    const recipientEmail = input.type === 'admin_new_user' ? ADMIN_EMAIL : input.to.email;
-    const recipientName = input.type === 'admin_new_user' ? 'Admin' : input.to.name;
-
-    const mailOptions = {
+    // 1. Send welcome email to the user
+    const userEmailContent = getEmailContent(input.type, input.params);
+    const userMailOptions = {
       from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
-      to: `"${recipientName}" <${recipientEmail}>`,
-      subject: subject,
-      html: html,
+      to: `"${input.to.name}" <${input.to.email}>`,
+      subject: userEmailContent.subject,
+      html: userEmailContent.html,
+    };
+    
+    let userEmailSuccess = false;
+    let finalMessageId: string | undefined;
+
+    try {
+      const info = await transporter.sendMail(userMailOptions);
+      console.log(`Nodemailer sent welcome email to ${input.to.email}. Message ID: ${info.messageId}`);
+      userEmailSuccess = true;
+      finalMessageId = info.messageId;
+    } catch (error: any) {
+      console.error(`Error sending welcome email to ${input.to.email}:`, error);
+      // We don't return here, so we still attempt to send the admin email.
+    }
+    
+    // 2. Send notification email to the admin
+    const userType = input.type === 'new_client_welcome' ? 'Client' : 'Chauffeur';
+    const adminEmailContent = getAdminNotificationContent(userType, { name: input.to.name, email: input.to.email });
+    const adminMailOptions = {
+        from: `"${SENDER_NAME}" <${SENDER_EMAIL}>`,
+        to: `"${'Admin'}" <${ADMIN_EMAIL}>`,
+        subject: adminEmailContent.subject,
+        html: adminEmailContent.html,
     };
 
     try {
-      const info = await transporter.sendMail(mailOptions);
-      console.log('Nodemailer sent email successfully. Message ID: ' + info.messageId);
-      return { success: true, messageId: info.messageId };
+        const info = await transporter.sendMail(adminMailOptions);
+        console.log(`Nodemailer sent admin notification. Message ID: ${info.messageId}`);
     } catch (error: any) {
-      console.error('Error sending email via Nodemailer:', error);
-      return { success: false };
+        console.error('Error sending admin notification email:', error);
+        // If the user email failed, this will also result in a failure.
+        if (!userEmailSuccess) {
+            return { success: false };
+        }
     }
+    
+    // Return success if at least the user email was sent.
+    return { success: userEmailSuccess, messageId: finalMessageId };
   }
 );

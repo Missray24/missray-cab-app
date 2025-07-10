@@ -105,23 +105,12 @@ function SignupFormComponent() {
         status: 'Active',
       });
       
-      // 3. Send emails
-      await Promise.all([
-        sendEmail({
-          type: 'new_client_welcome',
-          to: { email: values.email, name: clientName },
-          params: { clientName: clientName },
-        }),
-        sendEmail({
-            type: 'admin_new_user',
-            to: { email: 'contact@missray-cab.com', name: 'Admin' }, // This will be overridden in the flow
-            params: {
-              userType: 'Client',
-              name: clientName,
-              email: values.email,
-            },
-        }),
-      ]);
+      // 3. Send welcome email to client (and admin notification)
+      await sendEmail({
+        type: 'new_client_welcome',
+        to: { email: values.email, name: clientName },
+        params: { clientName: clientName },
+      });
 
       toast({
         title: 'Inscription réussie!',

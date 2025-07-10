@@ -159,23 +159,11 @@ export default function SignupDriverPage() {
       await addDoc(collection(db, 'users'), driverData);
       
       // 3. Send emails
-      await Promise.all([
-        sendEmail({
-            type: 'new_driver_welcome',
-            to: { email: values.email, name: driverName },
-            params: { driverName: driverName },
-        }),
-        sendEmail({
-            type: 'admin_new_user',
-            to: { email: 'contact@missray-cab.com', name: 'Admin' }, // This will be overridden
-            params: {
-              userType: 'Chauffeur',
-              name: driverName,
-              email: values.email,
-            },
-        }),
-      ]);
-
+      await sendEmail({
+        type: 'new_driver_welcome',
+        to: { email: values.email, name: driverName },
+        params: { driverName: driverName },
+      });
 
       toast({
         title: 'Inscription réussie !',

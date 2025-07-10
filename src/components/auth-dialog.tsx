@@ -126,10 +126,11 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
         status: 'Active',
       });
       
-      await Promise.all([
-        sendEmail({ type: 'new_client_welcome', to: { email: values.email, name: clientName }, params: { clientName } }),
-        sendEmail({ type: 'admin_new_user', to: { email: 'contact@missray-cab.com', name: 'Admin' }, params: { userType: 'Client', name: clientName, email: values.email }}),
-      ]);
+      await sendEmail({
+        type: 'new_client_welcome',
+        to: { email: values.email, name: clientName },
+        params: { clientName: clientName },
+      });
       
       handleAuthSuccess();
 
