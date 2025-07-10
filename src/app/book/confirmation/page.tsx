@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter, notFound } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { CheckCircle2, MapPin, User as UserIcon, Briefcase } from 'lucide-react';
+import { CheckCircle2, MapPin, User as UserIcon, Briefcase, XCircle, ShieldCheck } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
@@ -20,6 +20,7 @@ import { Separator } from '@/components/ui/separator';
 import { db, auth } from '@/lib/firebase';
 import type { Reservation, ServiceTier } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 function ConfirmationComponent() {
   const searchParams = useSearchParams();
@@ -79,6 +80,34 @@ function ConfirmationComponent() {
     fetchReservation();
   }, [reservationId]);
 
+  const getStatusDetails = () => {
+    if (!reservation) return null;
+
+    const status = reservation.status;
+    if (status.startsWith('Annulée') || status === 'No-show') {
+      return {
+        Icon: XCircle,
+        title: 'Réservation Annulée',
+        description: 'Cette réservation a été annulée et n\'est plus active.',
+        color: 'text-destructive',
+      };
+    }
+    if (status === 'Terminée') {
+        return {
+            Icon: ShieldCheck,
+            title: 'Course Terminée',
+            description: 'Cette course a été effectuée avec succès.',
+            color: 'text-blue-500',
+        }
+    }
+    return {
+      Icon: CheckCircle2,
+      title: 'Réservation Confirmée !',
+      description: 'Votre course est enregistrée. Vous recevrez des notifications sur son statut.',
+      color: 'text-green-500',
+    };
+  };
+
   if (loading || !reservation || !tier) {
     return (
         <div className="flex flex-col min-h-dvh bg-muted/40">
@@ -90,6 +119,7 @@ function ConfirmationComponent() {
   }
 
   const reservationDate = new Date(reservation.date);
+  const statusDetails = getStatusDetails();
 
   return (
     <div className="flex flex-col min-h-dvh bg-muted/40">
@@ -98,10 +128,10 @@ function ConfirmationComponent() {
         <div className="container max-w-2xl">
           <Card>
             <CardHeader className="items-center text-center">
-              <CheckCircle2 className="h-16 w-16 text-green-500 mb-4" />
-              <CardTitle className="text-3xl font-headline text-center">Réservation Confirmée !</CardTitle>
+              {statusDetails && <statusDetails.Icon className={cn("h-16 w-16 mb-4", statusDetails.color)} />}
+              <CardTitle className="text-3xl font-headline text-center">{statusDetails?.title}</CardTitle>
               <CardDescription>
-                Votre course est enregistrée. Vous recevrez des notifications sur son statut.
+                {statusDetails?.description}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -112,7 +142,16 @@ function ConfirmationComponent() {
                   </div>
                    <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">Statut</span>
-                    <Badge className="bg-gradient-to-r from-[#223aff] to-[#1697ff] text-primary-foreground">{reservation.status}</Badge>
+                    <Badge
+                        variant={
+                            reservation.status === 'Terminée' ? 'default'
+                            : reservation.status.startsWith('Annulée') || reservation.status === 'No-show' ? 'destructive'
+                            : 'secondary'
+                        }
+                        className={cn("capitalize", reservation.status === 'Nouvelle demande' && 'bg-gradient-to-r from-[#223aff] to-[#1697ff] text-primary-foreground')}
+                    >
+                        {reservation.status}
+                    </Badge>
                   </div>
                 </div>
 
@@ -172,7 +211,7 @@ function ConfirmationComponent() {
 
                 <Separator />
                 <Button asChild className="w-full" size="lg">
-                    <Link href="/my-bookings">Voir mes réservations</Link>
+                    <Link href="/my-bookings">Retour à mes réservations</Link>
                 </Button>
             </CardContent>
           </Card>
