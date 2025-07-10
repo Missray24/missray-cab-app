@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { Eye, EyeOff } from 'lucide-react';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { collection, addDoc } from 'firebase/firestore';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -34,6 +35,7 @@ import { auth, db } from '@/lib/firebase';
 export default function SignupPage() {
   const phoneInputRef = useRef<IntlTelInputRef>(null);
   const { toast } = useToast();
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -100,8 +102,7 @@ export default function SignupPage() {
         description: 'Votre compte a été créé. Vous pouvez maintenant vous connecter.',
       });
       
-      // Optionally redirect to login or dashboard
-      // router.push('/login');
+      router.push('/login');
 
     } catch (error: any) {
       console.error("Error signing up:", error);
@@ -131,7 +132,7 @@ export default function SignupPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="firstName"
@@ -159,20 +160,21 @@ export default function SignupPage() {
                   )}
                 />
               </div>
-              
-              <FormField
+
+              <div className="flex flex-col gap-1.5">
+                <FormField
                   control={form.control}
                   name="phone"
                   render={({ field }) => (
-                    <FormItem className="flex flex-col gap-1.5">
+                    <FormItem>
                       <FormLabel>Numéro de téléphone</FormLabel>
                       <FormControl>
-                         <IntlTelInput
+                        <IntlTelInput
                           ref={phoneInputRef}
                           value={field.value}
                           onChange={(value) => {
-                              field.onChange(value);
-                              form.trigger('phone');
+                            field.onChange(value);
+                            form.trigger('phone');
                           }}
                         />
                       </FormControl>
@@ -180,6 +182,7 @@ export default function SignupPage() {
                     </FormItem>
                   )}
                 />
+              </div>
 
               <FormField
                 control={form.control}
@@ -216,9 +219,17 @@ export default function SignupPage() {
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
-                          aria-label={showPassword ? 'Hide password' : 'Show password'}
+                          aria-label={
+                            showPassword
+                              ? 'Hide password'
+                              : 'Show password'
+                          }
                         >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     </FormControl>
@@ -240,13 +251,23 @@ export default function SignupPage() {
                           placeholder="********"
                           {...field}
                         />
-                         <button
+                        <button
                           type="button"
-                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          onClick={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
                           className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground hover:text-foreground"
-                          aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                          aria-label={
+                            showConfirmPassword
+                              ? 'Hide password'
+                              : 'Show password'
+                          }
                         >
-                          {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                          {showConfirmPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
                         </button>
                       </div>
                     </FormControl>
@@ -267,7 +288,7 @@ export default function SignupPage() {
                 Se connecter
               </Link>
             </p>
-             <p>
+            <p>
               Vous êtes chauffeur?{' '}
               <Link href="/signup-driver" className="underline">
                 Inscrivez-vous ici
