@@ -116,6 +116,10 @@ export interface ServiceTier {
   perStop: number;
   minimumPrice: number;
   availableZoneIds: string[];
+  capacity: {
+    passengers: number;
+    suitcases: number;
+  };
 }
 
 export interface Zone {

@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowRight, Calendar, Clock, MapPin, Users } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase } from 'lucide-react';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
@@ -153,9 +153,14 @@ function VehicleSelectionComponent() {
                           <CardDescription>{tier.description}</CardDescription>
                         </CardHeader>
                         <CardContent className="grid gap-4 text-sm">
-                           <div className="flex justify-between border-t pt-4">
-                             <div className="flex items-center gap-2 text-muted-foreground">
-                                <Users className="h-4 w-4" /> <span>4</span>
+                           <div className="flex justify-between items-center border-t pt-4">
+                             <div className="flex items-center gap-4 text-muted-foreground">
+                                <div className="flex items-center gap-2">
+                                    <Users className="h-4 w-4" /> <span>{tier.capacity?.passengers || 4}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Briefcase className="h-4 w-4" /> <span>{tier.capacity?.suitcases || 2}</span>
+                                </div>
                              </div>
                              <span className="font-bold text-lg text-foreground">€{tier.minimumPrice.toFixed(2)}</span>
                            </div>

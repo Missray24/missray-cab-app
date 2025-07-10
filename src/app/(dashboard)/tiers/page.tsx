@@ -46,6 +46,10 @@ const initialFormState = {
   perStop: '0',
   minimumPrice: '0',
   availableZoneIds: [] as string[],
+  capacity: {
+    passengers: '4',
+    suitcases: '2',
+  },
 };
 
 type ModalState = {
@@ -87,11 +91,15 @@ export default function ServiceTiersPage() {
   
   useEffect(() => {
     if (modalState.mode === 'edit' && modalState.tier) {
-      const { availableZoneIds, photoUrl, ...rest } = modalState.tier;
+      const { availableZoneIds, photoUrl, capacity, ...rest } = modalState.tier;
       setFormData({
         ...Object.fromEntries(Object.entries(rest).map(([key, value]) => [key, String(value)])),
         photoUrl: photoUrl,
         availableZoneIds,
+        capacity: {
+            passengers: String(capacity?.passengers || 4),
+            suitcases: String(capacity?.suitcases || 2),
+        }
       } as any);
       setPreviewUrl(photoUrl);
     } else {
@@ -111,7 +119,12 @@ export default function ServiceTiersPage() {
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    if (id.startsWith('capacity.')) {
+        const field = id.split('.')[1] as 'passengers' | 'suitcases';
+        setFormData(prev => ({ ...prev, capacity: { ...prev.capacity, [field]: value }}));
+    } else {
+        setFormData(prev => ({ ...prev, [id]: value }));
+    }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,6 +175,10 @@ export default function ServiceTiersPage() {
       perMinute: parseFloat(formData.perMinute),
       perStop: parseFloat(formData.perStop),
       minimumPrice: parseFloat(formData.minimumPrice),
+      capacity: {
+        passengers: parseInt(formData.capacity.passengers, 10),
+        suitcases: parseInt(formData.capacity.suitcases, 10),
+      }
     };
 
     if (modalState.mode === 'edit' && modalState.tier) {
@@ -229,6 +246,11 @@ export default function ServiceTiersPage() {
             <div className="space-y-2"><Label htmlFor="perMinute">Prix / minute (€)</Label><Input id="perMinute" type="number" value={formData.perMinute} onChange={handleFormChange} /></div>
             <div className="space-y-2"><Label htmlFor="perStop">Prix / arrêt (€)</Label><Input id="perStop" type="number" value={formData.perStop} onChange={handleFormChange} /></div>
             <div className="space-y-2"><Label htmlFor="minimumPrice">Prix minimum (€)</Label><Input id="minimumPrice" type="number" value={formData.minimumPrice} onChange={handleFormChange} /></div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4 pt-2">
+            <div className="space-y-2"><Label htmlFor="capacity.passengers">Passagers</Label><Input id="capacity.passengers" type="number" value={formData.capacity.passengers} onChange={handleFormChange} /></div>
+            <div className="space-y-2"><Label htmlFor="capacity.suitcases">Valises</Label><Input id="capacity.suitcases" type="number" value={formData.capacity.suitcases} onChange={handleFormChange} /></div>
           </div>
 
           <div className="space-y-2 pt-2">
