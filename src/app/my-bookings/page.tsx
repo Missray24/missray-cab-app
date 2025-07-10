@@ -8,12 +8,12 @@ import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/fire
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
-import { ArrowRight, PlusCircle } from 'lucide-react';
+import { ArrowRight, PlusCircle, X } from 'lucide-react';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { db, auth } from '@/lib/firebase';
 import type { Reservation, ReservationStatus } from '@/lib/types';
@@ -33,6 +33,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { cn } from '@/lib/utils';
+import { BookingForm, type BookingDetails } from '@/components/booking-form';
 
 function MyBookingsComponent() {
   const router = useRouter();
@@ -40,6 +41,7 @@ function MyBookingsComponent() {
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [showBookingForm, setShowBookingForm] = useState(false);
 
   const fetchReservations = async (currentUser: User) => {
     setLoading(true);
@@ -112,6 +114,17 @@ function MyBookingsComponent() {
     }
   };
 
+  const handleBookingSubmit = (details: BookingDetails) => {
+    const queryParams = new URLSearchParams();
+    queryParams.set('pickup', details.pickup);
+    queryParams.set('dropoff', details.dropoff);
+    details.stops.forEach(stop => stop.address && queryParams.append('stop', stop.address));
+    if (details.scheduledTime) {
+      queryParams.set('scheduledTime', details.scheduledTime.toISOString());
+    }
+    router.push(`/book/select-vehicle?${queryParams.toString()}`);
+  }
+
   const isCancellable = (status: ReservationStatus) => {
     return !['Terminée', 'Annulée par le chauffeur (sans frais)', 'Annulée par le client (sans frais)', 'Annulée par le chauffeur (avec frais)', 'Annulée par le client (avec frais)', 'No-show'].includes(status);
   };
@@ -135,98 +148,116 @@ function MyBookingsComponent() {
     <div className="flex flex-col min-h-dvh bg-muted/40">
       <LandingHeader />
       <main className="flex-1 container py-12">
-        <PageHeader 
-          title="Mes Courses" 
-          action={
-            <Button asChild>
-              <Link href="/">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Nouvelle course
-              </Link>
-            </Button>
-          }
-        />
-        {reservations.length > 0 ? (
-           <div className="mt-8 grid gap-4 md:grid-cols-1">
-            {reservations.map((res) => (
-              <Card key={res.id}>
-                <CardContent className="p-4 flex flex-col md:flex-row items-center justify-between gap-6">
-                   <div className="w-full md:w-48 lg:w-64 flex-shrink-0">
-                      <div className="aspect-video rounded-md overflow-hidden border">
-                          <RouteMap 
-                            pickup={res.pickup}
-                            dropoff={res.dropoff}
-                            stops={res.stops || []}
-                            isInteractive={false}
-                          />
-                      </div>
-                    </div>
-                  <div className="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm w-full">
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant={
-                              res.status === 'Terminée' ? 'default'
-                              : res.status.startsWith('Annulée') || res.status === 'No-show' ? 'destructive'
-                              : 'secondary'
-                            }
-                            className={cn("capitalize whitespace-nowrap", res.status === 'Nouvelle demande' && 'bg-gradient-to-r from-[#223aff] to-[#1697ff] text-primary-foreground')}
-                          >
-                            {res.status}
-                          </Badge>
-                        </div>
-                        <div>
-                          <p className="font-semibold text-base">{format(new Date(res.date), "d MMMM yyyy", { locale: fr })}</p>
-                          <p className="text-xs text-muted-foreground">ID: {res.id.substring(0,8)}...</p>
-                        </div>
-                    </div>
-                    <div className="flex flex-col sm:items-center text-left sm:text-center justify-center">
-                       <p className="font-semibold truncate w-full">{res.pickup}</p>
-                       <p className="font-semibold text-muted-foreground truncate w-full">vers {res.dropoff}</p>
-                    </div>
-                    <div className="flex flex-col sm:items-end text-left sm:text-right justify-center">
-                       <p className="font-bold text-lg">{res.amount.toFixed(2)}€</p>
-                       <p className="text-xs text-muted-foreground">{res.paymentMethod}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 w-full md:w-auto flex-shrink-0">
-                     <Button asChild variant="default" size="sm">
-                       <Link href={`/book/confirmation?id=${res.id}`}>
-                         Détails <ArrowRight className="ml-2 h-4 w-4"/>
-                       </Link>
-                     </Button>
-                     {isCancellable(res.status) && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                           <Button variant="destructive" size="sm">Annuler</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Êtes-vous sûr d'annuler ?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Cette action ne peut pas être annulée. Votre réservation sera définitivement annulée.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Retour</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleCancelReservation(res.id)}>Confirmer l'annulation</AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                     )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        {showBookingForm ? (
+           <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <CardTitle>Nouvelle course</CardTitle>
+                <Button variant="ghost" size="icon" onClick={() => setShowBookingForm(false)}>
+                  <X className="h-5 w-5" />
+                  <span className="sr-only">Fermer</span>
+                </Button>
+              </div>
+              <CardDescription>Renseignez les informations de votre trajet.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <BookingForm onSubmit={handleBookingSubmit} />
+            </CardContent>
+           </Card>
         ) : (
-          <div className="mt-8 text-center py-16 border-2 border-dashed rounded-lg">
-            <h3 className="text-xl font-semibold">Aucune course pour le moment</h3>
-            <p className="text-muted-foreground mt-2">Lorsque vous réserverez une course, elle apparaîtra ici.</p>
-            <Button asChild className="mt-4">
-              <Link href="/">Réserver ma première course</Link>
-            </Button>
-          </div>
+          <>
+            <PageHeader 
+              title="Mes Courses" 
+              action={
+                <Button onClick={() => setShowBookingForm(true)}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Nouvelle course
+                </Button>
+              }
+            />
+            {reservations.length > 0 ? (
+              <div className="mt-8 grid gap-4 md:grid-cols-1">
+                {reservations.map((res) => (
+                  <Card key={res.id}>
+                    <CardContent className="p-4 flex flex-col md:flex-row items-center justify-between gap-6">
+                      <div className="w-full md:w-48 lg:w-64 flex-shrink-0">
+                          <div className="aspect-video rounded-md overflow-hidden border">
+                              <RouteMap 
+                                pickup={res.pickup}
+                                dropoff={res.dropoff}
+                                stops={res.stops || []}
+                                isInteractive={false}
+                              />
+                          </div>
+                        </div>
+                      <div className="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm w-full">
+                        <div className="flex flex-col gap-2">
+                           <div className="flex items-center gap-2">
+                              <Badge
+                                variant={
+                                  res.status === 'Terminée' ? 'default'
+                                  : res.status.startsWith('Annulée') || res.status === 'No-show' ? 'destructive'
+                                  : 'secondary'
+                                }
+                                className={cn("capitalize whitespace-nowrap", res.status === 'Nouvelle demande' && 'bg-gradient-to-r from-[#223aff] to-[#1697ff] text-primary-foreground')}
+                              >
+                                {res.status}
+                              </Badge>
+                            </div>
+                            <div>
+                              <p className="font-semibold text-base">{format(new Date(res.date), "d MMMM yyyy", { locale: fr })}</p>
+                              <p className="text-xs text-muted-foreground">ID: {res.id.substring(0,8)}...</p>
+                            </div>
+                        </div>
+                        <div className="flex flex-col sm:items-center text-left sm:text-center justify-center">
+                          <p className="font-semibold truncate w-full">{res.pickup}</p>
+                          <p className="font-semibold text-muted-foreground truncate w-full">vers {res.dropoff}</p>
+                        </div>
+                        <div className="flex flex-col sm:items-end text-left sm:text-right justify-center">
+                          <p className="font-bold text-lg">{res.amount.toFixed(2)}€</p>
+                          <p className="text-xs text-muted-foreground">{res.paymentMethod}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 w-full md:w-auto flex-shrink-0">
+                        <Button asChild variant="default" size="sm">
+                          <Link href={`/book/confirmation?id=${res.id}`}>
+                            Détails <ArrowRight className="ml-2 h-4 w-4"/>
+                          </Link>
+                        </Button>
+                        {isCancellable(res.status) && (
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="destructive" size="sm">Annuler</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Êtes-vous sûr d'annuler ?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Cette action ne peut pas être annulée. Votre réservation sera définitivement annulée.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Retour</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleCancelReservation(res.id)}>Confirmer l'annulation</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-8 text-center py-16 border-2 border-dashed rounded-lg">
+                <h3 className="text-xl font-semibold">Aucune course pour le moment</h3>
+                <p className="text-muted-foreground mt-2">Lorsque vous réserverez une course, elle apparaîtra ici.</p>
+                <Button asChild className="mt-4">
+                  <Link href="/">Réserver ma première course</Link>
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </main>
       <LandingFooter />
