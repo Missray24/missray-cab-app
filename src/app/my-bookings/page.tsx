@@ -252,8 +252,8 @@ function MyBookingsComponent() {
               <div className="mt-8 text-center py-16 border-2 border-dashed rounded-lg">
                 <h3 className="text-xl font-semibold">Aucune course pour le moment</h3>
                 <p className="text-muted-foreground mt-2">Lorsque vous réserverez une course, elle apparaîtra ici.</p>
-                <Button asChild className="mt-4">
-                  <Link href="/">Réserver ma première course</Link>
+                <Button className="mt-4" onClick={() => setShowBookingForm(true)}>
+                  Réserver ma première course
                 </Button>
               </div>
             )}
