@@ -94,7 +94,7 @@ function MyBookingsComponent() {
               <Card key={res.id} className="flex flex-col">
                 <CardHeader>
                   <div className="flex justify-between items-start">
-                    <div>
+                    <div className="flex items-center gap-2">
                       <CardTitle className="text-lg">
                         Course du {format(new Date(res.date), "d MMMM yyyy", { locale: fr })}
                       </CardTitle>
