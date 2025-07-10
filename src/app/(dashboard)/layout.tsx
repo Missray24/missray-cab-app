@@ -1,7 +1,10 @@
+
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import {
   CircleUser,
   LayoutDashboard,
@@ -39,6 +42,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useActivePath } from '@/hooks/use-active-path';
+import { auth } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const ADMIN_EMAIL = 'contact@missray-cab.com';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -52,6 +59,47 @@ const navItems = [
   { href: '/settings', icon: Settings, label: 'Paramètres' },
 ];
 
+function AuthProvider({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [loading, setLoading] = React.useState(true);
+  const [user, setUser] = React.useState<FirebaseUser | null>(null);
+
+  React.useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser && firebaseUser.email === ADMIN_EMAIL) {
+        setUser(firebaseUser);
+      } else {
+        setUser(null);
+        router.replace('/login');
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+
+  if (loading) {
+    return (
+        <div className="flex h-screen w-screen items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+                <Skeleton className="h-12 w-12 rounded-full" />
+                <div className="space-y-2">
+                    <Skeleton className="h-4 w-[250px]" />
+                    <Skeleton className="h-4 w-[200px]" />
+                </div>
+            </div>
+        </div>
+    );
+  }
+
+  if (!user) {
+    return null; // The redirect is handled in the effect
+  }
+
+  return <>{children}</>;
+}
+
+
 function DashboardLayoutContent({
   children,
 }: {
@@ -59,13 +107,19 @@ function DashboardLayoutContent({
 }) {
   const checkActivePath = useActivePath();
   const { isMobile, state, setOpen, setOpenMobile } = useSidebar();
+  const router = useRouter();
 
   const handleLinkClick = () => {
     if (isMobile) {
       setOpenMobile(false);
     } else if (state === 'expanded') {
-      setOpen(false);
+      // setOpen(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await auth.signOut();
+    router.push('/login');
   };
 
   return (
@@ -96,7 +150,7 @@ function DashboardLayoutContent({
         <SidebarFooter>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton>
+              <SidebarMenuButton onClick={handleLogout}>
                 <LogOut />
                 <span className="group-data-[state=collapsed]:hidden">Déconnexion</span>
               </SidebarMenuButton>
@@ -120,10 +174,10 @@ function DashboardLayoutContent({
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href="/settings">Settings</Link></DropdownMenuItem>
               <DropdownMenuItem>Support</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Logout</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </header>
@@ -140,8 +194,10 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <SidebarProvider>
-      <DashboardLayoutContent>{children}</DashboardLayoutContent>
-    </SidebarProvider>
+    <AuthProvider>
+        <SidebarProvider>
+          <DashboardLayoutContent>{children}</DashboardLayoutContent>
+        </SidebarProvider>
+    </AuthProvider>
   );
 }
