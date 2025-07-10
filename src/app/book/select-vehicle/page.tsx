@@ -149,21 +149,23 @@ function VehicleSelectionComponent() {
                       </div>
                       <div className="flex-1">
                         <CardHeader>
-                          <CardTitle className="font-headline">{tier.name}</CardTitle>
-                          <CardDescription>{tier.description}</CardDescription>
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                <CardTitle className="font-headline">{tier.name}</CardTitle>
+                                <div className="flex items-center gap-4 text-sm">
+                                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                                        <Users className="h-4 w-4" />
+                                        <span className="font-medium text-foreground">{tier.capacity?.passengers || 4}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                                        <Briefcase className="h-4 w-4" />
+                                        <span className="font-medium text-foreground">{tier.capacity?.suitcases || 2}</span>
+                                    </div>
+                                    <span className="font-bold text-lg text-foreground">€{tier.minimumPrice.toFixed(2)}</span>
+                                </div>
+                            </div>
+                            <CardDescription>{tier.description}</CardDescription>
                         </CardHeader>
-                        <CardContent className="grid gap-4 text-sm">
-                           <div className="flex justify-between items-center border-t pt-4">
-                             <div className="flex items-center gap-4 text-muted-foreground">
-                                <div className="flex items-center gap-2">
-                                    <Users className="h-4 w-4" /> <span>{tier.capacity?.passengers || 4}</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Briefcase className="h-4 w-4" /> <span>{tier.capacity?.suitcases || 2}</span>
-                                </div>
-                             </div>
-                             <span className="font-bold text-lg text-foreground">€{tier.minimumPrice.toFixed(2)}</span>
-                           </div>
+                        <CardContent>
                            <Button className="w-full" asChild>
                                <Link href={getSignupLink(tier.id)}>Choisir {tier.name} <ArrowRight className="ml-2" /></Link>
                            </Button>
