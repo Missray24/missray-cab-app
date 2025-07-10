@@ -92,13 +92,16 @@ function MyBookingsComponent() {
       const newStatus: ReservationStatus = 'Annulée par le client (sans frais)';
       const statusHistoryEntry = { status: newStatus, timestamp: new Date().toLocaleString('fr-FR') };
       
+      const currentReservation = reservations.find(r => r.id === reservationId);
+      if (!currentReservation) return;
+
       await updateDoc(resRef, {
         status: newStatus,
-        statusHistory: [...reservations.find(r => r.id === reservationId)!.statusHistory, statusHistoryEntry]
+        statusHistory: [...currentReservation.statusHistory, statusHistoryEntry]
       });
       
       setReservations(prev => prev.map(res => 
-        res.id === reservationId ? { ...res, status: newStatus } : res
+        res.id === reservationId ? { ...res, status: newStatus, statusHistory: [...res.statusHistory, statusHistoryEntry] } : res
       ));
 
       toast({ title: 'Réservation annulée', description: 'Votre course a bien été annulée.' });
@@ -142,36 +145,38 @@ function MyBookingsComponent() {
                           <RouteMap 
                             pickup={res.pickup}
                             dropoff={res.dropoff}
-                            stops={res.stops}
+                            stops={res.stops || []}
                             isInteractive={false}
                           />
                       </div>
                     </div>
                   <div className="flex-grow grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm w-full">
-                    <div className="flex flex-col">
-                        <p className="font-semibold text-base">{format(new Date(res.date), "d MMMM yyyy", { locale: fr })}</p>
-                        <p className="text-xs text-muted-foreground">ID: {res.id.substring(0,8)}...</p>
+                    <div className="flex flex-col gap-2">
+                        <Badge
+                          variant={
+                            res.status === 'Terminée' ? 'default'
+                            : res.status.startsWith('Annulée') || res.status === 'No-show' ? 'destructive'
+                            : 'secondary'
+                          }
+                          className="capitalize whitespace-nowrap w-fit"
+                        >
+                          {res.status}
+                        </Badge>
+                        <div>
+                          <p className="font-semibold text-base">{format(new Date(res.date), "d MMMM yyyy", { locale: fr })}</p>
+                          <p className="text-xs text-muted-foreground">ID: {res.id.substring(0,8)}...</p>
+                        </div>
                     </div>
-                    <div className="flex flex-col sm:items-center text-left sm:text-center">
+                    <div className="flex flex-col sm:items-center text-left sm:text-center justify-center">
                        <p className="font-semibold truncate w-full">{res.pickup}</p>
                        <p className="font-semibold text-muted-foreground truncate w-full">vers {res.dropoff}</p>
                     </div>
-                    <div className="flex flex-col sm:items-end text-left sm:text-right">
+                    <div className="flex flex-col sm:items-end text-left sm:text-right justify-center">
                        <p className="font-bold text-lg">{res.amount.toFixed(2)}€</p>
                        <p className="text-xs text-muted-foreground">{res.paymentMethod}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 w-full md:w-auto flex-shrink-0">
-                    <Badge
-                      variant={
-                        res.status === 'Terminée' ? 'default'
-                        : res.status.startsWith('Annulée') || res.status === 'No-show' ? 'destructive'
-                        : 'secondary'
-                      }
-                      className="capitalize whitespace-nowrap"
-                    >
-                      {res.status}
-                    </Badge>
                      <Button asChild variant="default" size="sm">
                        <Link href={`/book/confirmation?id=${res.id}`}>
                          Détails <ArrowRight className="ml-2 h-4 w-4"/>
