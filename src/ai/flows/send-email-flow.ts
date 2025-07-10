@@ -48,22 +48,17 @@ const sendEmailFlow = ai.defineFlow(
     }
 
     let templateId: number | undefined;
-    let subject: string = '';
     const to = [input.to];
-    let bcc: brevo.SendSmtpEmailBcc[] | undefined;
 
     switch (input.type) {
       case 'new_client_welcome':
-        templateId = 1; // Use your actual Brevo template ID
-        subject = 'Bienvenue chez missray cab !';
+        templateId = 1; // Welcome to new client
         break;
       case 'new_driver_welcome':
-        templateId = 2; // Use your actual Brevo template ID
-        subject = 'Bienvenue dans la flotte missray cab !';
+        templateId = 2; // Welcome to new driver
         break;
       case 'admin_new_user':
-        templateId = 3; // Use your actual Brevo template ID
-        subject = `Nouvelle inscription: ${input.params?.userType || 'Utilisateur'}`;
+        templateId = 3; // New user notification for admin
         // Override recipient to be the admin
         to[0] = { email: ADMIN_EMAIL, name: ADMIN_NAME };
         break;
@@ -80,12 +75,12 @@ const sendEmailFlow = ai.defineFlow(
     const sendSmtpEmail = new brevo.SendSmtpEmail();
     sendSmtpEmail.templateId = templateId;
     sendSmtpEmail.to = to;
-    sendSmtpEmail.sender = { email: ADMIN_EMAIL, name: ADMIN_NAME };
+    sendSmtpEmail.sender = { email: ADMIN_EMAIL, name: 'missray cab' };
     sendSmtpEmail.params = input.params;
 
     try {
       const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
-      console.log('Brevo API called successfully. Returned data: ' + JSON.stringify(data));
+      console.log('Brevo API called successfully. Returned data: ' + JSON.stringify(data.body));
       return { success: true, messageId: data.body.messageId };
     } catch (error) {
       console.error('Error sending email via Brevo:', error);
