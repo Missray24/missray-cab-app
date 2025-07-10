@@ -24,7 +24,7 @@ const staticTiers = [
   {
     id: 'break',
     name: 'Break',
-    photoUrl: '/images/vehicules/break.png',
+    photoUrl: 'https://firebasestorage.googleapis.com/v0/b/missray-cab-kb0il.firebasestorage.app/o/service-tiers%2F1752142156955_IZMOEF0CU34689-001-removebg-preview.png?alt=media&token=7e55edc0-d636-4560-b483-565ab409de99',
     capacity: { passengers: 4, suitcases: 3 },
     'data-ai-hint': 'station wagon'
   },
@@ -167,13 +167,11 @@ export default function LandingPage() {
                       />
                     </div>
                     <div className="p-4">
-                        <div className="flex justify-between items-center">
-                          <CardTitle className="font-headline text-lg">{tier.name}</CardTitle>
-                          <div className="flex items-center gap-3 text-sm font-semibold text-foreground">
-                            <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity.passengers}</div>
-                            <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity.suitcases}</div>
-                          </div>
-                        </div>
+                      <CardTitle className="font-headline text-lg">{tier.name}</CardTitle>
+                      <div className="flex items-center gap-3 text-sm font-semibold text-foreground mt-2">
+                        <div className="flex items-center gap-1"><Users className="h-4 w-4" />{tier.capacity.passengers}</div>
+                        <div className="flex items-center gap-1"><Briefcase className="h-4 w-4" />{tier.capacity.suitcases}</div>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
