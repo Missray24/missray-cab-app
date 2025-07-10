@@ -120,11 +120,7 @@ function ConfirmationComponent() {
                     <h3 className="font-semibold text-lg">Détails de la course</h3>
                     <div className="flex items-center gap-3">
                         <Calendar className="h-5 w-5 text-muted-foreground" />
-                        <p>{format(reservationDate, "EEEE d MMMM yyyy", { locale: fr })}</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Clock className="h-5 w-5 text-muted-foreground" />
-                        <p>{format(reservationDate, "HH:mm", { locale: fr })}</p>
+                        <p>{format(reservationDate, "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr })}</p>
                     </div>
                     <div className="flex items-start gap-3">
                         <MapPin className="h-5 w-5 mt-0.5 text-green-500" />
