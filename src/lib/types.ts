@@ -1,13 +1,13 @@
 
 
-import type { LucideIcon } from "lucide-react";
+import { Baby, Armchair, Dog, type LucideIcon } from "lucide-react";
 
 export type ReservationOption = 'Siège bébé' | 'Rehausseur' | 'Animal de compagnie';
 
 export const reservationOptions: { name: ReservationOption, icon: LucideIcon }[] = [
-  { name: 'Siège bébé', icon: require('lucide-react').Baby },
-  { name: 'Rehausseur', icon: require('lucide-react').Armchair },
-  { name: 'Animal de compagnie', icon: require('lucide-react').Dog },
+  { name: 'Siège bébé', icon: Baby },
+  { name: 'Rehausseur', icon: Armchair },
+  { name: 'Animal de compagnie', icon: Dog },
 ];
 
 export interface SelectedOption {
