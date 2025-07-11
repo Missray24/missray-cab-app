@@ -48,24 +48,22 @@ const NumberSelect = ({
     onValueChange,
     max,
     min = 0,
-    placeholder,
     icon
 }: {
     value: number;
     onValueChange: (value: number) => void;
     max: number;
     min?: number;
-    placeholder: string;
     icon: React.ReactNode;
 }) => (
     <Select
         value={String(value)}
         onValueChange={(val) => onValueChange(Number(val))}
     >
-        <SelectTrigger className="w-full h-9 bg-white">
-             <div className="flex items-center gap-2">
+        <SelectTrigger className="h-9 bg-white w-full">
+             <div className="flex items-center gap-1">
                 <div className="text-primary">{icon}</div>
-                <SelectValue placeholder={placeholder} />
+                <SelectValue />
             </div>
         </SelectTrigger>
         <SelectContent>
@@ -209,7 +207,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
             className="h-9 text-base bg-white"
            />
            <Button size="icon" variant="ghost" aria-label="Supprimer l'arrêt" className="h-9 w-9 shrink-0" onClick={() => handleRemoveStop(stop.id)}>
-              <X className="h-5 w-5 text-muted-foreground hover:text-destructive" />
+              <X className="h-5 w-5 text-muted-foreground hover:text-primary" />
            </Button>
         </div>
       ))}
@@ -235,7 +233,6 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                     icon={<Users className="h-4 w-4" />}
                     value={passengers}
                     onValueChange={setPassengers}
-                    placeholder='Passagers'
                     min={1}
                     max={8}
                 />
@@ -243,16 +240,12 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                     icon={<Briefcase className="h-4 w-4" />}
                     value={suitcases}
                     onValueChange={setSuitcases}
-                    placeholder='Valises'
-                    min={0}
                     max={10}
                 />
                 <NumberSelect
                     icon={<Backpack className="h-4 w-4" />}
                     value={carryOnLuggage}
                     onValueChange={setCarryOnLuggage}
-                    placeholder='Bagages à main'
-                    min={0}
                     max={10}
                 />
           </div>
