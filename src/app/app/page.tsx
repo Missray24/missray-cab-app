@@ -37,13 +37,13 @@ export default function AppHomePage() {
   }
 
   return (
-    <div className="relative h-screen w-screen">
+    <div className="relative h-full w-full">
       {isLoaded ? (
         <GoogleMap mapContainerStyle={mapContainerStyle} center={center} zoom={12} options={{ disableDefaultUI: true }} />
       ) : (
         <Skeleton className="h-full w-full" />
       )}
-      <div className="absolute bottom-0 left-0 right-0 p-4">
+      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background via-background/80 to-transparent">
         <Card className="max-w-xl mx-auto">
           <CardContent className="p-4">
             <BookingForm onSubmit={handleBookingSubmit} />

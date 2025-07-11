@@ -9,6 +9,11 @@ import type { Metadata } from 'next';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { auth } from '@/lib/firebase';
+import { AppHeader } from '@/components/app-header';
+
+export const metadata: Metadata = {
+  manifest: '/manifest-client.json',
+};
 
 // This AuthProvider is a client component that handles authentication checks.
 function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -46,7 +51,12 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
     return null; // The redirect is handled in the effect
   }
 
-  return <>{children}</>;
+  return (
+    <div className="h-dvh w-full flex flex-col">
+      <AppHeader />
+      <main className="flex-1 overflow-hidden">{children}</main>
+    </div>
+  );
 }
 
 // AppLayout is now a client component that wraps the AuthProvider.
