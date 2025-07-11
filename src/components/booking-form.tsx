@@ -174,7 +174,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
             toast({
                 variant: 'destructive',
                 title: 'Informations requises',
-                description: 'Pour les trajets depuis/vers une gare ou un aéroport, veuillez spécifier le nombre de passagers, de valises et de sacs à dos.',
+                description: 'Pour les trajets depuis/vers une gare ou un aéroport, veuillez spécifier le nombre de passagers, de valises et de sacs.',
             });
             return;
         }
@@ -268,7 +268,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                   onValueChange={setBackpacks}
                   min={0}
                   max={10}
-                  placeholder="Sac à dos"
+                  placeholder="Sacs"
               />
         </div>
       )}
