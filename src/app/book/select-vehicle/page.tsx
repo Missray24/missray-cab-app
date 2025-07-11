@@ -434,7 +434,7 @@ function VehicleSelectionComponent() {
                             <CardTitle>Options de la course</CardTitle>
                             <CardDescription>
                                 {maxChildSeats > 0 
-                                    ? `Pour ${bookingDetails.passengers} passagers, vous pouvez ajouter jusqu'à ${maxChildSeats} sièges enfants.`
+                                    ? `Pour ${bookingDetails.passengers} passagers, vous pouvez ajouter jusqu'à ${maxChildSeats} sièges enfants. Total sélectionné: ${totalChildSeatsSelected}.`
                                     : `Le nombre de passagers ne permet pas d'ajouter de siège enfant.`}
                             </CardDescription>
                         </CardHeader>
@@ -444,7 +444,7 @@ function VehicleSelectionComponent() {
                                     const selected = selectedOptions.find(o => o.name === option.name);
                                     const quantity = selected ? selected.quantity : 0;
                                     const isChildSeat = option.name === 'Siège bébé' || option.name === 'Rehausseur';
-                                    const isDisabled = isChildSeat && isChildSeatLimitReached && quantity === 0;
+                                    const isDisabled = (isChildSeat && isChildSeatLimitReached && quantity === 0) || (maxChildSeats === 0 && isChildSeat);
 
                                     return (
                                         <NumberSelect
@@ -461,7 +461,7 @@ function VehicleSelectionComponent() {
                                 })}
                             </div>
                             {isChildSeatLimitExceeded && (
-                                <Alert variant="destructive" className="mt-4">
+                                <Alert className="mt-4">
                                     <AlertCircle className="h-4 w-4" />
                                     <AlertTitle>Trop d'options sélectionnées</AlertTitle>
                                     <AlertDescription>
@@ -562,3 +562,5 @@ export default function SelectVehiclePage() {
     </Suspense>
   )
 }
+
+    
