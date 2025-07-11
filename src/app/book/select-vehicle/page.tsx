@@ -10,6 +10,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit, Backpack, AlertCircle } from 'lucide-react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
+import { useLoadScript } from '@react-google-maps/api';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
@@ -34,12 +35,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
+import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
 
 
 interface RouteInfo {
     distance: string;
     duration: string;
 }
+
+const libraries = ['places'] as any;
 
 const NumberSelect = ({
     value,
@@ -110,6 +114,11 @@ function VehicleSelectionComponent() {
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
+  
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries,
+  });
 
   // Memoize booking details to prevent re-parsing on every render
   const bookingDetails = useMemo(() => {
@@ -337,6 +346,8 @@ function VehicleSelectionComponent() {
                                   dropoff={bookingDetails.dropoff}
                                   stops={bookingDetails.stops.map(s => s.address)}
                                   onRouteInfoFetched={setRouteInfo}
+                                  isLoaded={isLoaded}
+                                  loadError={loadError}
                                />
                             </div>
         

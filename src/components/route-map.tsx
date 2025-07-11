@@ -2,8 +2,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { GoogleMap, useLoadScript, DirectionsRenderer, MarkerF } from '@react-google-maps/api';
-import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
+import { GoogleMap, DirectionsRenderer, MarkerF } from '@react-google-maps/api';
 import { Skeleton } from './ui/skeleton';
 
 interface RouteMapProps {
@@ -12,9 +11,10 @@ interface RouteMapProps {
   stops?: string[];
   onRouteInfoFetched?: (info: { distance: string; duration: string }) => void;
   isInteractive?: boolean;
+  isLoaded: boolean;
+  loadError: Error | undefined;
 }
 
-const libraries = ['places'];
 const mapContainerStyle = { height: '100%', width: '100%' };
 const center = { lat: 48.8566, lng: 2.3522 }; // Paris
 
@@ -26,11 +26,15 @@ const createNumberedIcon = (number: number) => {
     };
 };
 
-export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isInteractive = true }: RouteMapProps) {
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries: libraries as any,
-  });
+export function RouteMap({ 
+    pickup, 
+    dropoff, 
+    stops = [], 
+    onRouteInfoFetched, 
+    isInteractive = true, 
+    isLoaded, 
+    loadError 
+}: RouteMapProps) {
   
   const mapRef = useRef<google.maps.Map | null>(null);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
