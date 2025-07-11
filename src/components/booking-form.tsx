@@ -57,12 +57,12 @@ const NumberSelect = ({
     placeholder: string;
     icon: React.ReactNode;
 }) => (
-    <div className='flex items-center gap-2'>
+    <div className='flex items-center'>
         <Select
             value={String(value)}
             onValueChange={(val) => onValueChange(Number(val))}
         >
-            <SelectTrigger className="w-full bg-white h-9">
+            <SelectTrigger className="w-full h-9 bg-white">
                  <div className="flex items-center gap-2">
                     <div className="text-primary">{icon}</div>
                     <SelectValue placeholder={placeholder} />
@@ -217,7 +217,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
       <div className="flex items-center gap-2">
         <div className="relative flex-1">
            <AutocompleteInput
-            icon={<MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-red-500" />}
+            icon={<MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-primary" />}
             placeholder="Adresse d'arrivée"
             onPlaceSelected={(address) => setDropoffAddress(address)}
             defaultValue={dropoffAddress}

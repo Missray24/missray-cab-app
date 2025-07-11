@@ -89,7 +89,7 @@ function ConfirmationComponent() {
         Icon: XCircle,
         title: 'Réservation Annulée',
         description: 'Cette réservation a été annulée et n\'est plus active.',
-        color: 'text-destructive',
+        color: 'text-primary',
       };
     }
     if (status === 'Terminée') {
