@@ -6,6 +6,8 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+
 
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +20,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from '@/lib/firebase';
+import { auth, db } from '@/lib/firebase';
 
 const ADMIN_EMAIL = 'contact@missray-cab.com';
 
@@ -35,25 +37,37 @@ function LoginComponent() {
     e.preventDefault();
     setIsLoading(true);
 
-    const isClientLogin = email.toLowerCase() !== ADMIN_EMAIL;
     const bookingParams = searchParams.toString() ? '?' + searchParams.toString() : '';
-
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Check user role from Firestore
+      const usersRef = collection(db, "users");
+      const q = query(usersRef, where("uid", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        throw new Error("User document not found.");
+      }
       
-      if (isClientLogin) {
+      const userDoc = querySnapshot.docs[0].data();
+      const userRole = userDoc.role;
+
+      if (userRole === 'admin') {
+        toast({ title: "Succès", description: "Connexion réussie. Redirection..." });
+        router.push('/dashboard');
+      } else if (userRole === 'driver') {
+        toast({ title: "Succès", description: "Bienvenue sur votre espace chauffeur." });
+        router.push('/driver/dashboard');
+      } else { // client
         if(bookingParams) {
           router.push(`/book/payment${bookingParams}`);
         } else {
            toast({ title: "Succès", description: "Connexion réussie." });
-           // After a generic login, redirect to a page where they can see their reservations
            router.push('/my-bookings');
         }
-      } else {
-        // Admin login
-        toast({ title: "Succès", description: "Connexion réussie. Redirection..." });
-        router.push('/dashboard');
       }
 
     } catch (error: any) {
