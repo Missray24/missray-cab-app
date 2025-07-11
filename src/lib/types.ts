@@ -82,6 +82,7 @@ export interface Reservation {
 export type DocumentStatus = 'Pending' | 'Approved' | 'Rejected';
 
 export interface DriverDocument {
+  id: string; // Corresponds to the id from RequiredDriverDoc
   name: string;
   url: string;
   status: DocumentStatus;
