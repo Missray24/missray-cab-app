@@ -4,7 +4,7 @@
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter, notFound } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { CheckCircle2, MapPin, User as UserIcon, Briefcase, XCircle, ShieldCheck, Baby, Armchair, Dog, Hourglass } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -19,11 +19,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { db, auth } from '@/lib/firebase';
-import type { Reservation, ServiceTier, ReservationOption } from '@/lib/types';
+import type { Reservation, ServiceTier, ReservationOption, ReservationStatus } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { RouteMap } from '@/components/route-map';
 import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
+import { useToast } from '@/hooks/use-toast';
+import { sendEmail } from '@/ai/flows/send-email-flow';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const optionIcons: Record<ReservationOption, React.ElementType> = {
     'Siège bébé': Baby,
@@ -36,12 +49,15 @@ const libraries = ['places'] as any;
 function ConfirmationComponent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { toast } = useToast();
   const reservationId = useMemo(() => searchParams.get('id'), [searchParams]);
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [tier, setTier] = useState<ServiceTier | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [clientDetails, setClientDetails] = useState<{ id: string; name: string; email: string; } | null>(null);
+
   
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -49,11 +65,19 @@ function ConfirmationComponent() {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser) {
         router.push('/login');
       } else {
         setUser(currentUser);
+        // Fetch client details once
+        const usersRef = collection(db, "users");
+        const userQuery = query(usersRef, where("uid", "==", currentUser.uid));
+        const userSnapshot = await getDocs(userQuery);
+        if (!userSnapshot.empty) {
+          const clientDoc = userSnapshot.docs[0];
+          setClientDetails({ id: clientDoc.id, ...clientDoc.data() } as { id: string; name: string; email: string; });
+        }
       }
     });
     return () => unsubscribe();
@@ -95,6 +119,51 @@ function ConfirmationComponent() {
     
     fetchReservation();
   }, [reservationId]);
+
+  const handleCancelReservation = async () => {
+    if (!reservation || !clientDetails) return;
+
+    try {
+      const resRef = doc(db, "reservations", reservation.id);
+      const newStatus: ReservationStatus = 'Annulée par le client (sans frais)';
+      const statusHistoryEntry = { status: newStatus, timestamp: new Date().toLocaleString('fr-FR') };
+      
+      await updateDoc(resRef, {
+        status: newStatus,
+        statusHistory: [...reservation.statusHistory, statusHistoryEntry]
+      });
+      
+      setReservation(prev => prev ? { ...prev, status: newStatus, statusHistory: [...prev.statusHistory, statusHistoryEntry] } : null);
+      
+      // Send client notification
+      await sendEmail({
+        type: 'reservation_cancelled_client',
+        to: { name: clientDetails.name, email: clientDetails.email },
+        params: {
+          clientName: clientDetails.name,
+          reservationId: reservation.id.substring(0, 8).toUpperCase(),
+          status: newStatus,
+        },
+      });
+
+      // Send admin notification
+      await sendEmail({
+        type: 'reservation_cancelled_admin',
+        to: { name: 'Admin', email: 'admin@example.com' }, // to.email is ignored for this type, but required by schema
+        params: {
+            clientName: clientDetails.name,
+            reservationId: reservation.id.substring(0, 8).toUpperCase(),
+            status: newStatus,
+        }
+      });
+
+      toast({ title: 'Réservation annulée', description: 'Votre course a bien été annulée.' });
+      router.push('/my-bookings');
+    } catch (error) {
+      console.error('Error canceling reservation:', error);
+      toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible d\'annuler la réservation.' });
+    }
+  };
 
   const getStatusDetails = () => {
     if (!reservation) return null;
@@ -169,9 +238,23 @@ function ConfirmationComponent() {
                         </CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Button asChild className="w-full" size="lg">
-                            <Link href="/my-bookings">Retour à mes réservations</Link>
-                        </Button>
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button variant="destructive" className="w-full" size="lg">Annuler</Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Êtes-vous sûr d'annuler ?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Cette action arrêtera la recherche et annulera votre demande de course.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Retour</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleCancelReservation}>Confirmer l'annulation</AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
                     </CardContent>
                 </Card>
             </div>
