@@ -122,7 +122,7 @@ export default function NewRidesPage() {
                     return (
                         <Card key={ride.id} className="p-4">
                             <div className="space-y-3">
-                                <div className="h-56 w-full rounded-md overflow-hidden border">
+                                <div className="h-32 w-full rounded-md overflow-hidden border">
                                     <RouteMap pickup={ride.pickup} dropoff={ride.dropoff} stops={ride.stops} isInteractive={false} />
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-4 justify-between">
