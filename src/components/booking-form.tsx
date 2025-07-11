@@ -48,13 +48,15 @@ const NumberSelect = ({
     onValueChange,
     max,
     min = 0,
-    icon
+    icon,
+    placeholder
 }: {
     value: number;
     onValueChange: (value: number) => void;
     max: number;
     min?: number;
     icon: React.ReactNode;
+    placeholder: string;
 }) => (
     <Select
         value={String(value)}
@@ -63,7 +65,7 @@ const NumberSelect = ({
         <SelectTrigger className="h-9 bg-white w-full">
              <div className="flex items-center gap-1">
                 <div className="text-primary">{icon}</div>
-                <SelectValue />
+                <SelectValue placeholder={placeholder} />
             </div>
         </SelectTrigger>
         <SelectContent>
@@ -182,8 +184,8 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                 placeholder="Adresse de départ"
                 onPlaceSelected={(address) => setPickupAddress(address)}
                 defaultValue={pickupAddress}
-                value={pickupAddress} // Controlled component
-                className="h-9 text-base bg-white pr-10" // Add padding for the button
+                value={pickupAddress}
+                className="h-9 text-base bg-white pr-10"
             />
             <Button
                 type="button"
@@ -235,18 +237,21 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                     onValueChange={setPassengers}
                     min={1}
                     max={8}
+                    placeholder="Passagers"
                 />
                 <NumberSelect
                     icon={<Briefcase className="h-4 w-4" />}
                     value={suitcases}
                     onValueChange={setSuitcases}
                     max={10}
+                    placeholder="Valises"
                 />
                 <NumberSelect
                     icon={<Backpack className="h-4 w-4" />}
                     value={carryOnLuggage}
                     onValueChange={setCarryOnLuggage}
                     max={10}
+                    placeholder="Bagages main"
                 />
           </div>
       )}
