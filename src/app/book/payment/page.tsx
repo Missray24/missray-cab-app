@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
@@ -172,6 +171,7 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
 
 const useBookingDetails = () => {
     return useMemo(() => {
+        if (typeof window === 'undefined') return null;
         const params = new URLSearchParams(window.location.search);
         const pickup = params.get('pickup');
         const dropoff = params.get('dropoff');
@@ -377,3 +377,5 @@ export default function PaymentPage() {
         </Suspense>
     );
 }
+
+    
