@@ -1,10 +1,8 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
 import { notFound, useParams } from 'next/navigation';
-import Image from 'next/image';
 import { CheckCircle2, Car, MapPin, User, Star, Clock, Baby, Armchair, Dog } from 'lucide-react';
 import { doc, getDoc } from "firebase/firestore";
 
@@ -16,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Reservation, ReservationStatus, ServiceTier, ReservationOption } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { db } from '@/lib/firebase';
+import { RouteMap } from '@/components/route-map';
 
 const getStatusIndex = (status: ReservationStatus) => {
   const normalFlow: ReservationStatus[] = [
@@ -109,7 +108,7 @@ export default function ReservationDetailsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={`Réservation ${reservation.id}`}>
+      <PageHeader title={`Réservation ${reservation.id.substring(0, 8).toUpperCase()}`}>
         <Badge
           variant={
             reservation.status === 'Terminée'
@@ -224,11 +223,12 @@ export default function ReservationDetailsPage() {
                         <p className="font-medium text-muted-foreground mb-2">Options</p>
                         <div className="flex flex-wrap gap-2">
                            {reservation.options.map(option => {
-                                const Icon = optionIcons[option];
+                                const Icon = optionIcons[option.name as ReservationOption];
                                 return (
-                                    <Badge key={option} variant="secondary" className="text-base py-1">
-                                        <Icon className="h-4 w-4 mr-2" />
-                                        {option}
+                                    <Badge key={option.name} variant="secondary" className="text-base py-1">
+                                        {Icon && <Icon className="h-4 w-4 mr-2" />}
+                                        {option.name}
+                                        {option.quantity > 1 && <span className="ml-2 font-bold">x{option.quantity}</span>}
                                     </Badge>
                                 );
                            })}
@@ -243,17 +243,14 @@ export default function ReservationDetailsPage() {
         <div className="lg:col-span-1">
           <Card className="h-full">
             <CardHeader>
-              <CardTitle>Position du chauffeur</CardTitle>
-              <CardDescription>Vue en direct de la position du véhicule.</CardDescription>
+              <CardTitle>Itinéraire</CardTitle>
+              <CardDescription>Aperçu de l'itinéraire de la course.</CardDescription>
             </CardHeader>
             <CardContent className="h-[400px] md:h-full md:min-h-[300px] p-0 rounded-b-lg overflow-hidden">
-               <Image
-                 src="https://placehold.co/600x800.png"
-                 alt="Map showing driver location"
-                 data-ai-hint="street map"
-                 width={600}
-                 height={800}
-                 className="h-full w-full object-cover"
+               <RouteMap 
+                  pickup={reservation.pickup}
+                  dropoff={reservation.dropoff}
+                  stops={reservation.stops}
                />
             </CardContent>
           </Card>
