@@ -52,22 +52,6 @@ interface AuthDialogProps {
   };
 }
 
-const signupSchema = z
-  .object({
-    firstName: z.string().min(1, 'Le prénom est requis'),
-    lastName: z.string().min(1, 'Le nom est requis'),
-    phone: z.string().min(1, 'Le numéro de téléphone est requis'),
-    email: z.string().email("L'email est invalide"),
-    password: z
-      .string()
-      .min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: 'Les mots de passe ne correspondent pas',
-    path: ['confirmPassword'],
-  });
-
 const loginSchema = z.object({
   email: z.string().email("L'email est invalide"),
   password: z.string().min(1, 'Le mot de passe est requis'),
@@ -81,11 +65,28 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const phoneInputRef = useRef<IntlTelInputRef>(null);
 
+  const signupSchema = z
+  .object({
+    firstName: z.string().min(1, 'Le prénom est requis'),
+    lastName: z.string().min(1, 'Le nom est requis'),
+    phone: z.string().min(1, 'Le numéro de téléphone est requis'),
+    email: z.string().email("L'email est invalide"),
+    password: z
+      .string()
+      .min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  })
+  .refine(() => phoneInputRef.current?.isValidNumber() ?? false, {
+    message: "Le numéro de téléphone est invalide.",
+    path: ["phone"],
+  });
+
   const signupForm = useForm<z.infer<typeof signupSchema>>({
-    resolver: zodResolver(signupSchema.refine(() => phoneInputRef.current?.isValidNumber() ?? false, {
-        message: "Le numéro de téléphone est invalide.",
-        path: ["phone"],
-    })),
+    resolver: zodResolver(signupSchema),
     defaultValues: { firstName: '', lastName: '', phone: '', email: '', password: '', confirmPassword: '' },
   });
 
