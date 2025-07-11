@@ -81,7 +81,7 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                     stripePaymentId: stripePaymentId || null,
                     passengers: bookingDetails.passengers,
                     suitcases: bookingDetails.suitcases,
-                    carryOnLuggage: bookingDetails.carryOnLuggage,
+                    backpacks: bookingDetails.backpacks,
                     options: bookingDetails.options,
                 };
 
@@ -181,7 +181,7 @@ const useBookingDetails = () => {
         const duration = params.get('duration');
         const passengers = params.get('passengers');
         const suitcases = params.get('suitcases');
-        const carryOnLuggage = params.get('carryOnLuggage');
+        const backpacks = params.get('backpacks');
         const options = params.getAll('option') as ReservationOption[];
 
         if (!pickup || !dropoff || !tierId) return null;
@@ -196,7 +196,7 @@ const useBookingDetails = () => {
             duration,
             passengers: passengers ? parseInt(passengers) : undefined,
             suitcases: suitcases ? parseInt(suitcases) : undefined,
-            carryOnLuggage: carryOnLuggage ? parseInt(carryOnLuggage) : undefined,
+            backpacks: backpacks ? parseInt(backpacks) : undefined,
             options,
         };
     }, [searchParams]);

@@ -67,7 +67,7 @@ function VehicleSelectionComponent() {
     const scheduledTime = searchParams.get('scheduledTime');
     const passengers = searchParams.get('passengers');
     const suitcases = searchParams.get('suitcases');
-    const carryOnLuggage = searchParams.get('carryOnLuggage');
+    const backpacks = searchParams.get('backpacks');
     
     if (!pickup || !dropoff) return null;
 
@@ -78,7 +78,7 @@ function VehicleSelectionComponent() {
       scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
       passengers: passengers ? parseInt(passengers) : undefined,
       suitcases: suitcases ? parseInt(suitcases) : undefined,
-      carryOnLuggage: carryOnLuggage ? parseInt(carryOnLuggage) : undefined,
+      backpacks: backpacks ? parseInt(backpacks) : undefined,
     };
   }, [searchParams]);
   
@@ -127,13 +127,13 @@ function VehicleSelectionComponent() {
   useEffect(() => {
     if (!bookingDetails || allServiceTiers.length === 0) return;
 
-    const { passengers, suitcases, carryOnLuggage } = bookingDetails;
-    if (passengers !== undefined || suitcases !== undefined || carryOnLuggage !== undefined) {
+    const { passengers, suitcases, backpacks } = bookingDetails;
+    if (passengers !== undefined || suitcases !== undefined || backpacks !== undefined) {
         const suitableTiers = allServiceTiers.filter(tier => {
             const passengerCheck = passengers === undefined || tier.capacity.passengers >= passengers;
             const suitcaseCheck = suitcases === undefined || tier.capacity.suitcases >= suitcases;
-            const carryOnCheck = carryOnLuggage === undefined || tier.capacity.carryOnLuggage === undefined || tier.capacity.carryOnLuggage >= carryOnLuggage;
-            return passengerCheck && suitcaseCheck && carryOnCheck;
+            const backpackCheck = backpacks === undefined || tier.capacity.backpacks === undefined || tier.capacity.backpacks >= backpacks;
+            return passengerCheck && suitcaseCheck && backpackCheck;
         });
         setFilteredTiers(suitableTiers);
     } else {
@@ -151,7 +151,7 @@ function VehicleSelectionComponent() {
     }
     if (newDetails.passengers) queryParams.set('passengers', String(newDetails.passengers));
     if (newDetails.suitcases) queryParams.set('suitcases', String(newDetails.suitcases));
-    if (newDetails.carryOnLuggage) queryParams.set('carryOnLuggage', String(newDetails.carryOnLuggage));
+    if (newDetails.backpacks) queryParams.set('backpacks', String(newDetails.backpacks));
     
     router.replace(`/book/select-vehicle?${queryParams.toString()}`);
     setRouteInfo(null);
@@ -304,7 +304,7 @@ function VehicleSelectionComponent() {
                                         <p className="font-medium">{bookingDetails.dropoff}</p>
                                     </div>
                                 </div>
-                                {(bookingDetails.passengers || bookingDetails.suitcases || bookingDetails.carryOnLuggage) && (
+                                {(bookingDetails.passengers || bookingDetails.suitcases || bookingDetails.backpacks) && (
                                     <>
                                         <Separator />
                                         <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
@@ -314,8 +314,8 @@ function VehicleSelectionComponent() {
                                             {bookingDetails.suitcases && <Badge variant="secondary" className="text-base">
                                                 <Briefcase className="h-4 w-4 mr-2" /> {bookingDetails.suitcases}
                                             </Badge>}
-                                            {bookingDetails.carryOnLuggage && <Badge variant="secondary" className="text-base">
-                                                <Backpack className="h-4 w-4 mr-2" /> {bookingDetails.carryOnLuggage}
+                                            {bookingDetails.backpacks && <Badge variant="secondary" className="text-base">
+                                                <Backpack className="h-4 w-4 mr-2" /> {bookingDetails.backpacks}
                                             </Badge>}
                                         </div>
                                     </>

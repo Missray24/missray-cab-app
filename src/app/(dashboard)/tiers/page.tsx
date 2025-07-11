@@ -49,6 +49,7 @@ const initialFormState = {
   capacity: {
     passengers: '4',
     suitcases: '2',
+    backpacks: '2',
   },
 };
 
@@ -99,6 +100,7 @@ export default function ServiceTiersPage() {
         capacity: {
             passengers: String(capacity?.passengers || 4),
             suitcases: String(capacity?.suitcases || 2),
+            backpacks: String(capacity?.backpacks || 2),
         }
       } as any);
       setPreviewUrl(photoUrl);
@@ -120,7 +122,7 @@ export default function ServiceTiersPage() {
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
     if (id.startsWith('capacity.')) {
-        const field = id.split('.')[1] as 'passengers' | 'suitcases';
+        const field = id.split('.')[1] as 'passengers' | 'suitcases' | 'backpacks';
         setFormData(prev => ({ ...prev, capacity: { ...prev.capacity, [field]: value }}));
     } else {
         setFormData(prev => ({ ...prev, [id]: value }));
@@ -178,6 +180,7 @@ export default function ServiceTiersPage() {
       capacity: {
         passengers: parseInt(formData.capacity.passengers, 10),
         suitcases: parseInt(formData.capacity.suitcases, 10),
+        backpacks: parseInt(formData.capacity.backpacks, 10),
       }
     };
 
@@ -248,9 +251,10 @@ export default function ServiceTiersPage() {
             <div className="space-y-2"><Label htmlFor="minimumPrice">Prix minimum (€)</Label><Input id="minimumPrice" type="number" value={formData.minimumPrice} onChange={handleFormChange} /></div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4 pt-2">
+          <div className="grid grid-cols-3 gap-4 pt-2">
             <div className="space-y-2"><Label htmlFor="capacity.passengers">Passagers</Label><Input id="capacity.passengers" type="number" value={formData.capacity.passengers} onChange={handleFormChange} /></div>
             <div className="space-y-2"><Label htmlFor="capacity.suitcases">Valises</Label><Input id="capacity.suitcases" type="number" value={formData.capacity.suitcases} onChange={handleFormChange} /></div>
+            <div className="space-y-2"><Label htmlFor="capacity.backpacks">Sacs à dos</Label><Input id="capacity.backpacks" type="number" value={formData.capacity.backpacks} onChange={handleFormChange} /></div>
           </div>
 
           <div className="space-y-2 pt-2">

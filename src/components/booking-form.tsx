@@ -33,7 +33,7 @@ export interface BookingDetails {
     scheduledTime: Date | null;
     passengers?: number;
     suitcases?: number;
-    carryOnLuggage?: number;
+    backpacks?: number;
 }
 
 interface BookingFormProps {
@@ -93,7 +93,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
   const [isSpecialLocation, setIsSpecialLocation] = useState(false);
   const [passengers, setPassengers] = useState<number | undefined>(initialDetails.passengers);
   const [suitcases, setSuitcases] = useState<number | undefined>(initialDetails.suitcases);
-  const [carryOnLuggage, setCarryOnLuggage] = useState<number | undefined>(initialDetails.carryOnLuggage);
+  const [backpacks, setBackpacks] = useState<number | undefined>(initialDetails.backpacks);
   
 
   useEffect(() => {
@@ -170,11 +170,11 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
     }
 
     if (isSpecialLocation) {
-        if (passengers === undefined || suitcases === undefined || carryOnLuggage === undefined) {
+        if (passengers === undefined || suitcases === undefined || backpacks === undefined) {
             toast({
                 variant: 'destructive',
                 title: 'Informations requises',
-                description: 'Pour les trajets depuis/vers une gare ou un aéroport, veuillez spécifier le nombre de passagers, de valises et de bagages à main.',
+                description: 'Pour les trajets depuis/vers une gare ou un aéroport, veuillez spécifier le nombre de passagers, de valises et de sacs à dos.',
             });
             return;
         }
@@ -187,7 +187,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
         scheduledTime: scheduledDateTime,
         passengers,
         suitcases,
-        carryOnLuggage,
+        backpacks,
     });
   }
 
@@ -264,11 +264,11 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
               />
               <NumberSelect
                   icon={<Backpack className="h-4 w-4" />}
-                  value={carryOnLuggage}
-                  onValueChange={setCarryOnLuggage}
+                  value={backpacks}
+                  onValueChange={setBackpacks}
                   min={0}
                   max={10}
-                  placeholder="Bagages main"
+                  placeholder="Sac à dos"
               />
         </div>
       )}

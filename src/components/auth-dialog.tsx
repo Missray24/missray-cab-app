@@ -47,7 +47,7 @@ interface AuthDialogProps {
     routeInfo: { distance: string; duration: string } | null;
     passengers?: number;
     suitcases?: number;
-    carryOnLuggage?: number;
+    backpacks?: number;
     options: ReservationOption[];
   };
 }
@@ -110,7 +110,7 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
     }
     if (bookingDetails.passengers) params.set('passengers', String(bookingDetails.passengers));
     if (bookingDetails.suitcases) params.set('suitcases', String(bookingDetails.suitcases));
-    if (bookingDetails.carryOnLuggage) params.set('carryOnLuggage', String(bookingDetails.carryOnLuggage));
+    if (bookingDetails.backpacks) params.set('backpacks', String(bookingDetails.backpacks));
     if (bookingDetails.options) bookingDetails.options.forEach(opt => params.append('option', opt));
     
     router.push(`/book/payment?${params.toString()}`);

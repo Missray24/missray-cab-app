@@ -67,7 +67,7 @@ export interface Reservation {
   stripePaymentId?: string;
   passengers?: number;
   suitcases?: number;
-  carryOnLuggage?: number;
+  backpacks?: number;
   options?: ReservationOption[];
 }
 
@@ -134,7 +134,7 @@ export interface ServiceTier {
   capacity: {
     passengers: number;
     suitcases: number;
-    carryOnLuggage?: number;
+    backpacks?: number;
   };
 }
 
