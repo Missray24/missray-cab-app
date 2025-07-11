@@ -34,27 +34,29 @@ interface BookingFormProps {
 const specialLocationKeywords = ['gare', 'aéroport', 'aeroport', 'port'];
 
 const NumberSelector = ({ label, icon, value, onValueChange, min = 0 }: { label: string, icon: React.ReactNode, value: number, onValueChange: (value: number) => void, min?: number }) => (
-    <div className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+    <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-[#223aff]/10 to-[#006df1]/10 text-primary-foreground">
         <div className="flex items-center gap-3">
-            {icon}
-            <Label className="font-medium">{label}</Label>
+            <div className="bg-white/70 text-primary p-2 rounded-full">
+               {icon}
+            </div>
+            <Label className="font-bold text-primary">{label}</Label>
         </div>
         <div className="flex items-center gap-2">
             <Button
                 type="button"
                 size="icon"
                 variant="ghost"
-                className="h-7 w-7 rounded-full bg-background hover:bg-muted"
+                className="h-7 w-7 rounded-full text-primary hover:bg-primary/20 hover:text-primary"
                 onClick={() => onValueChange(Math.max(min, value - 1))}
             >
                 <Minus className="h-4 w-4" />
             </Button>
-            <span className="w-8 text-center font-bold text-lg">{value}</span>
+            <span className="w-8 text-center font-bold text-lg text-primary">{value}</span>
             <Button
                 type="button"
                 size="icon"
                 variant="ghost"
-                className="h-7 w-7 rounded-full bg-background hover:bg-muted"
+                className="h-7 w-7 rounded-full text-primary hover:bg-primary/20 hover:text-primary"
                 onClick={() => onValueChange(value + 1)}
             >
                 <Plus className="h-4 w-4" />
@@ -177,14 +179,14 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <NumberSelector 
                   label="Passagers"
-                  icon={<Users className="h-5 w-5 text-primary" />} 
+                  icon={<Users className="h-5 w-5" />} 
                   value={passengers}
                   onValueChange={setPassengers}
                   min={1}
               />
               <NumberSelector 
                   label="Valises"
-                  icon={<Briefcase className="h-5 w-5 text-primary" />} 
+                  icon={<Briefcase className="h-5 w-5" />} 
                   value={suitcases}
                   onValueChange={setSuitcases}
                   min={0}
