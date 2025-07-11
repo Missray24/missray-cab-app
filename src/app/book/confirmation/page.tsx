@@ -6,7 +6,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter, notFound } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { CheckCircle2, MapPin, User as UserIcon, Briefcase, XCircle, ShieldCheck, Baby, Armchair, Dog } from 'lucide-react';
+import { CheckCircle2, MapPin, User as UserIcon, Briefcase, XCircle, ShieldCheck, Baby, Armchair, Dog, Hourglass } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
@@ -91,12 +91,21 @@ function ConfirmationComponent() {
     if (!reservation) return null;
 
     const status = reservation.status;
+    
+    if (status === 'Recherche de chauffeur') {
+      return {
+        Icon: Hourglass,
+        title: 'Recherche en cours...',
+        description: 'Nous recherchons un chauffeur à proximité. Vous serez notifié dès qu\'un chauffeur accepte la course.',
+        color: 'text-blue-500 animate-spin',
+      };
+    }
     if (status.startsWith('Annulée') || status === 'No-show') {
       return {
         Icon: XCircle,
         title: 'Réservation Annulée',
         description: 'Cette réservation a été annulée et n\'est plus active.',
-        color: 'text-primary',
+        color: 'text-destructive',
       };
     }
     if (status === 'Terminée') {
@@ -104,7 +113,7 @@ function ConfirmationComponent() {
             Icon: ShieldCheck,
             title: 'Course Terminée',
             description: 'Cette course a été effectuée avec succès.',
-            color: 'text-blue-500',
+            color: 'text-primary',
         }
     }
     return {
@@ -155,7 +164,9 @@ function ConfirmationComponent() {
                             : reservation.status.startsWith('Annulée') || reservation.status === 'No-show' ? 'destructive'
                             : 'secondary'
                         }
-                        className={cn("capitalize", reservation.status === 'Nouvelle demande' && 'bg-gradient-to-r from-[#223aff] to-[#1697ff] text-primary-foreground')}
+                        className={cn("capitalize", 
+                            (reservation.status === 'Nouvelle demande' || reservation.status === 'Recherche de chauffeur' || reservation.status === 'Acceptée') && 'bg-gradient-to-r from-[#223aff] to-[#1697ff] text-primary-foreground'
+                        )}
                     >
                         {reservation.status}
                     </Badge>
@@ -226,7 +237,7 @@ function ConfirmationComponent() {
                                 const Icon = optionIcons[option.name];
                                 return (
                                     <Badge key={option.name} variant="outline" className="text-base py-1">
-                                        <Icon className="h-4 w-4 mr-2" />
+                                        {Icon && <Icon className="h-4 w-4 mr-2" />}
                                         {option.name}
                                         {option.quantity > 1 && <span className="ml-2 font-bold">x{option.quantity}</span>}
                                     </Badge>

@@ -16,6 +16,7 @@ export interface SelectedOption {
 
 export type ReservationStatus =
   | 'Nouvelle demande'
+  | 'Recherche de chauffeur'
   | 'Acceptée'
   | 'Chauffeur en route'
   | 'Chauffeur sur place'
@@ -29,6 +30,7 @@ export type ReservationStatus =
 
 export const reservationStatuses: ReservationStatus[] = [
   'Nouvelle demande',
+  'Recherche de chauffeur',
   'Acceptée',
   'Chauffeur en route',
   'Chauffeur sur place',

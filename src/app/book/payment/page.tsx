@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { db, auth } from '@/lib/firebase';
-import type { ServiceTier, PaymentMethod, SelectedOption } from '@/lib/types';
+import type { ServiceTier, PaymentMethod, SelectedOption, ReservationStatus } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY } from '@/lib/config';
 import { createPaymentIntent } from '@/ai/flows/create-payment-intent-flow';
@@ -75,6 +75,9 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                 const clientData = clientDoc.data();
 
                 const reservationDate = bookingDetails.scheduledTime || new Date();
+                const isImmediate = !bookingDetails.scheduledTime;
+                
+                const initialStatus: ReservationStatus = isImmediate ? 'Recherche de chauffeur' : 'Nouvelle demande';
 
                 const reservationData = {
                     clientId: clientDoc.id,
@@ -85,8 +88,8 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                     pickup: bookingDetails.pickup,
                     dropoff: bookingDetails.dropoff,
                     stops: bookingDetails.stops,
-                    status: 'Nouvelle demande' as const,
-                    statusHistory: [{ status: 'Nouvelle demande' as const, timestamp: new Date().toLocaleString('fr-FR') }],
+                    status: initialStatus,
+                    statusHistory: [{ status: initialStatus, timestamp: new Date().toLocaleString('fr-FR') }],
                     amount: finalPrice,
                     driverPayout: finalPrice * 0.8, // Assuming 20% commission
                     paymentMethod,
@@ -102,25 +105,27 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
 
                 const docRef = await addDoc(collection(db, "reservations"), reservationData);
                 
-                // Send confirmation email
-                await sendEmail({
-                    type: 'new_reservation_client',
-                    to: { email: clientData.email, name: clientData.name },
-                    params: {
-                        reservationId: docRef.id.substring(0, 8).toUpperCase(),
-                        clientName: clientData.name,
-                        date: format(reservationDate, "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr }),
-                        pickup: reservationData.pickup,
-                        dropoff: reservationData.dropoff,
-                        amount: reservationData.amount,
-                        paymentMethod: reservationData.paymentMethod,
-                        tierName: tier.name,
-                        passengers: tier.capacity.passengers,
-                        suitcases: tier.capacity.suitcases,
-                    },
-                });
+                // Send confirmation email only for scheduled rides, as immediate rides have a different flow
+                if (!isImmediate) {
+                    await sendEmail({
+                        type: 'new_reservation_client',
+                        to: { email: clientData.email, name: clientData.name },
+                        params: {
+                            reservationId: docRef.id.substring(0, 8).toUpperCase(),
+                            clientName: clientData.name,
+                            date: format(reservationDate, "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr }),
+                            pickup: reservationData.pickup,
+                            dropoff: reservationData.dropoff,
+                            amount: reservationData.amount,
+                            paymentMethod: reservationData.paymentMethod,
+                            tierName: tier.name,
+                            passengers: tier.capacity.passengers,
+                            suitcases: tier.capacity.suitcases,
+                        },
+                    });
+                }
 
-                toast({ title: 'Réservation confirmée!', description: 'Votre course a été enregistrée.' });
+                toast({ title: 'Réservation confirmée!', description: isImmediate ? 'Recherche d\'un chauffeur en cours...' : 'Votre course a été enregistrée.' });
                 onPaymentSuccess(docRef.id);
             } catch (err) {
                 console.error("Error creating reservation: ", err);
@@ -327,13 +332,18 @@ function PaymentComponent() {
                                 <Car className="h-4 w-4 text-muted-foreground" />
                                 <p>{tier.name}</p>
                             </div>
-                            {bookingDetails.scheduledTime && (
+                            {bookingDetails.scheduledTime ? (
                                 <div className="flex items-center gap-3">
                                 <Calendar className="h-4 w-4 text-muted-foreground" />
                                 <p>{format(bookingDetails.scheduledTime, "EEEE d MMMM yyyy", { locale: fr })}</p>
                                 <Clock className="h-4 w-4 text-muted-foreground ml-2" />
                                 <p>{format(bookingDetails.scheduledTime, "HH:mm", { locale: fr })}</p>
                             </div>
+                            ) : (
+                                <div className="flex items-center gap-3 font-semibold text-primary">
+                                    <Clock className="h-4 w-4" />
+                                    <p>Départ immédiat</p>
+                                </div>
                             )}
                             <Separator />
                             <div className="flex items-start gap-3">
