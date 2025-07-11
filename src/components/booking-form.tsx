@@ -48,7 +48,7 @@ const NumberSelect = ({
     value,
     onValueChange,
     max,
-    min = 0,
+    min = 1,
     icon,
     placeholder
 }: {
@@ -64,7 +64,7 @@ const NumberSelect = ({
         onValueChange={(val) => onValueChange(Number(val))}
     >
         <SelectTrigger className="h-9 bg-white w-full">
-             <div className="flex items-center gap-1">
+             <div className="flex items-center gap-2">
                 <div className="text-primary">{icon}</div>
                 <SelectValue placeholder={placeholder} />
             </div>
@@ -100,12 +100,12 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
     const checkSpecialLocation = (address: string) => 
         specialLocationKeywords.some(keyword => address.toLowerCase().includes(keyword));
 
-    if (checkSpecialLocation(pickupAddress) || checkSpecialLocation(dropoffAddress)) {
+    if (checkSpecialLocation(pickupAddress) || checkSpecialLocation(dropoffAddress) || stops.some(stop => checkSpecialLocation(stop.address))) {
         setIsSpecialLocation(true);
     } else {
         setIsSpecialLocation(false);
     }
-  }, [pickupAddress, dropoffAddress]);
+  }, [pickupAddress, dropoffAddress, stops]);
 
   const handleAddStop = () => {
     if (stops.length < 4) {
@@ -233,30 +233,34 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
         </Button>
       </div>
 
-      <div className="grid grid-cols-3 gap-2">
-           <NumberSelect
-                icon={<Users className="h-4 w-4" />}
-                value={passengers}
-                onValueChange={setPassengers}
-                min={1}
-                max={8}
-                placeholder="Passagers"
-            />
-            <NumberSelect
-                icon={<Briefcase className="h-4 w-4" />}
-                value={suitcases}
-                onValueChange={setSuitcases}
-                max={10}
-                placeholder="Valises"
-            />
-            <NumberSelect
-                icon={<Backpack className="h-4 w-4" />}
-                value={carryOnLuggage}
-                onValueChange={setCarryOnLuggage}
-                max={10}
-                placeholder="Bagages main"
-            />
-      </div>
+      {isSpecialLocation && (
+        <div className="grid grid-cols-3 gap-2">
+             <NumberSelect
+                  icon={<Users className="h-4 w-4" />}
+                  value={passengers}
+                  onValueChange={setPassengers}
+                  min={1}
+                  max={8}
+                  placeholder="Passagers"
+              />
+              <NumberSelect
+                  icon={<Briefcase className="h-4 w-4" />}
+                  value={suitcases}
+                  onValueChange={setSuitcases}
+                  min={0}
+                  max={10}
+                  placeholder="Valises"
+              />
+              <NumberSelect
+                  icon={<Backpack className="h-4 w-4" />}
+                  value={carryOnLuggage}
+                  onValueChange={setCarryOnLuggage}
+                  min={0}
+                  max={10}
+                  placeholder="Bagages main"
+              />
+        </div>
+      )}
 
 
       <div className="flex items-center gap-2">
