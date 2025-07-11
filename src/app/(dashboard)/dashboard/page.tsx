@@ -381,7 +381,7 @@ export default function DashboardPage() {
                     <TableCell>{reservation.date}</TableCell>
                     <TableCell>{reservation.paymentMethod}</TableCell>
                     <TableCell className="text-right">
-                      {reservation.totalAmount.toFixed(2)}€
+                      {(reservation.totalAmount || reservation.amount || 0).toFixed(2)}€
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
