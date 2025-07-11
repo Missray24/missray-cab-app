@@ -56,15 +56,15 @@ const NumberSelect = ({
     min?: number;
     placeholder: string;
 }) => (
-    <div className="flex w-full items-center justify-start gap-2">
-        <div className="text-primary">
+    <div className="flex items-center gap-1">
+        <div className="text-primary shrink-0">
             {icon}
         </div>
         <Select
             value={String(value)}
             onValueChange={(val) => onValueChange(Number(val))}
         >
-            <SelectTrigger className="w-full bg-white">
+            <SelectTrigger className="w-[80px] bg-white">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
@@ -189,7 +189,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
       </div>
 
       {isSpecialLocation && (
-          <div className="grid grid-cols-2 gap-4">
+          <div className="flex gap-4">
                <NumberSelect
                     icon={<Users className="h-5 w-5" />}
                     value={passengers}
