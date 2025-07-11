@@ -158,7 +158,7 @@ function ConfirmationComponent() {
       });
 
       toast({ title: 'Réservation annulée', description: 'Votre course a bien été annulée.' });
-      router.push('/my-bookings');
+      router.push('/app');
     } catch (error) {
       console.error('Error canceling reservation:', error);
       toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible d\'annuler la réservation.' });
