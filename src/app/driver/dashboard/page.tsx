@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Reservation, ReservationOption, ServiceTier, User } from "@/lib/types";
 import { db, auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowRight, CalendarCheck, Car, CheckCircle, DollarSign, Users, Briefcase, Backpack, MapPin, Milestone, Timer, Baby, Armchair, Dog } from "lucide-react";
+import { ArrowRight, CalendarCheck, Car, CheckCircle, DollarSign, Users, Briefcase, Backpack, MapPin, Milestone, Timer, Baby, Armchair, Dog, CreditCard } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -225,6 +225,7 @@ export default function DriverDashboardPage() {
                                                 {ride.passengers && <span className="flex items-center gap-1.5"><Users className="h-4 w-4" />{ride.passengers}</span>}
                                                 {ride.suitcases !== undefined && <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{ride.suitcases}</span>}
                                                 {ride.backpacks !== undefined && <span className="flex items-center gap-1.5"><Backpack className="h-4 w-4" />{ride.backpacks}</span>}
+                                                <Badge variant="secondary" className="capitalize">{ride.paymentMethod}</Badge>
                                             </div>
                                             {ride.options && ride.options.length > 0 && (
                                                 <div className="flex flex-wrap gap-2">

@@ -6,7 +6,7 @@ import { collection, getDocs, query, where, doc, updateDoc } from "firebase/fire
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Users, Briefcase, Backpack, MapPin, Baby, Armchair, Dog, Milestone, Timer } from "lucide-react";
+import { Users, Briefcase, Backpack, MapPin, Baby, Armchair, Dog, Milestone, Timer, CreditCard } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -146,6 +146,7 @@ export default function NewRidesPage() {
                                             {ride.passengers && <span className="flex items-center gap-1.5"><Users className="h-4 w-4" />{ride.passengers}</span>}
                                             {ride.suitcases !== undefined && <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{ride.suitcases}</span>}
                                             {ride.backpacks !== undefined && <span className="flex items-center gap-1.5"><Backpack className="h-4 w-4" />{ride.backpacks}</span>}
+                                            <Badge variant="secondary" className="capitalize">{ride.paymentMethod}</Badge>
                                         </div>
                                         {ride.options && ride.options.length > 0 && (
                                             <div className="flex flex-wrap gap-2">
