@@ -120,7 +120,6 @@ const generateInvoiceFlow = ai.defineFlow(
 
       page.drawText('Client', { x: width / 2, y: currentY, font: boldFont, size: 12 });
       page.drawText(client.name, { x: width / 2, y: currentY - 15, font, size: 10 });
-      page.drawText(client.email, { x: width / 2, y: currentY - 30, font, size: 10 });
       
       currentY -= 80;
 
