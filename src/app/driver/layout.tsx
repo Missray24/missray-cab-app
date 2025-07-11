@@ -5,7 +5,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-import { doc, getDoc } from "firebase/firestore";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import {
   CircleUser,
   LayoutDashboard,
@@ -43,10 +43,11 @@ import {
 import { useActivePath } from '@/hooks/use-active-path';
 import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Badge } from '@/components/ui/badge';
 
 const navItems = [
   { href: '/driver/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
-  { href: '/driver/new-rides', icon: BellRing, label: 'Nouvelles courses' },
+  { href: '/driver/new-rides', icon: BellRing, label: 'Nouvelles courses', id: 'new-rides' },
   { href: '/driver/reservations', icon: CalendarCheck, label: 'Mes Courses' },
   { href: '/driver/earnings', icon: TrendingUp, label: 'Mes Revenus' },
   { href: '/driver/vehicles', icon: Car, label: 'Mes Véhicules' },
@@ -106,6 +107,17 @@ function DriverLayoutContent({
   const checkActivePath = useActivePath();
   const { isMobile, state, setOpenMobile } = useSidebar();
   const router = useRouter();
+  const [newRidesCount, setNewRidesCount] = React.useState(0);
+
+  React.useEffect(() => {
+    const q = query(collection(db, "reservations"), where("status", "==", "Nouvelle demande"));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        setNewRidesCount(querySnapshot.size);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const handleLinkClick = () => {
     if (isMobile) {
@@ -138,9 +150,14 @@ function DriverLayoutContent({
                   tooltip={item.label}
                   onClick={handleLinkClick}
                 >
-                  <Link href={item.href}>
+                  <Link href={item.href} className="relative">
                     <item.icon />
                     <span className="group-data-[state=collapsed]:hidden">{item.label}</span>
+                     {item.id === 'new-rides' && newRidesCount > 0 && (
+                        <Badge className="absolute right-2 top-1/2 -translate-y-1/2 h-5 group-data-[state=collapsed]:hidden bg-destructive">
+                            {newRidesCount}
+                        </Badge>
+                     )}
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
