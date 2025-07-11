@@ -562,5 +562,3 @@ export default function SelectVehiclePage() {
     </Suspense>
   )
 }
-
-    
