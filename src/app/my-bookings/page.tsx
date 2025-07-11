@@ -8,7 +8,7 @@ import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/fire
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
-import { ArrowRight, PlusCircle, X } from 'lucide-react';
+import { ArrowRight, PlusCircle, X, AppWindow } from 'lucide-react';
 import { useLoadScript } from '@react-google-maps/api';
 
 import { LandingHeader } from '@/components/landing-header';
@@ -207,10 +207,18 @@ function MyBookingsComponent() {
             <PageHeader 
               title="Mes Courses" 
               action={
-                <Button onClick={() => setShowBookingForm(true)}>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Nouvelle course
-                </Button>
+                <div className="flex items-center gap-2">
+                   <Button onClick={() => setShowBookingForm(true)} variant="outline">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Nouvelle course
+                  </Button>
+                  <Button asChild>
+                    <Link href="/app">
+                      <AppWindow className="mr-2 h-4 w-4" />
+                      Lancer l'application
+                    </Link>
+                  </Button>
+                </div>
               }
             />
             {reservations.length > 0 ? (
