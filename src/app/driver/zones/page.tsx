@@ -6,7 +6,7 @@ import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { MapPin } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
@@ -57,6 +57,14 @@ export default function DriverZonesPage() {
 
     const handleZoneChange = (zoneId: string, checked: boolean | 'indeterminate') => {
         if (typeof checked === 'boolean') {
+             if (checked && selectedZoneIds.length >= 5) {
+                toast({
+                    variant: 'destructive',
+                    title: 'Limite atteinte',
+                    description: 'Vous ne pouvez pas sélectionner plus de 5 zones d\'activité.',
+                });
+                return;
+            }
             setSelectedZoneIds(prev =>
                 checked ? [...prev, zoneId] : prev.filter(id => id !== zoneId)
             );
@@ -84,7 +92,7 @@ export default function DriverZonesPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Sélectionnez vos zones</CardTitle>
-                    <CardDescription>Cochez les zones dans lesquelles vous souhaitez recevoir des propositions de courses. Les courses programmées en dehors de ces zones ne vous seront pas proposées.</CardDescription>
+                    <CardDescription>Cochez les zones dans lesquelles vous souhaitez recevoir des propositions de courses (maximum 5). Les courses programmées en dehors de ces zones ne vous seront pas proposées.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {loading ? (
@@ -97,6 +105,7 @@ export default function DriverZonesPage() {
                                         id={zone.id}
                                         checked={selectedZoneIds.includes(zone.id)}
                                         onCheckedChange={(checked) => handleZoneChange(zone.id, checked)}
+                                        disabled={!selectedZoneIds.includes(zone.id) && selectedZoneIds.length >= 5}
                                     />
                                     <Label htmlFor={zone.id} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex items-center gap-2">
                                         <MapPin className="h-4 w-4 text-primary" />
