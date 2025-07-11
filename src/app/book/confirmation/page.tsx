@@ -26,7 +26,7 @@ import { cn } from '@/lib/utils';
 const optionIcons: Record<ReservationOption, React.ElementType> = {
     'Siège bébé': Baby,
     'Rehausseur': Armchair,
-    'Animal de compagnie': Dog,
+    'Animal': Dog,
 };
 
 function ConfirmationComponent() {
