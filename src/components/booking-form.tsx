@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase, Minus } from 'lucide-react';
+import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -54,7 +54,7 @@ const NumberSelect = ({
     max: number;
     min?: number;
 }) => (
-    <div className="flex items-center rounded-lg border p-2 justify-start gap-3 bg-white">
+    <div className="inline-flex items-center rounded-lg border p-2 justify-start gap-2 bg-white w-auto">
         <div className="flex items-center">
             <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-lg text-primary-foreground">
                 {icon}
@@ -64,7 +64,7 @@ const NumberSelect = ({
             value={String(value)}
             onValueChange={(val) => onValueChange(Number(val))}
         >
-            <SelectTrigger className="w-[80px] bg-background text-foreground">
+            <SelectTrigger className="w-[60px] bg-white text-black">
                 <SelectValue placeholder={value} />
             </SelectTrigger>
             <SelectContent>
@@ -189,7 +189,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
       </div>
 
       {isSpecialLocation && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4">
                <NumberSelect
                     icon={<Users className="h-5 w-5" />}
                     value={passengers}
