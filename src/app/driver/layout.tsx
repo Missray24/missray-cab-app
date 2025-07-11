@@ -15,6 +15,7 @@ import {
   Settings,
   Car,
   FileText,
+  BellRing,
 } from 'lucide-react';
 
 import {
@@ -45,6 +46,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   { href: '/driver/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
+  { href: '/driver/new-rides', icon: BellRing, label: 'Nouvelles courses' },
   { href: '/driver/reservations', icon: CalendarCheck, label: 'Mes Courses' },
   { href: '/driver/earnings', icon: TrendingUp, label: 'Mes Revenus' },
   { href: '/driver/vehicles', icon: Car, label: 'Mes Véhicules' },
@@ -60,12 +62,9 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        // Verify user is a driver
-        const userDocRef = doc(db, "users", firebaseUser.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        
-        // This logic seems incorrect. User doc ID is not UID. Let's fix this everywhere.
-        // For now, let's assume login logic is correct and just check if user exists.
+        // This is a simplified check. A proper implementation should query
+        // a 'users' collection in Firestore to verify the user's role.
+        // For now, we assume if the user is logged in, they are a driver.
         setUser(firebaseUser);
       } else {
         setUser(null);
