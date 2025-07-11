@@ -32,10 +32,24 @@ const stripePromise = NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ? loadStripe(NEXT_PUBLI
 
 interface CheckoutFormProps {
   onPaymentSuccess: (reservationId: string) => void;
-  bookingDetails: NonNullable<ReturnType<typeof useBookingDetails>>;
+  bookingDetails: BookingDetails;
   tier: ServiceTier;
   user: User;
   finalPrice: number;
+}
+
+interface BookingDetails {
+    pickup: string;
+    dropoff: string;
+    stops: string[];
+    scheduledTime: Date | null;
+    tierId: string;
+    distance: string | null;
+    duration: string | null;
+    passengers?: number;
+    suitcases?: number;
+    backpacks?: number;
+    options: SelectedOption[];
 }
 
 function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice }: CheckoutFormProps) {
@@ -169,43 +183,9 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
     )
 }
 
-const useBookingDetails = () => {
-    return useMemo(() => {
-        if (typeof window === 'undefined') return null;
-        const params = new URLSearchParams(window.location.search);
-        const pickup = params.get('pickup');
-        const dropoff = params.get('dropoff');
-        const stops = params.getAll('stop');
-        const scheduledTime = params.get('scheduledTime');
-        const tierId = params.get('tierId');
-        const distance = params.get('distance');
-        const duration = params.get('duration');
-        const passengers = params.get('passengers');
-        const suitcases = params.get('suitcases');
-        const backpacks = params.get('backpacks');
-        const optionsParam = params.get('options');
-        const options = optionsParam ? JSON.parse(optionsParam) as SelectedOption[] : [];
-
-        if (!pickup || !dropoff || !tierId) return null;
-
-        return { 
-            pickup, 
-            dropoff, 
-            stops, 
-            scheduledTime: scheduledTime ? new Date(scheduledTime) : null, 
-            tierId, 
-            distance, 
-            duration,
-            passengers: passengers ? parseInt(passengers) : undefined,
-            suitcases: suitcases ? parseInt(suitcases) : undefined,
-            backpacks: backpacks ? parseInt(backpacks) : undefined,
-            options,
-        };
-    }, []);
-};
-
 function PaymentComponent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
 
   const [tier, setTier] = useState<ServiceTier | null>(null);
@@ -213,8 +193,37 @@ function PaymentComponent() {
   const [user, setUser] = useState<User | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [finalPrice, setFinalPrice] = useState<number>(0);
+  
+  const bookingDetails = useMemo<BookingDetails | null>(() => {
+    const pickup = searchParams.get('pickup');
+    const dropoff = searchParams.get('dropoff');
+    const stops = searchParams.getAll('stop');
+    const scheduledTime = searchParams.get('scheduledTime');
+    const tierId = searchParams.get('tierId');
+    const distance = searchParams.get('distance');
+    const duration = searchParams.get('duration');
+    const passengers = searchParams.get('passengers');
+    const suitcases = searchParams.get('suitcases');
+    const backpacks = searchParams.get('backpacks');
+    const optionsParam = searchParams.get('options');
+    const options = optionsParam ? JSON.parse(optionsParam) as SelectedOption[] : [];
 
-  const bookingDetails = useBookingDetails();
+    if (!pickup || !dropoff || !tierId) return null;
+
+    return { 
+        pickup, 
+        dropoff, 
+        stops, 
+        scheduledTime: scheduledTime ? new Date(scheduledTime) : null, 
+        tierId, 
+        distance, 
+        duration,
+        passengers: passengers ? parseInt(passengers) : undefined,
+        suitcases: suitcases ? parseInt(suitcases) : undefined,
+        backpacks: backpacks ? parseInt(backpacks) : undefined,
+        options,
+    };
+  }, [searchParams]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -377,5 +386,7 @@ export default function PaymentPage() {
         </Suspense>
     );
 }
+
+    
 
     
