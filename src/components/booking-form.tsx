@@ -56,8 +56,8 @@ const NumberSelect = ({
     min?: number;
     placeholder: string;
 }) => (
-    <div className="flex w-full items-center rounded-lg border p-2 justify-start gap-1">
-        <div className="p-2 rounded-lg text-primary">
+    <div className="flex w-full items-center justify-start gap-2">
+        <div className="text-primary">
             {icon}
         </div>
         <Select
