@@ -277,7 +277,7 @@ function VehicleSelectionComponent() {
                                         </div>
                                     ))}
                                     <div className="flex items-start gap-3">
-                                        <MapPin className="h-5 w-5 mt-0.5 text-red-500" />
+                                        <MapPin className="h-5 w-5 mt-0.5 text-primary" />
                                         <p className="font-medium">{bookingDetails.dropoff}</p>
                                     </div>
                                 </div>

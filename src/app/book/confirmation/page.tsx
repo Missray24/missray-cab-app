@@ -176,7 +176,7 @@ function ConfirmationComponent() {
                       </div>
                     ))}
                     <div className="flex items-start gap-3">
-                        <MapPin className="h-5 w-5 mt-0.5 text-red-500" />
+                        <MapPin className="h-5 w-5 mt-0.5 text-primary" />
                         <p className="font-medium">
                            <span className="font-bold text-foreground">Arrivée: </span>{reservation.dropoff}
                         </p>
