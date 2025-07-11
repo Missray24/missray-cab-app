@@ -40,11 +40,23 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { auth, db, storage } from '@/lib/firebase';
-import { requiredDriverDocs } from '@/lib/types';
+import { requiredDriverDocs, type RequiredDriverDoc } from '@/lib/types';
 
 const fileRefine = (files: FileList | undefined) => files && files.length > 0;
 
 const fileSchema = z.instanceof(FileList).refine(fileRefine, { message: 'Fichier requis.' });
+
+const docFields = requiredDriverDocs.reduce((acc, doc) => {
+    acc[doc.id] = fileSchema;
+    if (doc.hasVerso) {
+        acc[`${doc.id}_verso`] = fileSchema;
+    }
+    if (doc.hasExpirationDate) {
+        acc[`${doc.id}_expirationDate`] = z.string().min(1, "Date d'expiration requise");
+    }
+    return acc;
+}, {} as Record<string, any>);
+
 
 const formSchema = z
     .object({
@@ -72,8 +84,7 @@ const formSchema = z
       isVatSubjected: z.boolean().default(false),
       
       // Step 3
-      ...Object.fromEntries(requiredDriverDocs.map(doc => [doc.id, fileSchema]))
-
+      ...docFields
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: 'Les mots de passe ne correspondent pas',
@@ -138,14 +149,28 @@ export default function SignupDriverPage() {
 
       const uploadedDocuments = await Promise.all(
         requiredDriverDocs.map(async (doc) => {
-          const file = (values as any)[doc.id]?.[0];
-          if (file) {
-            const url = await uploadFile(file, driverNamePath, doc.id);
-            return { id: doc.id, name: doc.name, type: doc.type, url, status: 'Pending' as const };
-          }
-          return null;
+            const fileRecto = (values as any)[doc.id]?.[0];
+            const fileVerso = doc.hasVerso ? (values as any)[`${doc.id}_verso`]?.[0] : null;
+            const expirationDate = doc.hasExpirationDate ? (values as any)[`${doc.id}_expirationDate`] : null;
+
+            if (fileRecto) {
+                const urlRecto = await uploadFile(fileRecto, driverNamePath, doc.id);
+                const urlVerso = fileVerso ? await uploadFile(fileVerso, driverNamePath, `${doc.id}_verso`) : undefined;
+
+                return {
+                    id: doc.id,
+                    name: doc.name,
+                    type: doc.type,
+                    url: urlRecto,
+                    urlVerso: urlVerso,
+                    expirationDate: expirationDate,
+                    status: 'Pending' as const,
+                };
+            }
+            return null;
         })
       );
+
 
       const driverData = {
         uid: user.uid,
@@ -251,31 +276,42 @@ export default function SignupDriverPage() {
               </div>
 
               <div className={cn(step !== 3 && 'hidden')}>
-                <div className="space-y-4 max-h-[50vh] overflow-y-auto p-1">
-                   {requiredDriverDocs.map((doc, index) => {
-                       const fileList = watchedFiles[index];
-                       const isUploaded = fileList && fileList.length > 0;
-                       return (
-                            <FormField key={doc.id} control={form.control} name={doc.id as any} render={({ field }) => (
-                                <FormItem className="border p-4 rounded-md">
-                                    <div className="flex justify-between items-center">
-                                      <div>
-                                        <FormLabel>{doc.name}</FormLabel>
-                                        <p className="text-xs text-muted-foreground">{doc.description}</p>
-                                      </div>
-                                      <Button asChild variant={isUploaded ? "secondary" : "outline"} size="sm">
-                                        <label htmlFor={doc.id} className="cursor-pointer">
-                                          {isUploaded ? <FileCheck2 className="h-4 w-4 mr-2"/> : <Upload className="h-4 w-4 mr-2"/>}
-                                          {isUploaded ? "Changer" : "Choisir"}
-                                        </label>
-                                      </Button>
-                                    </div>
-                                    <FormControl><Input type="file" id={doc.id} className="hidden" accept="image/*,application/pdf" onChange={(e) => field.onChange(e.target.files)} /></FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )} />
-                       )
-                   })}
+                <div className="space-y-4 max-h-[50vh] overflow-y-auto p-1 pr-4">
+                   {requiredDriverDocs.map((doc) => (
+                        <FormItem key={doc.id} className="border p-4 rounded-md space-y-3">
+                            <div>
+                                <FormLabel>{doc.name}</FormLabel>
+                                <p className="text-xs text-muted-foreground">{doc.description}</p>
+                            </div>
+                            <div className={cn("grid gap-4", doc.hasVerso ? "grid-cols-2" : "grid-cols-1")}>
+                                <FormField control={form.control} name={doc.id as any} render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs">{doc.hasVerso ? "Recto" : "Fichier"}</FormLabel>
+                                        <FormControl><Input type="file" accept="image/*,application/pdf" onChange={(e) => field.onChange(e.target.files)} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                                {doc.hasVerso && (
+                                    <FormField control={form.control} name={`${doc.id}_verso` as any} render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-xs">Verso</FormLabel>
+                                            <FormControl><Input type="file" accept="image/*,application/pdf" onChange={(e) => field.onChange(e.target.files)} /></FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                )}
+                            </div>
+                            {doc.hasExpirationDate && (
+                                <FormField control={form.control} name={`${doc.id}_expirationDate` as any} render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-xs">Date d'expiration</FormLabel>
+                                        <FormControl><Input type="date" {...field} /></FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                            )}
+                        </FormItem>
+                   ))}
                 </div>
               </div>
 

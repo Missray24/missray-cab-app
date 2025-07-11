@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { MoreHorizontal, FileText, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { MoreHorizontal, FileText, CheckCircle, XCircle, AlertCircle, CalendarIcon } from "lucide-react";
 import { collection, getDocs, addDoc, updateDoc, doc, query, where } from "firebase/firestore";
 
 import { Badge } from "@/components/ui/badge";
@@ -370,24 +370,24 @@ export default function DriversPage() {
       </div>
 
       <Dialog open={!!viewingDriver} onOpenChange={(isOpen) => !isOpen && setViewingDriver(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Documents for {viewingDriver?.name}</DialogTitle>
             <DialogDescription>
               Review the uploaded documents for this driver.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-6 py-4 grid-cols-1 sm:grid-cols-2">
+          <div className="grid gap-6 py-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 max-h-[70vh] overflow-y-auto">
             {viewingDriver?.driverProfile?.documents?.map((doc, index) => (
               <Card key={index} className="flex flex-col">
                  <CardHeader>
-                   <div className="flex items-center justify-between">
+                   <div className="flex items-start justify-between">
                      <div className="flex items-center gap-4">
                        <FileText className="h-6 w-6 text-primary" />
                        <CardTitle className="text-lg">{doc.name}</CardTitle>
                      </div>
                      <Badge
-                       className={cn("capitalize items-center", {
+                       className={cn("capitalize items-center text-xs", {
                          "bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80": doc.status === 'Approved',
                          "bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80": doc.status === 'Rejected',
                          "bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80": doc.status === 'Pending',
@@ -399,18 +399,36 @@ export default function DriversPage() {
                        {doc.status}
                      </Badge>
                    </div>
+                   {doc.expirationDate && (
+                       <div className="text-xs text-muted-foreground flex items-center gap-2 pt-2">
+                           <CalendarIcon className="h-4 w-4" />
+                           <span>Expire le: {new Date(doc.expirationDate).toLocaleDateString('fr-FR')}</span>
+                       </div>
+                   )}
                  </CardHeader>
-                <CardContent className="flex-grow">
-                  <div className="aspect-video w-full rounded-md overflow-hidden border">
+                <CardContent className="flex-grow space-y-2">
+                  <div className="aspect-[4/3] w-full rounded-md overflow-hidden border">
                     <Image
                       src={doc.url}
-                      alt={`Image of ${doc.name}`}
+                      alt={`${doc.name} (Recto)`}
                       data-ai-hint="official document"
-                      width={600}
-                      height={400}
+                      width={400}
+                      height={300}
                       className="h-full w-full object-cover"
                     />
                   </div>
+                  {doc.urlVerso && (
+                    <div className="aspect-[4/3] w-full rounded-md overflow-hidden border">
+                      <Image
+                        src={doc.urlVerso}
+                        alt={`${doc.name} (Verso)`}
+                        data-ai-hint="official document"
+                        width={400}
+                        height={300}
+                        className="h-full w-full object-cover"
+                      />
+                    </div>
+                  )}
                 </CardContent>
                  <CardFooter className="gap-2">
                    <Button

@@ -85,6 +85,8 @@ export interface DriverDocument {
   id: string; // Corresponds to the id from RequiredDriverDoc
   name: string;
   url: string;
+  urlVerso?: string;
+  expirationDate?: string;
   status: DocumentStatus;
   type: string;
 }
@@ -94,16 +96,18 @@ export interface RequiredDriverDoc {
     name: string;
     description: string;
     type: 'personal' | 'vehicle';
+    hasVerso?: boolean;
+    hasExpirationDate?: boolean;
 }
 
 export const requiredDriverDocs: RequiredDriverDoc[] = [
-    { id: 'id_card', name: "Carte d'identité", description: 'Recto/verso, en cours de validité', type: 'personal' },
-    { id: 'driving_license', name: 'Permis de conduire', description: 'Recto/verso, en cours de validité', type: 'personal' },
+    { id: 'id_card', name: "Carte d'identité", description: 'Recto/verso, en cours de validité', type: 'personal', hasVerso: true, hasExpirationDate: true },
+    { id: 'driving_license', name: 'Permis de conduire', description: 'Recto/verso, en cours de validité', type: 'personal', hasVerso: true, hasExpirationDate: true },
     { id: 'profile_photo', name: 'Photo de profil', description: 'Photo claire et professionnelle', type: 'personal' },
-    { id: 'vtc_card', name: 'Carte VTC', description: 'Recto/verso, en cours de validité', type: 'personal' },
+    { id: 'vtc_card', name: 'Carte VTC', description: 'Recto/verso, en cours de validité', type: 'personal', hasVerso: true, hasExpirationDate: true },
     { id: 'kbis', name: 'KBIS / SIREN / INSEE', description: 'Document de moins de 3 mois', type: 'personal' },
-    { id: 'rc_pro', name: 'RC Professionnelle', description: 'Attestation en cours de validité', type: 'personal' },
-    { id: 'vtc_registry', name: "Inscription au registre VTC", description: 'Attestation en cours de validité', type: 'personal' },
+    { id: 'rc_pro', name: 'RC Professionnelle', description: 'Attestation en cours de validité', type: 'personal', hasExpirationDate: true },
+    { id: 'vtc_registry', name: "Inscription au registre VTC", description: 'Attestation en cours de validité', type: 'personal', hasExpirationDate: true },
     { id: 'rib', name: 'RIB', description: 'Pour le versement de vos revenus', type: 'personal' },
 ];
 

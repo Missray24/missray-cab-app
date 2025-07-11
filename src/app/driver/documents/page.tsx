@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Upload, FileCheck2, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { Upload, FileCheck2, CheckCircle, XCircle, AlertCircle, CalendarIcon } from 'lucide-react';
 import Image from 'next/image';
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -38,7 +39,9 @@ import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 
 const fileUploadSchema = z.object({
-  file: z.instanceof(FileList).refine(files => files.length > 0, 'Un fichier est requis.'),
+  fileRecto: z.instanceof(FileList).optional(),
+  fileVerso: z.instanceof(FileList).optional(),
+  expirationDate: z.string().optional(),
 });
 
 type FileUploadForm = z.infer<typeof fileUploadSchema>;
@@ -54,7 +57,6 @@ export default function DriverDocumentsPage() {
     const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<FileUploadForm>({
         resolver: zodResolver(fileUploadSchema)
     });
-    const watchedFile = watch("file");
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -76,7 +78,7 @@ export default function DriverDocumentsPage() {
         return () => unsubscribe();
     }, []);
 
-    const updateUserData = async (dataToUpdate: object) => {
+    const updateUserDataInDb = async (dataToUpdate: object) => {
         if (!user) return;
         try {
             const userRef = doc(db, "users", user.id);
@@ -88,60 +90,60 @@ export default function DriverDocumentsPage() {
     };
   
     const handleFileUpload = async (data: FileUploadForm) => {
-        if (!user || !selectedDocRequirement || !data.file) return;
+        if (!user || !selectedDocRequirement) return;
         
-        const file = data.file[0];
         const driverNamePath = `${user.firstName}-${user.lastName}`.toLowerCase().replace(/\s+/g, '-');
-        const storageRef = ref(storage, `chauffeurs/${driverNamePath}/${selectedDocRequirement.id}_${file.name}`);
+        const existingDoc = documents.find(d => d.id === selectedDocRequirement.id);
         
         try {
-            const snapshot = await uploadBytes(storageRef, file);
-            const downloadURL = await getDownloadURL(snapshot.ref);
+            let urlRecto = existingDoc?.url;
+            if (data.fileRecto && data.fileRecto.length > 0) {
+                const storageRef = ref(storage, `chauffeurs/${driverNamePath}/${selectedDocRequirement.id}_recto_${data.fileRecto[0].name}`);
+                const snapshot = await uploadBytes(storageRef, data.fileRecto[0]);
+                urlRecto = await getDownloadURL(snapshot.ref);
+            }
 
-            const existingDocIndex = documents.findIndex(d => d.id === selectedDocRequirement.id);
+            let urlVerso = existingDoc?.urlVerso;
+            if (selectedDocRequirement.hasVerso && data.fileVerso && data.fileVerso.length > 0) {
+                const storageRef = ref(storage, `chauffeurs/${driverNamePath}/${selectedDocRequirement.id}_verso_${data.fileVerso[0].name}`);
+                const snapshot = await uploadBytes(storageRef, data.fileVerso[0]);
+                urlVerso = await getDownloadURL(snapshot.ref);
+            }
             
-            let updatedDocuments: DriverDocument[];
+            if (!urlRecto) {
+                toast({ variant: 'destructive', title: 'Erreur', description: 'Le fichier recto est manquant.'});
+                return;
+            }
 
-            const newDocument: DriverDocument = {
+            const updatedDoc: DriverDocument = {
+                ...(existingDoc || {}),
                 id: selectedDocRequirement.id,
                 name: selectedDocRequirement.name,
                 type: selectedDocRequirement.type,
-                url: downloadURL,
+                url: urlRecto,
+                urlVerso: urlVerso,
+                expirationDate: data.expirationDate || existingDoc?.expirationDate,
                 status: 'Pending',
             };
+            
+            const updatedDocuments = documents.filter(d => d.id !== selectedDocRequirement.id).concat(updatedDoc);
 
-            if (existingDocIndex > -1) {
-                // If old doc exists, delete it from storage
-                const oldUrl = documents[existingDocIndex].url;
-                if (oldUrl) {
-                    try {
-                        const oldStorageRef = ref(storage, oldUrl);
-                        await deleteObject(oldStorageRef);
-                    } catch (storageError: any) {
-                        // Ignore if file not found, but log other errors
-                        if (storageError.code !== 'storage/object-not-found') {
-                            console.error("Error deleting old document from storage:", storageError);
-                        }
-                    }
-                }
-                updatedDocuments = documents.map((doc, index) => index === existingDocIndex ? newDocument : doc);
-            } else {
-                updatedDocuments = [...documents, newDocument];
-            }
-
-            await updateUserData({ 'driverProfile.documents': updatedDocuments });
+            await updateUserDataInDb({ 'driverProfile.documents': updatedDocuments });
             setDocuments(updatedDocuments);
-            toast({ title: 'Succès', description: 'Document téléversé avec succès. Il est en attente de validation.' });
+            toast({ title: 'Succès', description: 'Document mis à jour. Il est en attente de validation.' });
             closeModal();
         } catch (error) {
             console.error("Error uploading document:", error);
-            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de téléverser le document.' });
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de mettre à jour le document.' });
         }
     };
     
     const openModal = (docRequirement: RequiredDriverDoc) => {
         setSelectedDocRequirement(docRequirement);
-        reset();
+        const existingDoc = documents.find(d => d.id === docRequirement.id);
+        reset({
+            expirationDate: existingDoc?.expirationDate || ''
+        });
         setIsModalOpen(true);
     };
 
@@ -170,8 +172,15 @@ export default function DriverDocumentsPage() {
                 </CardHeader>
                 <CardContent className="flex-grow flex flex-col items-center justify-center">
                     {uploadedDoc?.url ? (
-                        <div className="aspect-video w-full rounded-md overflow-hidden border relative">
-                             <Image src={uploadedDoc.url} alt={uploadedDoc.name} layout="fill" objectFit="cover" data-ai-hint="official document" />
+                        <div className={cn("grid w-full gap-2", uploadedDoc.urlVerso ? "grid-cols-2" : "grid-cols-1")}>
+                            <div className="aspect-[4/3] w-full rounded-md overflow-hidden border relative">
+                                 <Image src={uploadedDoc.url} alt={`${uploadedDoc.name} Recto`} layout="fill" objectFit="cover" data-ai-hint="official document" />
+                            </div>
+                            {uploadedDoc.urlVerso && (
+                                <div className="aspect-[4/3] w-full rounded-md overflow-hidden border relative">
+                                    <Image src={uploadedDoc.urlVerso} alt={`${uploadedDoc.name} Verso`} layout="fill" objectFit="cover" data-ai-hint="official document" />
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="aspect-video w-full rounded-md border-2 border-dashed flex flex-col items-center justify-center bg-muted/50">
@@ -180,15 +189,21 @@ export default function DriverDocumentsPage() {
                         </div>
                     )}
                 </CardContent>
-                <CardContent className="p-4 flex flex-col gap-2">
+                <CardFooter className="p-4 flex flex-col gap-2">
+                    {uploadedDoc?.expirationDate && (
+                        <div className="text-xs text-muted-foreground flex items-center gap-2 w-full justify-center">
+                            <CalendarIcon className="h-3 w-3" />
+                            <span>Expire le: {new Date(uploadedDoc.expirationDate).toLocaleDateString('fr-FR')}</span>
+                        </div>
+                    )}
                      <Badge className={cn("capitalize w-full justify-center py-1", currentStatus.color)}>
                         <Icon className="mr-2 h-4 w-4" />
                         {currentStatus.text}
                     </Badge>
-                    <Button variant="secondary" onClick={() => openModal(docRequirement)}>
+                    <Button variant="secondary" className="w-full" onClick={() => openModal(docRequirement)}>
                         {uploadedDoc ? 'Mettre à jour' : 'Téléverser'}
                     </Button>
-                </CardContent>
+                </CardFooter>
             </Card>
         );
     }
@@ -198,7 +213,7 @@ export default function DriverDocumentsPage() {
             <div className="flex flex-col gap-6">
                 <PageHeader title="Mes Documents" />
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Array.from({length: 8}).map((_, i) => <Skeleton key={i} className="h-64 w-full" />)}
+                    {Array.from({length: 8}).map((_, i) => <Skeleton key={i} className="h-72 w-full" />)}
                 </div>
             </div>
         )
@@ -215,26 +230,33 @@ export default function DriverDocumentsPage() {
                 <DialogContent>
                     <form onSubmit={handleSubmit(handleFileUpload)}>
                         <DialogHeader>
-                            <DialogTitle>Téléverser: {selectedDocRequirement?.name}</DialogTitle>
+                            <DialogTitle>Mettre à jour: {selectedDocRequirement?.name}</DialogTitle>
                             <DialogDescription>{selectedDocRequirement?.description}</DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4 py-4">
-                            <div>
-                                <Label htmlFor="file" className="sr-only">Fichier</Label>
-                                <Input id="file" type="file" {...register("file")} accept="image/*,application/pdf" />
-                                {errors.file && <p className="text-destructive text-xs mt-1">{errors.file.message}</p>}
-                            </div>
-                            {watchedFile?.[0] && (
-                                <div className="text-center p-4 border rounded-md">
-                                    <FileCheck2 className="h-16 w-16 mx-auto text-muted-foreground" />
-                                    <p className="text-sm text-muted-foreground mt-2 truncate">{watchedFile[0].name}</p>
+                             <div className={cn("grid gap-4", selectedDocRequirement?.hasVerso ? "grid-cols-2" : "grid-cols-1")}>
+                                <div className="space-y-2">
+                                    <Label htmlFor="fileRecto" className="text-xs">{selectedDocRequirement?.hasVerso ? 'Recto' : 'Fichier'}</Label>
+                                    <Input id="fileRecto" type="file" {...register("fileRecto")} accept="image/*,application/pdf" />
+                                </div>
+                                {selectedDocRequirement?.hasVerso && (
+                                   <div className="space-y-2">
+                                        <Label htmlFor="fileVerso" className="text-xs">Verso</Label>
+                                        <Input id="fileVerso" type="file" {...register("fileVerso")} accept="image/*,application/pdf" />
+                                    </div>
+                                )}
+                             </div>
+                              {selectedDocRequirement?.hasExpirationDate && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="expirationDate">Date d'expiration</Label>
+                                    <Input id="expirationDate" type="date" {...register("expirationDate")} />
                                 </div>
                             )}
                         </div>
                         <DialogFooter>
                             <Button variant="outline" type="button" onClick={closeModal}>Annuler</Button>
                             <Button type="submit" disabled={isSubmitting}>
-                                {isSubmitting ? "Envoi..." : "Téléverser et soumettre"}
+                                {isSubmitting ? "Envoi..." : "Sauvegarder"}
                             </Button>
                         </DialogFooter>
                     </form>
