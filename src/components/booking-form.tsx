@@ -15,6 +15,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 export interface BookingDetails {
     pickup: string;
@@ -33,35 +41,43 @@ interface BookingFormProps {
 
 const specialLocationKeywords = ['gare', 'aéroport', 'aeroport', 'port'];
 
-const NumberSelector = ({ label, icon, value, onValueChange, min = 0 }: { label: string, icon: React.ReactNode, value: number, onValueChange: (value: number) => void, min?: number }) => (
-    <div className="flex items-center justify-between rounded-lg border p-2">
+const NumberSelect = ({
+    label,
+    icon,
+    value,
+    onValueChange,
+    max,
+    min = 0
+}: {
+    label: string;
+    icon: React.ReactNode;
+    value: number;
+    onValueChange: (value: number) => void;
+    max: number;
+    min?: number;
+}) => (
+    <div className="flex items-center rounded-lg border p-2 justify-between">
         <div className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-lg text-primary-foreground">
-               {icon}
+                {icon}
             </div>
             <Label className="font-semibold text-foreground">{label}</Label>
         </div>
-        <div className="flex items-center gap-2">
-            <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted"
-                onClick={() => onValueChange(Math.max(min, value - 1))}
-            >
-                <Minus className="h-4 w-4" />
-            </Button>
-            <span className="w-8 text-center font-bold text-lg text-foreground">{value}</span>
-            <Button
-                type="button"
-                size="icon"
-                variant="ghost"
-                className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted"
-                onClick={() => onValueChange(value + 1)}
-            >
-                <Plus className="h-4 w-4" />
-            </Button>
-        </div>
+        <Select
+            value={String(value)}
+            onValueChange={(val) => onValueChange(Number(val))}
+        >
+            <SelectTrigger className="w-[80px]">
+                <SelectValue placeholder={value} />
+            </SelectTrigger>
+            <SelectContent>
+                {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
+                    <SelectItem key={num} value={String(num)}>
+                        {num}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
     </div>
 );
 
@@ -177,20 +193,22 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
 
       {isSpecialLocation && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <NumberSelector 
-                  label="Passagers"
-                  icon={<Users className="h-5 w-5" />} 
-                  value={passengers}
-                  onValueChange={setPassengers}
-                  min={1}
-              />
-              <NumberSelector 
-                  label="Valises"
-                  icon={<Briefcase className="h-5 w-5" />} 
-                  value={suitcases}
-                  onValueChange={setSuitcases}
-                  min={0}
-              />
+               <NumberSelect
+                    label="Passagers"
+                    icon={<Users className="h-5 w-5" />}
+                    value={passengers}
+                    onValueChange={setPassengers}
+                    min={1}
+                    max={8}
+                />
+                <NumberSelect
+                    label="Valises"
+                    icon={<Briefcase className="h-5 w-5" />}
+                    value={suitcases}
+                    onValueChange={setSuitcases}
+                    min={0}
+                    max={10}
+                />
           </div>
       )}
 
