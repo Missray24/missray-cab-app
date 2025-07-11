@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
-import { ArrowRight, Users, Briefcase, Info, Backpack } from 'lucide-react';
+import { ArrowRight, Users, Briefcase, Info, Backpack, Milestone, Timer, MapPin } from 'lucide-react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { useLoadScript } from '@react-google-maps/api';
 
@@ -15,7 +15,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { db, auth } from '@/lib/firebase';
 import { type ServiceTier, type ReservationOption, reservationOptions, type SelectedOption } from '@/lib/types';
 import { RouteMap } from '@/components/route-map';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { AuthDialog } from '@/components/auth-dialog';
 import { calculatePrice } from '@/lib/pricing';
 import {
@@ -23,9 +22,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
 } from "@/components/ui/select";
-import { cn } from '@/lib/utils';
 import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
 
 interface RouteInfo {
@@ -186,6 +183,34 @@ function VehicleSelectionComponent() {
             isInteractive={false}
         />
 
+        {/* Top Itinerary Card */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-lg">
+            <Card className="shadow-lg">
+                <CardContent className="p-3 text-sm">
+                    {routeInfo ? (
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3 text-muted-foreground">
+                                <span className="flex items-center gap-1.5"><Milestone className="h-4 w-4" /> {routeInfo.distance}</span>
+                                <span className="flex items-center gap-1.5"><Timer className="h-4 w-4" /> {routeInfo.duration}</span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex items-center justify-center h-5">
+                            <Skeleton className="h-4 w-32" />
+                        </div>
+                    )}
+                    <div className="flex items-start gap-2 mt-2">
+                        <MapPin className="h-5 w-5 mt-0.5 text-primary" />
+                        <div className="w-full">
+                            <p className="font-medium truncate">{bookingDetails.pickup}</p>
+                            <p className="font-medium truncate text-muted-foreground">vers {bookingDetails.dropoff}</p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+
+        {/* Bottom Selection Panel */}
         <div className="absolute bottom-0 left-0 right-0">
              <Card className="m-2 max-w-2xl mx-auto rounded-xl shadow-2xl">
                  <CardHeader>
@@ -238,6 +263,7 @@ function VehicleSelectionComponent() {
                                         <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
                                             <div className="flex items-center gap-1"><Users className="h-3 w-3" />{tier.capacity.passengers}</div>
                                             <div className="flex items-center gap-1"><Briefcase className="h-3 w-3" />{tier.capacity.suitcases}</div>
+                                            <div className="flex items-center gap-1"><Backpack className="h-3 w-3" />{tier.capacity.backpacks || 0}</div>
                                         </div>
                                     </div>
                                     <div className="font-bold text-lg text-foreground whitespace-nowrap">
