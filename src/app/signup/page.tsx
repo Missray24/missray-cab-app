@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from "@/components/ui/checkbox";
 import { IntlTelInput, type IntlTelInputRef } from '@/components/ui/intl-tel-input';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
@@ -53,6 +54,9 @@ function SignupFormComponent() {
         .string()
         .min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
       confirmPassword: z.string(),
+      terms: z.boolean().refine((val) => val === true, {
+        message: "Vous devez accepter les conditions générales.",
+      }),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: 'Les mots de passe ne correspondent pas',
@@ -76,6 +80,7 @@ function SignupFormComponent() {
       email: '',
       password: '',
       confirmPassword: '',
+      terms: false,
     },
   });
 
@@ -289,6 +294,31 @@ function SignupFormComponent() {
                   </FormItem>
                 )}
               />
+              
+              <FormField
+                control={form.control}
+                name="terms"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-2">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        J'ai lu et j'accepte les{" "}
+                        <Link href="/terms" className="underline hover:text-primary">
+                          conditions générales d'utilisation
+                        </Link>
+                        .
+                      </FormLabel>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
 
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Création en cours...' : 'Créer mon compte'}
@@ -322,5 +352,3 @@ export default function SignupPage() {
         </Suspense>
     )
 }
-
-    

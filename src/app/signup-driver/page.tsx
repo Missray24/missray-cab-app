@@ -60,6 +60,9 @@ export default function SignupDriverPage() {
         .string()
         .min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
       confirmPassword: z.string(),
+      terms: z.boolean().refine((val) => val === true, {
+        message: "Vous devez accepter les conditions générales.",
+      }),
 
       // Step 2
       companyName: z.string().min(1, 'Le nom de la société est requis'),
@@ -96,6 +99,7 @@ export default function SignupDriverPage() {
       email: '',
       password: '',
       confirmPassword: '',
+      terms: false,
       companyName: '',
       companyAddress: '',
       siret: '',
@@ -196,6 +200,7 @@ export default function SignupDriverPage() {
       'email',
       'password',
       'confirmPassword',
+      'terms'
     ];
     const isValid = await form.trigger(fieldsToValidate);
     if (isValid) {
@@ -366,6 +371,30 @@ export default function SignupDriverPage() {
                         <FormMessage />
                         </FormItem>
                     )}
+                    />
+                     <FormField
+                        control={form.control}
+                        name="terms"
+                        render={({ field }) => (
+                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 pt-2">
+                            <FormControl>
+                            <Checkbox
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                            />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                            <FormLabel>
+                                J'ai lu et j'accepte les{" "}
+                                <Link href="/terms" className="underline hover:text-primary">
+                                conditions générales d'utilisation
+                                </Link>
+                                .
+                            </FormLabel>
+                            <FormMessage />
+                            </div>
+                        </FormItem>
+                        )}
                     />
                 </div>
               </div>
