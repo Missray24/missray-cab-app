@@ -64,7 +64,7 @@ const NumberSelect = ({
             value={String(value)}
             onValueChange={(val) => onValueChange(Number(val))}
         >
-            <SelectTrigger className="w-[80px]">
+            <SelectTrigger className="w-[80px] bg-background text-foreground">
                 <SelectValue placeholder={value} />
             </SelectTrigger>
             <SelectContent>
