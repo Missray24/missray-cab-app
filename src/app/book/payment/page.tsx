@@ -83,6 +83,8 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                     suitcases: bookingDetails.suitcases,
                     backpacks: bookingDetails.backpacks,
                     options: bookingDetails.options,
+                    distance: bookingDetails.distance,
+                    duration: bookingDetails.duration,
                 };
 
                 const docRef = await addDoc(collection(db, "reservations"), reservationData);

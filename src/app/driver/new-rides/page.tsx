@@ -6,7 +6,7 @@ import { collection, getDocs, query, where, doc, updateDoc } from "firebase/fire
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Users, Briefcase, Backpack, MapPin, Baby, Armchair, Dog } from "lucide-react";
+import { Users, Briefcase, Backpack, MapPin, Baby, Armchair, Dog, Milestone, Timer } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import type { Reservation, ReservationOption, ServiceTier, User } from "@/lib/ty
 import { db, auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { RouteMap } from "@/components/route-map";
 
 const optionIcons: Record<ReservationOption, React.ElementType> = {
     'Siège bébé': Baby,
@@ -113,41 +114,52 @@ export default function NewRidesPage() {
         <CardContent className="space-y-4">
             {loading ? (
                 Array.from({ length: 3 }).map((_, i) => (
-                    <Skeleton key={i} className="h-40 w-full" />
+                    <Skeleton key={i} className="h-48 w-full" />
                 ))
             ) : availableRides.length > 0 ? (
                 availableRides.map((ride) => {
                     const tier = serviceTiers.find(t => t.id === ride.serviceTierId);
                     return (
                         <Card key={ride.id} className="p-4">
-                            <div className="flex flex-col sm:flex-row gap-4 justify-between">
-                                <div className="space-y-3 flex-grow">
-                                    <div className="font-semibold">{format(new Date(ride.date), "EEEE d MMM yyyy 'à' HH:mm", { locale: fr })}</div>
-                                    <div className="flex items-start gap-2">
-                                        <MapPin className="h-5 w-5 mt-0.5 text-primary" />
-                                        <div className="text-sm">
-                                            <div className="font-medium">{ride.pickup}</div>
-                                            <div className="text-muted-foreground">vers {ride.dropoff}</div>
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                                        {tier && <Badge variant="outline">{tier.name}</Badge>}
-                                        {ride.passengers && <span className="flex items-center gap-1.5"><Users className="h-4 w-4" />{ride.passengers}</span>}
-                                        {ride.suitcases !== undefined && <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{ride.suitcases}</span>}
-                                        {ride.backpacks !== undefined && <span className="flex items-center gap-1.5"><Backpack className="h-4 w-4" />{ride.backpacks}</span>}
-                                    </div>
-                                    {ride.options && ride.options.length > 0 && (
-                                        <div className="flex flex-wrap gap-2">
-                                            {ride.options.map(option => {
-                                                const Icon = optionIcons[option.name];
-                                                return (<Badge key={option.name} variant="secondary" className="py-1"><Icon className="h-4 w-4 mr-2" />{option.name} {option.quantity > 1 && `x${option.quantity}`}</Badge>);
-                                            })}
-                                        </div>
-                                    )}
+                            <div className="space-y-3">
+                                <div className="aspect-video w-full rounded-md overflow-hidden border">
+                                    <RouteMap pickup={ride.pickup} dropoff={ride.dropoff} stops={ride.stops} isInteractive={false} />
                                 </div>
-                                <div className="flex-shrink-0 flex flex-col items-end justify-between gap-2">
-                                    <div className="text-lg font-bold text-primary">{ride.driverPayout.toFixed(2)}€</div>
-                                    <Button size="sm" onClick={() => handleAcceptRide(ride.id)}>Accepter</Button>
+                                <div className="flex flex-col sm:flex-row gap-4 justify-between">
+                                    <div className="space-y-3 flex-grow">
+                                        <div className="font-semibold">{format(new Date(ride.date), "EEEE d MMM yyyy 'à' HH:mm", { locale: fr })}</div>
+                                        <div className="flex items-center gap-2 text-sm">
+                                            <Milestone className="h-4 w-4 text-muted-foreground" />
+                                            <span>{ride.distance}</span>
+                                            <Timer className="h-4 w-4 text-muted-foreground ml-2" />
+                                            <span>{ride.duration}</span>
+                                        </div>
+                                        <div className="flex items-start gap-2">
+                                            <MapPin className="h-5 w-5 mt-0.5 text-primary" />
+                                            <div className="text-sm">
+                                                <div className="font-medium">{ride.pickup}</div>
+                                                <div className="text-muted-foreground">vers {ride.dropoff}</div>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                                            {tier && <Badge variant="outline">{tier.name}</Badge>}
+                                            {ride.passengers && <span className="flex items-center gap-1.5"><Users className="h-4 w-4" />{ride.passengers}</span>}
+                                            {ride.suitcases !== undefined && <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{ride.suitcases}</span>}
+                                            {ride.backpacks !== undefined && <span className="flex items-center gap-1.5"><Backpack className="h-4 w-4" />{ride.backpacks}</span>}
+                                        </div>
+                                        {ride.options && ride.options.length > 0 && (
+                                            <div className="flex flex-wrap gap-2">
+                                                {ride.options.map(option => {
+                                                    const Icon = optionIcons[option.name];
+                                                    return (<Badge key={option.name} variant="secondary" className="py-1"><Icon className="h-4 w-4 mr-2" />{option.name} {option.quantity > 1 && `x${option.quantity}`}</Badge>);
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex-shrink-0 flex flex-col items-end justify-between gap-2">
+                                        <div className="text-lg font-bold text-primary">{ride.driverPayout.toFixed(2)}€</div>
+                                        <Button size="sm" onClick={() => handleAcceptRide(ride.id)}>Accepter</Button>
+                                    </div>
                                 </div>
                             </div>
                         </Card>

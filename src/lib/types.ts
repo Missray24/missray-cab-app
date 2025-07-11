@@ -76,6 +76,8 @@ export interface Reservation {
   suitcases?: number;
   backpacks?: number;
   options?: SelectedOption[];
+  distance?: string;
+  duration?: string;
 }
 
 export type DocumentStatus = 'Pending' | 'Approved' | 'Rejected';
