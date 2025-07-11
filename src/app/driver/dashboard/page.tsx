@@ -289,7 +289,7 @@ export default function DriverDashboardPage() {
                                             {ride.options && ride.options.length > 0 && (
                                                 <div className="flex flex-wrap gap-2">
                                                     {ride.options.map(option => {
-                                                        const Icon = optionIcons[option.name];
+                                                        const Icon = optionIcons[option.name as ReservationOption];
                                                         return (<Badge key={option.name} variant="secondary" className="py-1"><Icon className="h-4 w-4 mr-2" />{option.name} {option.quantity > 1 && `x${option.quantity}`}</Badge>);
                                                     })}
                                                 </div>

@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview A flow for generating PDF invoices for reservations.
@@ -134,7 +135,7 @@ const generateInvoiceFlow = ai.defineFlow(
       // Table Row
       const rideDescription = `Course VTC du ${new Date(reservation.date).toLocaleDateString('fr-FR')} de "${reservation.pickup}" à "${reservation.dropoff}"`;
       const descriptionY = await drawText(page, rideDescription, { x: margin + 10, y: currentY, font, size: 10, maxWidth: width - margin * 4 - 150, lineHeight: 12 });
-      page.drawText(`${reservation.amount.toFixed(2)} €`, { x: width - margin - 150, y: currentY, font, size: 10 });
+      page.drawText(`${(reservation.totalAmount - reservation.vatAmount).toFixed(2)} €`, { x: width - margin - 150, y: currentY, font, size: 10 });
       page.drawText(`${reservation.totalAmount.toFixed(2)} €`, { x: width - margin - 70, y: currentY, font, size: 10 });
       currentY = descriptionY - 20;
 
@@ -144,10 +145,10 @@ const generateInvoiceFlow = ai.defineFlow(
       currentY -= 20;
 
       page.drawText('Sous-total HT:', { x: totalsX, y: currentY, font, size: 10 });
-      page.drawText(`${reservation.amount.toFixed(2)} €`, { x: width - margin - 70, y: currentY, font, size: 10 });
+      page.drawText(`${(reservation.totalAmount - reservation.vatAmount).toFixed(2)} €`, { x: width - margin - 70, y: currentY, font, size: 10 });
       currentY -= 15;
 
-      page.drawText('TVA (10%):', { x: totalsX, y: currentY, font, size: 10 });
+      page.drawText(`TVA (10%):`, { x: totalsX, y: currentY, font, size: 10 });
       page.drawText(`${reservation.vatAmount.toFixed(2)} €`, { x: width - margin - 70, y: currentY, font, size: 10 });
       currentY -= 20;
 
@@ -159,7 +160,7 @@ const generateInvoiceFlow = ai.defineFlow(
       page.drawLine({ start: {x: margin, y: footerY + 10}, end: {x: width - margin, y: footerY + 10}, thickness: 0.5 });
       const footerText = `${driverCompany?.name || driver.name} - ${driverCompany?.address || ''} - SIRET: ${driverCompany?.siret || 'N/A'}`;
       page.drawText(footerText, { x: margin, y: footerY - 10, font, size: 8, color: rgb(0.5, 0.5, 0.5) });
-      if (driverCompany?.isVatSubjected) {
+      if (driverCompany?.isVatSubjected === false) {
           page.drawText(`TVA non applicable, art. 293 B du CGI`, { x: margin, y: footerY - 22, font, size: 8, color: rgb(0.5, 0.5, 0.5) });
       }
 
