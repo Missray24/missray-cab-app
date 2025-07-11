@@ -5,9 +5,10 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { Trash2, PlusCircle, Car } from 'lucide-react';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Trash2, PlusCircle, Car, Upload, FileCheck2 } from 'lucide-react';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -28,17 +29,29 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/page-header";
-import { auth, db } from '@/lib/firebase';
+import { auth, db, storage } from '@/lib/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
-import { type User, type Vehicle } from '@/lib/types';
+import { type User, type Vehicle, requiredVehicleDocs } from '@/lib/types';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+
+const fileSchema = z.instanceof(FileList).refine(files => files && files.length > 0, 'Fichier requis.');
 
 const vehicleSchema = z.object({
     brand: z.string().min(1, "Marque requise"),
     model: z.string().min(1, "Modèle requis"),
     licensePlate: z.string().min(1, "Immatriculation requise"),
     registrationDate: z.string().min(1, "Date requise"),
+    ...Object.fromEntries(requiredVehicleDocs.map(doc => [doc.id, fileSchema]))
 });
+
 
 export default function DriverVehiclesPage() {
     const { toast } = useToast();
@@ -47,24 +60,27 @@ export default function DriverVehiclesPage() {
     const [vehicles, setVehicles] = useState<Vehicle[]>([]);
     const [isVehicleModalOpen, setIsVehicleModalOpen] = useState(false);
     const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
-    const { register: registerVehicle, handleSubmit: handleSubmitVehicle, reset: resetVehicle, formState: { errors: vehicleErrors } } = useForm<z.infer<typeof vehicleSchema>>({ resolver: zodResolver(vehicleSchema) });
+    const form = useForm<z.infer<typeof vehicleSchema>>({ resolver: zodResolver(vehicleSchema) });
+    const { register: registerVehicle, handleSubmit: handleSubmitVehicle, reset: resetVehicle, formState: { errors: vehicleErrors } } = form;
+    
+    const watchedFiles = form.watch(requiredVehicleDocs.map(d => d.id) as any);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-        if (currentUser) {
-            setLoading(true);
-            const usersRef = collection(db, "users");
-            const q = query(usersRef, where("uid", "==", currentUser.uid));
-            const querySnapshot = await getDocs(q);
-            if (!querySnapshot.empty) {
-                const userData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as User;
-                setUser(userData);
-                setVehicles(userData.driverProfile?.vehicles || []);
+            if (currentUser) {
+                setLoading(true);
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("uid", "==", currentUser.uid));
+                const querySnapshot = await getDocs(q);
+                if (!querySnapshot.empty) {
+                    const userData = { id: querySnapshot.docs[0].id, ...querySnapshot.docs[0].data() } as User;
+                    setUser(userData);
+                    setVehicles(userData.driverProfile?.vehicles || []);
+                }
+                setLoading(false);
+            } else {
+                setLoading(false);
             }
-            setLoading(false);
-        } else {
-            setLoading(false);
-        }
         });
         return () => unsubscribe();
     }, []);
@@ -83,6 +99,9 @@ export default function DriverVehiclesPage() {
 
     const handleVehicleSubmit = async (data: z.infer<typeof vehicleSchema>) => {
         if (!user) return;
+        
+        // TODO: Handle document upload for vehicles
+        
         let updatedVehicles: Vehicle[];
         if (editingVehicle) {
             updatedVehicles = vehicles.map(v => v.id === editingVehicle.id ? { ...v, ...data } : v);
@@ -107,7 +126,13 @@ export default function DriverVehiclesPage() {
   
     const openVehicleModal = (vehicle: Vehicle | null) => {
       setEditingVehicle(vehicle);
-      resetVehicle(vehicle || { brand: '', model: '', licensePlate: '', registrationDate: '' });
+      const defaultValues = vehicle ? {
+          brand: vehicle.brand,
+          model: vehicle.model,
+          licensePlate: vehicle.licensePlate,
+          registrationDate: vehicle.registrationDate
+      } : { brand: '', model: '', licensePlate: '', registrationDate: '' };
+      resetVehicle(defaultValues as any); // Type assertion to bypass doc fields
       setIsVehicleModalOpen(true);
     };
 
@@ -143,16 +168,44 @@ export default function DriverVehiclesPage() {
             </Card>
 
             <Dialog open={isVehicleModalOpen} onOpenChange={setIsVehicleModalOpen}>
-                <DialogContent><form onSubmit={handleSubmitVehicle(handleVehicleSubmit)}>
+                <DialogContent className="max-w-2xl"><Form {...form}>
+                <form onSubmit={handleSubmitVehicle(handleVehicleSubmit)}>
                 <DialogHeader><DialogTitle>{editingVehicle ? 'Modifier le véhicule' : 'Ajouter un véhicule'}</DialogTitle><DialogDescription>Remplissez les informations de votre véhicule.</DialogDescription></DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div><Label htmlFor="brand">Marque</Label><Input id="brand" {...registerVehicle("brand")} /><p className="text-destructive text-xs mt-1">{vehicleErrors.brand?.message}</p></div>
-                    <div><Label htmlFor="model">Modèle</Label><Input id="model" {...registerVehicle("model")} /><p className="text-destructive text-xs mt-1">{vehicleErrors.model?.message}</p></div>
-                    <div><Label htmlFor="licensePlate">Plaque d'immatriculation</Label><Input id="licensePlate" {...registerVehicle("licensePlate")} /><p className="text-destructive text-xs mt-1">{vehicleErrors.licensePlate?.message}</p></div>
-                    <div><Label htmlFor="registrationDate">Date de 1ère immatriculation</Label><Input id="registrationDate" type="date" {...registerVehicle("registrationDate")} /><p className="text-destructive text-xs mt-1">{vehicleErrors.registrationDate?.message}</p></div>
+                <div className="space-y-4 py-4 max-h-[70vh] overflow-y-auto p-1 pr-4">
+                    <FormField control={form.control} name="brand" render={({ field }) => (<FormItem><FormLabel>Marque</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="model" render={({ field }) => (<FormItem><FormLabel>Modèle</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="licensePlate" render={({ field }) => (<FormItem><FormLabel>Plaque</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem>)} />
+                    <FormField control={form.control} name="registrationDate" render={({ field }) => (<FormItem><FormLabel>Date d'immatriculation</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>)} />
+
+                    <h3 className="text-lg font-semibold pt-4 border-t mt-4">Documents du Véhicule</h3>
+
+                     {requiredVehicleDocs.map((doc, index) => {
+                       const fileList = watchedFiles[index];
+                       const isUploaded = fileList && fileList.length > 0;
+                       return (
+                            <FormField key={doc.id} control={form.control} name={doc.id as any} render={({ field }) => (
+                                <FormItem className="border p-4 rounded-md">
+                                    <div className="flex justify-between items-center">
+                                      <div>
+                                        <FormLabel>{doc.name}</FormLabel>
+                                        <p className="text-xs text-muted-foreground">{doc.description}</p>
+                                      </div>
+                                      <Button asChild variant={isUploaded ? "secondary" : "outline"} size="sm">
+                                        <label htmlFor={doc.id} className="cursor-pointer">
+                                          {isUploaded ? <FileCheck2 className="h-4 w-4 mr-2"/> : <Upload className="h-4 w-4 mr-2"/>}
+                                          {isUploaded ? "Changer" : "Choisir"}
+                                        </label>
+                                      </Button>
+                                    </div>
+                                    <FormControl><Input type="file" id={doc.id} className="hidden" accept="image/*,application/pdf" onChange={(e) => field.onChange(e.target.files)} /></FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )} />
+                       )
+                   })}
                 </div>
                 <DialogFooter><Button variant="outline" type="button" onClick={() => setIsVehicleModalOpen(false)}>Annuler</Button><Button type="submit">Sauvegarder</Button></DialogFooter>
-                </form></DialogContent>
+                </form></Form></DialogContent>
             </Dialog>
         </div>
     )

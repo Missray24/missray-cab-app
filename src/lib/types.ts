@@ -88,6 +88,32 @@ export interface DriverDocument {
   type: string;
 }
 
+export interface RequiredDriverDoc {
+    id: string;
+    name: string;
+    description: string;
+    type: 'personal' | 'vehicle';
+}
+
+export const requiredDriverDocs: RequiredDriverDoc[] = [
+    { id: 'id_card', name: "Carte d'identité", description: 'Recto/verso, en cours de validité', type: 'personal' },
+    { id: 'driving_license', name: 'Permis de conduire', description: 'Recto/verso, en cours de validité', type: 'personal' },
+    { id: 'profile_photo', name: 'Photo de profil', description: 'Photo claire et professionnelle', type: 'personal' },
+    { id: 'vtc_card', name: 'Carte VTC', description: 'Recto/verso, en cours de validité', type: 'personal' },
+    { id: 'kbis', name: 'KBIS / SIREN / INSEE', description: 'Document de moins de 3 mois', type: 'personal' },
+    { id: 'rc_pro', name: 'RC Professionnelle', description: 'Attestation en cours de validité', type: 'personal' },
+    { id: 'vtc_registry', name: "Inscription au registre VTC", description: 'Attestation en cours de validité', type: 'personal' },
+    { id: 'rib', name: 'RIB', description: 'Pour le versement de vos revenus', type: 'personal' },
+];
+
+export const requiredVehicleDocs: RequiredDriverDoc[] = [
+    { id: 'carte_grise', name: 'Carte grise', description: 'Certificat d\'immatriculation du véhicule', type: 'vehicle' },
+    { id: 'carte_verte', name: 'Carte verte', description: 'Attestation d\'assurance du véhicule', type: 'vehicle' },
+    { id: 'assurance_onereux', name: 'Assurance à titre onéreux', description: 'Transport de personnes', type: 'vehicle' },
+    { id: 'macaron_vtc', name: 'Macaron VTC', description: 'Vignette distinctive VTC', type: 'vehicle' },
+];
+
+
 export interface Vehicle {
     id: string;
     brand: string;
