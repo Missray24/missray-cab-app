@@ -60,7 +60,7 @@ const NumberSelect = ({
         value={String(value)}
         onValueChange={(val) => onValueChange(Number(val))}
     >
-        <SelectTrigger className="w-full bg-white">
+        <SelectTrigger className="w-full bg-white h-9">
             <div className="flex items-center gap-2">
                 <div className="text-primary">{icon}</div>
                 <SelectValue placeholder={placeholder} />
