@@ -18,7 +18,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { db, auth } from '@/lib/firebase';
-import type { ServiceTier, PaymentMethod, SelectedOption, ReservationStatus } from '@/lib/types';
+import type { ServiceTier, PaymentMethod, SelectedOption, ReservationStatus, User as AppUser } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY } from '@/lib/config';
 import { createPaymentIntent } from '@/ai/flows/create-payment-intent-flow';
@@ -36,6 +36,8 @@ interface CheckoutFormProps {
   tier: ServiceTier;
   user: User;
   finalPrice: number;
+  vatAmount: number;
+  totalAmount: number;
 }
 
 interface BookingDetails {
@@ -52,7 +54,7 @@ interface BookingDetails {
     options: SelectedOption[];
 }
 
-function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice }: CheckoutFormProps) {
+function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice, vatAmount, totalAmount }: CheckoutFormProps) {
     const stripe = useStripe();
     const elements = useElements();
     const { toast } = useToast();
@@ -90,8 +92,10 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                     stops: bookingDetails.stops,
                     status: initialStatus,
                     statusHistory: [{ status: initialStatus, timestamp: new Date().toLocaleString('fr-FR') }],
-                    amount: finalPrice,
-                    driverPayout: finalPrice * 0.8, // Assuming 20% commission
+                    amount: finalPrice, // Subtotal (HT)
+                    vatAmount: vatAmount,
+                    totalAmount: totalAmount,
+                    driverPayout: finalPrice * 0.8, // Assuming 20% commission on the subtotal
                     paymentMethod,
                     serviceTierId: tier.id,
                     stripePaymentId: stripePaymentId || null,
@@ -105,7 +109,6 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
 
                 const docRef = await addDoc(collection(db, "reservations"), reservationData);
                 
-                // Send confirmation email only for scheduled rides, as immediate rides have a different flow
                 if (!isImmediate) {
                     await sendEmail({
                         type: 'new_reservation_client',
@@ -116,7 +119,7 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                             date: format(reservationDate, "EEEE d MMMM yyyy 'à' HH:mm", { locale: fr }),
                             pickup: reservationData.pickup,
                             dropoff: reservationData.dropoff,
-                            amount: reservationData.amount,
+                            amount: reservationData.totalAmount, // Send total amount in email
                             paymentMethod: reservationData.paymentMethod,
                             tierName: tier.name,
                             passengers: tier.capacity.passengers,
@@ -182,7 +185,7 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                 </RadioGroup>
             </div>
             <Button type="submit" className="w-full text-lg" size="lg" disabled={isSubmitting || (paymentMethod === 'Carte' && !stripe)}>
-                {isSubmitting ? 'Confirmation en cours...' : 'Confirmer et Réserver'}
+                {isSubmitting ? 'Confirmation en cours...' : `Confirmer et Payer ${totalAmount.toFixed(2)}€`}
             </Button>
         </form>
     )
@@ -197,7 +200,10 @@ function PaymentComponent() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  
   const [finalPrice, setFinalPrice] = useState<number>(0);
+  const [vatAmount, setVatAmount] = useState<number>(0);
+  const [totalAmount, setTotalAmount] = useState<number>(0);
   
   const bookingDetails = useMemo<BookingDetails | null>(() => {
     const pickup = searchParams.get('pickup');
@@ -249,9 +255,17 @@ function PaymentComponent() {
       try {
         const tierDocRef = doc(db, "serviceTiers", bookingDetails.tierId);
         const tierDocSnap = await getDoc(tierDocRef);
+        
         if (tierDocSnap.exists()) {
           const tierData = { id: tierDocSnap.id, ...tierDocSnap.data() } as ServiceTier;
           setTier(tierData);
+          
+          // Note: In a real scenario, driver assignment might happen before payment.
+          // For now, we assume no VAT for estimation as the driver is not yet known.
+          // A more complex implementation would fetch an available driver, check their VAT status, and then calculate.
+          // Let's simulate a scenario where we can't determine VAT status yet.
+          const isVatSubjected = false; // Placeholder
+          const vatRate = isVatSubjected ? 0.10 : 0;
 
           const calculatedPrice = calculatePrice(
             tierData,
@@ -260,9 +274,15 @@ function PaymentComponent() {
             bookingDetails.stops.length,
             bookingDetails.options
           );
-          setFinalPrice(calculatedPrice);
+          
+          const currentVat = calculatedPrice * vatRate;
+          const currentTotal = calculatedPrice + currentVat;
 
-          const { clientSecret, error } = await createPaymentIntent({ amount: Math.round(calculatedPrice * 100), currency: 'eur' });
+          setFinalPrice(calculatedPrice);
+          setVatAmount(currentVat);
+          setTotalAmount(currentTotal);
+
+          const { clientSecret, error } = await createPaymentIntent({ amount: Math.round(currentTotal * 100), currency: 'eur' });
           if (clientSecret) {
             setClientSecret(clientSecret);
           } else {
@@ -362,9 +382,22 @@ function PaymentComponent() {
                             </div>
                         </div>
                         <Separator />
+                         <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                                <p>Sous-total (HT)</p>
+                                <p>{finalPrice.toFixed(2)}€</p>
+                            </div>
+                             {vatAmount > 0 && (
+                                <div className="flex justify-between">
+                                    <p>TVA (10%)</p>
+                                    <p>{vatAmount.toFixed(2)}€</p>
+                                </div>
+                            )}
+                        </div>
+                        <Separator />
                         <div className="flex justify-between items-center">
-                            <p className="text-sm font-medium">Prix estimé</p>
-                            <p className="font-bold text-xl">{finalPrice.toFixed(2)}€</p>
+                            <p className="text-sm font-medium">Total à payer</p>
+                            <p className="font-bold text-xl">{totalAmount.toFixed(2)}€</p>
                         </div>
                     </div>
                     {stripePromise && clientSecret ? (
@@ -375,6 +408,8 @@ function PaymentComponent() {
                                 tier={tier} 
                                 user={user}
                                 finalPrice={finalPrice}
+                                vatAmount={vatAmount}
+                                totalAmount={totalAmount}
                             />
                         </Elements>
                     ) : (

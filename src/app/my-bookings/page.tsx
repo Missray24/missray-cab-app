@@ -263,7 +263,7 @@ function MyBookingsComponent() {
                           <p className="font-semibold text-muted-foreground truncate w-full">vers {res.dropoff}</p>
                         </div>
                         <div className="flex flex-col sm:items-end text-left sm:text-right justify-center">
-                          <p className="font-bold text-lg">{res.amount.toFixed(2)}€</p>
+                          <p className="font-bold text-lg">{res.totalAmount.toFixed(2)}€</p>
                           <p className="text-xs text-muted-foreground">{res.paymentMethod}</p>
                         </div>
                       </div>

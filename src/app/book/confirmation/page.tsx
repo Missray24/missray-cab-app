@@ -349,7 +349,7 @@ function ConfirmationComponent() {
                     )}
                     <div className="flex items-center gap-3">
                         <span className="font-bold text-foreground">Paiement:</span>
-                        <p className="font-bold text-foreground">{reservation.amount.toFixed(2)}€ ({reservation.paymentMethod})</p>
+                        <p className="font-bold text-foreground">{reservation.totalAmount.toFixed(2)}€ ({reservation.paymentMethod})</p>
                     </div>
                 </div>
                 

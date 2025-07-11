@@ -68,7 +68,9 @@ export interface Reservation {
   stops: string[];
   status: ReservationStatus;
   statusHistory: StatusHistory[];
-  amount: number;
+  amount: number; // This will now represent the subtotal (HT)
+  vatAmount: number; // VAT amount
+  totalAmount: number; // Total price (TTC)
   driverPayout: number;
   paymentMethod: PaymentMethod;
   serviceTierId: string;
