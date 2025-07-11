@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import { MoreHorizontal } from "lucide-react";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, query, where, getDocs as getFirestoreDocs, orderBy, limit } from "firebase/firestore";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,12 +30,16 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { User } from "@/lib/types";
+import type { User, Reservation } from "@/lib/types";
 import { db } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
+import { generateCommissionInvoice } from "@/ai/flows/generate-commission-invoice-flow";
 
 export default function DriverEarningsPage() {
   const [drivers, setDrivers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+  const [isGenerating, setIsGenerating] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDrivers = async () => {
@@ -58,6 +62,54 @@ export default function DriverEarningsPage() {
 
     fetchDrivers();
   }, []);
+
+  const handleGenerateReport = async (driverId: string) => {
+    setIsGenerating(driverId);
+    try {
+      // For now, let's generate a commission invoice for the driver's *last completed* ride.
+      const reservationsRef = collection(db, "reservations");
+      const q = query(
+        reservationsRef,
+        where("driverId", "==", driverId),
+        where("status", "==", "Terminée"),
+        orderBy("date", "desc"),
+        limit(1)
+      );
+
+      const reservationSnapshot = await getFirestoreDocs(q);
+      if (reservationSnapshot.empty) {
+        toast({
+          variant: 'destructive',
+          title: "Aucune course terminée",
+          description: "Ce chauffeur n'a pas encore de course terminée pour générer une facture de commission."
+        });
+        return;
+      }
+      
+      const reservationId = reservationSnapshot.docs[0].id;
+
+      const { pdfBase64, error } = await generateCommissionInvoice({ driverId, reservationId });
+
+      if (error || !pdfBase64) {
+        throw new Error(error || 'La génération de la facture de commission a échoué.');
+      }
+      
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${pdfBase64}`;
+      link.download = `facture-commission-COMM-${reservationId.substring(0, 6).toUpperCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({ title: "Succès", description: "La facture de commission a été téléchargée." });
+
+    } catch (e: any) {
+      console.error('Commission invoice generation failed:', e);
+      toast({ variant: 'destructive', title: 'Erreur', description: e.message || "Impossible de générer le rapport." });
+    } finally {
+      setIsGenerating(null);
+    }
+  };
 
 
   return (
@@ -120,7 +172,7 @@ export default function DriverEarningsPage() {
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <Button aria-haspopup="true" size="icon" variant="ghost" disabled={isGenerating === driver.id}>
                               <MoreHorizontal className="h-4 w-4" />
                               <span className="sr-only">Toggle menu</span>
                             </Button>
@@ -128,7 +180,9 @@ export default function DriverEarningsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem>Voir le détail</DropdownMenuItem>
-                            <DropdownMenuItem>Générer un rapport</DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleGenerateReport(driver.id)}>
+                                {isGenerating === driver.id ? "Génération..." : "Générer un rapport"}
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

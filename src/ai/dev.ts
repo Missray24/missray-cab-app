@@ -2,3 +2,4 @@
 import './flows/send-email-flow';
 import './flows/create-payment-intent-flow';
 import './flows/generate-invoice-flow';
+import './flows/generate-commission-invoice-flow';
