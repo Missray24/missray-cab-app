@@ -40,8 +40,7 @@ import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { auth, db, storage } from '@/lib/firebase';
-import { sendEmail } from '@/ai/flows/send-email-flow';
-import { requiredDriverDocs, type RequiredDriverDoc } from '@/lib/types';
+import { requiredDriverDocs } from '@/lib/types';
 
 const fileRefine = (files: FileList | undefined) => files && files.length > 0;
 
@@ -122,8 +121,8 @@ export default function SignupDriverPage() {
     },
   });
 
-  const uploadFile = async (file: File, userId: string): Promise<string> => {
-    const storageRef = ref(storage, `driver-documents/${userId}/${Date.now()}_${file.name}`);
+  const uploadFile = async (file: File, driverNamePath: string, docId: string): Promise<string> => {
+    const storageRef = ref(storage, `chauffeurs/${driverNamePath}/${docId}_${file.name}`);
     const snapshot = await uploadBytes(storageRef, file);
     return getDownloadURL(snapshot.ref);
   };
@@ -134,13 +133,15 @@ export default function SignupDriverPage() {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
       const user = userCredential.user;
+      
+      const driverNamePath = `${values.firstName}-${values.lastName}`.toLowerCase().replace(/\s+/g, '-');
 
       const uploadedDocuments = await Promise.all(
         requiredDriverDocs.map(async (doc) => {
           const file = (values as any)[doc.id]?.[0];
           if (file) {
-            const url = await uploadFile(file, user.uid);
-            return { name: doc.name, type: doc.type, url, status: 'Pending' as const };
+            const url = await uploadFile(file, driverNamePath, doc.id);
+            return { id: doc.id, name: doc.name, type: doc.type, url, status: 'Pending' as const };
           }
           return null;
         })

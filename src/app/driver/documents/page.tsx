@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Upload, FileCheck2, CheckCircle, XCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { Upload, FileCheck2, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 
 import { Button } from "@/components/ui/button";
@@ -91,7 +91,8 @@ export default function DriverDocumentsPage() {
         if (!user || !selectedDocRequirement || !data.file) return;
         
         const file = data.file[0];
-        const storageRef = ref(storage, `driver-documents/${user.uid}/${selectedDocRequirement.id}_${Date.now()}_${file.name}`);
+        const driverNamePath = `${user.firstName}-${user.lastName}`.toLowerCase().replace(/\s+/g, '-');
+        const storageRef = ref(storage, `chauffeurs/${driverNamePath}/${selectedDocRequirement.id}_${file.name}`);
         
         try {
             const snapshot = await uploadBytes(storageRef, file);
