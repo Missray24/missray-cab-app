@@ -2,22 +2,21 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { GoogleMap, DirectionsRenderer, MarkerF, useLoadScript } from '@react-google-maps/api';
+import { GoogleMap, DirectionsRenderer, MarkerF } from '@react-google-maps/api';
 import { Skeleton } from './ui/skeleton';
 
 interface RouteMapProps {
-  apiKey: string;
   pickup: string;
   dropoff: string;
   stops?: string[];
   onRouteInfoFetched?: (info: { distance: string; duration: string }) => void;
   isInteractive?: boolean;
+  isLoaded: boolean;
+  loadError?: Error;
 }
 
 const mapContainerStyle = { height: '100%', width: '100%' };
 const center = { lat: 48.8566, lng: 2.3522 }; // Paris
-
-const libraries = ['places', 'drawing'] as any;
 
 // Function to generate numbered marker icons
 const createNumberedIcon = (number: number) => {
@@ -28,19 +27,14 @@ const createNumberedIcon = (number: number) => {
 };
 
 export function RouteMap({ 
-    apiKey,
     pickup, 
     dropoff, 
     stops = [], 
     onRouteInfoFetched, 
     isInteractive = true, 
+    isLoaded,
+    loadError,
 }: RouteMapProps) {
-
-  const { isLoaded, loadError } = useLoadScript({
-      googleMapsApiKey: apiKey,
-      libraries,
-  });
-  
   const mapRef = useRef<google.maps.Map | null>(null);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(true);
