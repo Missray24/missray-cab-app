@@ -96,30 +96,30 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
   
   const handleAuthSuccess = () => {
     // After login/signup, redirect to the payment page with booking details
-    if (!bookingDetails) {
-        router.push('/');
-        return;
-    }
     const params = new URLSearchParams();
-    params.set('pickup', bookingDetails.pickup);
-    params.set('dropoff', bookingDetails.dropoff);
-    bookingDetails.stops.forEach(s => params.append('stop', s));
-    if (bookingDetails.scheduledTime) {
-      params.set('scheduledTime', bookingDetails.scheduledTime.toISOString());
-    }
-    params.set('tierId', bookingDetails.tierId);
-    if (bookingDetails.routeInfo) {
-      params.set('distance', bookingDetails.routeInfo.distance);
-      params.set('duration', bookingDetails.routeInfo.duration);
-    }
-    if (bookingDetails.passengers) params.set('passengers', String(bookingDetails.passengers));
-    if (bookingDetails.suitcases) params.set('suitcases', String(bookingDetails.suitcases));
-    if (bookingDetails.backpacks) params.set('backpacks', String(bookingDetails.backpacks));
-    if (bookingDetails.options && bookingDetails.options.length > 0) {
-        params.set('options', JSON.stringify(bookingDetails.options));
+    if (bookingDetails) {
+        params.set('pickup', bookingDetails.pickup);
+        params.set('dropoff', bookingDetails.dropoff);
+        bookingDetails.stops.forEach(s => params.append('stop', s));
+        if (bookingDetails.scheduledTime) {
+          params.set('scheduledTime', bookingDetails.scheduledTime.toISOString());
+        }
+        params.set('tierId', bookingDetails.tierId);
+        if (bookingDetails.routeInfo) {
+          params.set('distance', bookingDetails.routeInfo.distance);
+          params.set('duration', bookingDetails.routeInfo.duration);
+        }
+        if (bookingDetails.passengers) params.set('passengers', String(bookingDetails.passengers));
+        if (bookingDetails.suitcases) params.set('suitcases', String(bookingDetails.suitcases));
+        if (bookingDetails.backpacks) params.set('backpacks', String(bookingDetails.backpacks));
+        if (bookingDetails.options && bookingDetails.options.length > 0) {
+            params.set('options', JSON.stringify(bookingDetails.options));
+        }
+        router.push(`/book/payment?${params.toString()}`);
+    } else {
+        router.push('/');
     }
     
-    router.push(`/book/payment?${params.toString()}`);
     onOpenChange(false);
   }
 
