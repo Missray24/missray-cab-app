@@ -1,12 +1,14 @@
+
 'use client';
 
-import { Suspense } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
+import { Suspense, useEffect, useState } from 'react';
+import type { User } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
+import Head from 'next/head';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
-import { auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { auth } from '@/lib/firebase';
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -53,17 +55,15 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
+    <>
+      <Head>
           <link rel="manifest" href="/manifest-client.json" />
-      </head>
-      <body>
-        <Suspense>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </Suspense>
-      </body>
-    </html>
+      </Head>
+      <Suspense>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </Suspense>
+    </>
   );
 }
