@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit, Backpack, Baby, Armchair, Dog, Minus, Plus } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit, Backpack } from 'lucide-react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 
 import { LandingHeader } from '@/components/landing-header';
@@ -26,12 +26,54 @@ import { AuthDialog } from '@/components/auth-dialog';
 import { calculatePrice } from '@/lib/pricing';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 interface RouteInfo {
     distance: string;
     duration: string;
 }
+
+const NumberSelect = ({
+    value,
+    onValueChange,
+    max,
+    min = 0,
+    icon,
+    placeholder
+}: {
+    value: number | undefined;
+    onValueChange: (value: number) => void;
+    max: number;
+    min?: number;
+    icon: React.ReactNode;
+    placeholder: string;
+}) => (
+    <Select
+        value={value !== undefined ? String(value) : ""}
+        onValueChange={(val) => onValueChange(Number(val))}
+    >
+        <SelectTrigger className="h-9 bg-white w-full">
+             <div className="flex items-center gap-2">
+                <div className="text-primary">{icon}</div>
+                <SelectValue placeholder={placeholder} />
+            </div>
+        </SelectTrigger>
+        <SelectContent>
+            {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
+                <SelectItem key={num} value={String(num)}>
+                    {num}
+                </SelectItem>
+            ))}
+        </SelectContent>
+    </Select>
+);
 
 function VehicleSelectionComponent() {
   const searchParams = useSearchParams();
@@ -189,11 +231,18 @@ function VehicleSelectionComponent() {
   
   const handleOptionQuantityChange = (optionName: ReservationOption, newQuantity: number) => {
     setSelectedOptions(prev => {
-        const existingOption = prev.find(o => o.name === optionName);
-        if (existingOption) {
-            return prev.map(o => o.name === optionName ? { ...o, quantity: newQuantity } : o);
+        const existingOptionIndex = prev.findIndex(o => o.name === optionName);
+        if (newQuantity > 0) {
+            if (existingOptionIndex > -1) {
+                const newOptions = [...prev];
+                newOptions[existingOptionIndex] = { ...newOptions[existingOptionIndex], quantity: newQuantity };
+                return newOptions;
+            } else {
+                return [...prev, { name: optionName, quantity: newQuantity }];
+            }
+        } else {
+            return prev.filter(o => o.name !== optionName);
         }
-        return [...prev, { name: optionName, quantity: newQuantity }];
     });
   };
 
@@ -345,41 +394,21 @@ function VehicleSelectionComponent() {
                             <CardDescription>Sélectionnez les options dont vous avez besoin pour ce trajet.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                             <div className="grid grid-cols-3 gap-2">
                                 {reservationOptions.map((option) => {
                                     const selected = selectedOptions.find(o => o.name === option.name);
                                     const quantity = selected ? selected.quantity : 0;
-                                    const Icon = option.icon;
                                     
                                     return (
-                                        <div key={option.name} className={cn(
-                                            "rounded-lg border-2 p-4 text-center transition-colors",
-                                            quantity > 0 ? "border-primary bg-primary/10" : "border-muted"
-                                        )}>
-                                            <Icon className={cn("h-8 w-8 mx-auto", quantity > 0 ? "text-primary" : "text-muted-foreground")} />
-                                            <p className="font-semibold mt-2">{option.name}</p>
-                                            <div className="flex items-center justify-center gap-3 mt-3">
-                                                <Button 
-                                                  variant="outline" 
-                                                  size="icon" 
-                                                  className="h-7 w-7 rounded-full"
-                                                  onClick={() => handleOptionQuantityChange(option.name, Math.max(0, quantity - 1))}
-                                                  disabled={quantity === 0}
-                                                >
-                                                    <Minus className="h-4 w-4" />
-                                                </Button>
-                                                <span className="font-bold text-lg w-6 text-center">{quantity}</span>
-                                                <Button 
-                                                  variant="outline" 
-                                                  size="icon" 
-                                                  className="h-7 w-7 rounded-full"
-                                                  onClick={() => handleOptionQuantityChange(option.name, Math.min(3, quantity + 1))}
-                                                  disabled={quantity >= 3}
-                                                >
-                                                    <Plus className="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </div>
+                                        <NumberSelect
+                                            key={option.name}
+                                            icon={<option.icon className="h-4 w-4" />}
+                                            value={quantity}
+                                            onValueChange={(val) => handleOptionQuantityChange(option.name, val)}
+                                            min={0}
+                                            max={3}
+                                            placeholder={option.name}
+                                        />
                                     );
                                 })}
                             </div>
