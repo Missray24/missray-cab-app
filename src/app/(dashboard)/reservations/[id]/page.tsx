@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import { CheckCircle2, Car, MapPin, User, Star, Clock, Baby, Armchair, Dog } from 'lucide-react';
 import { doc, getDoc } from "firebase/firestore";
+import { useLoadScript } from '@react-google-maps/api';
 
 import { PageHeader } from '@/components/page-header';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -15,6 +16,9 @@ import type { Reservation, ReservationStatus, ServiceTier, ReservationOption } f
 import { cn } from '@/lib/utils';
 import { db } from '@/lib/firebase';
 import { RouteMap } from '@/components/route-map';
+import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
+
+const libraries = ['places'] as any;
 
 const getStatusIndex = (status: ReservationStatus) => {
   const normalFlow: ReservationStatus[] = [
@@ -49,6 +53,11 @@ export default function ReservationDetailsPage() {
   const [reservation, setReservation] = useState<Reservation | null | undefined>(undefined);
   const [tier, setTier] = useState<ServiceTier | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries,
+  });
 
   useEffect(() => {
     if (!params.id) return;
@@ -248,6 +257,9 @@ export default function ReservationDetailsPage() {
             </CardHeader>
             <CardContent className="h-[400px] md:h-full md:min-h-[300px] p-0 rounded-b-lg overflow-hidden">
                <RouteMap 
+                  isLoaded={isLoaded}
+                  loadError={loadError}
+                  apiKey={NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
                   pickup={reservation.pickup}
                   dropoff={reservation.dropoff}
                   stops={reservation.stops}

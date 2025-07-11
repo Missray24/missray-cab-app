@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
 import { ArrowRight, PlusCircle, X } from 'lucide-react';
+import { useLoadScript } from '@react-google-maps/api';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
@@ -35,6 +36,9 @@ import {
 import { cn } from '@/lib/utils';
 import { BookingForm, type BookingDetails } from '@/components/booking-form';
 import { sendEmail } from '@/ai/flows/send-email-flow';
+import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
+
+const libraries = ['places'] as any;
 
 function MyBookingsComponent() {
   const router = useRouter();
@@ -44,6 +48,11 @@ function MyBookingsComponent() {
   const [user, setUser] = useState<User | null>(null);
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [clientDetails, setClientDetails] = useState<{ id: string; name: string; email: string; } | null>(null);
+  
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries,
+  });
 
 
   const fetchReservations = async (currentUser: User) => {
@@ -212,6 +221,9 @@ function MyBookingsComponent() {
                       <div className="w-full md:w-48 lg:w-64 flex-shrink-0">
                           <div className="aspect-video rounded-md overflow-hidden border">
                               <RouteMap 
+                                isLoaded={isLoaded}
+                                loadError={loadError}
+                                apiKey={NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
                                 pickup={res.pickup}
                                 dropoff={res.dropoff}
                                 stops={res.stops || []}

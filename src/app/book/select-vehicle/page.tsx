@@ -344,6 +344,7 @@ function VehicleSelectionComponent() {
                                <RouteMap 
                                   isLoaded={isLoaded}
                                   loadError={loadError}
+                                  apiKey={NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
                                   pickup={bookingDetails.pickup}
                                   dropoff={bookingDetails.dropoff}
                                   stops={bookingDetails.stops.map(s => s.address)}

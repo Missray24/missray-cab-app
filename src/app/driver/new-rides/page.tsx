@@ -132,7 +132,15 @@ export default function NewRidesPage() {
                         <Card key={ride.id} className="p-4">
                             <div className="space-y-3">
                                 <div className="h-32 w-full rounded-md overflow-hidden border">
-                                    <RouteMap isLoaded={isLoaded} loadError={loadError} pickup={ride.pickup} dropoff={ride.dropoff} stops={ride.stops} isInteractive={false} />
+                                     <RouteMap 
+                                        isLoaded={isLoaded}
+                                        loadError={loadError}
+                                        apiKey={NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
+                                        pickup={ride.pickup} 
+                                        dropoff={ride.dropoff} 
+                                        stops={ride.stops} 
+                                        isInteractive={false} 
+                                    />
                                 </div>
                                 <div className="flex flex-col sm:flex-row gap-4 justify-between">
                                     <div className="space-y-3 flex-grow">
@@ -185,5 +193,3 @@ export default function NewRidesPage() {
     </div>
   );
 }
-
-    
