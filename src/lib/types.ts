@@ -4,10 +4,10 @@ import { Baby, Armchair, Dog, type LucideIcon } from "lucide-react";
 
 export type ReservationOption = 'Siège bébé' | 'Rehausseur' | 'Animal';
 
-export const reservationOptions: { name: ReservationOption, icon: LucideIcon }[] = [
-  { name: 'Siège bébé', icon: Baby },
-  { name: 'Rehausseur', icon: Armchair },
-  { name: 'Animal', icon: Dog },
+export const reservationOptions: { name: ReservationOption, icon: LucideIcon, price: number }[] = [
+  { name: 'Siège bébé', icon: Baby, price: 5 },
+  { name: 'Rehausseur', icon: Armchair, price: 5 },
+  { name: 'Animal', icon: Dog, price: 10 },
 ];
 
 export interface SelectedOption {

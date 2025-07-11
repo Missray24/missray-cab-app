@@ -19,7 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { db, auth } from '@/lib/firebase';
-import type { ServiceTier, PaymentMethod, ReservationOption, SelectedOption } from '@/lib/types';
+import type { ServiceTier, PaymentMethod, SelectedOption } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY } from '@/lib/config';
 import { createPaymentIntent } from '@/ai/flows/create-payment-intent-flow';
@@ -241,7 +241,8 @@ function PaymentComponent() {
             tierData,
             bookingDetails.distance,
             bookingDetails.duration,
-            bookingDetails.stops.length
+            bookingDetails.stops.length,
+            bookingDetails.options
           );
           setFinalPrice(calculatedPrice);
 

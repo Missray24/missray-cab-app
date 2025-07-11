@@ -178,6 +178,8 @@ function VehicleSelectionComponent() {
   
   const sortedAndPricedTiers = useMemo(() => {
     if (!routeInfo) return [];
+    
+    const activeOptions = selectedOptions.filter(opt => opt.quantity > 0);
 
     return filteredTiers
       .map(tier => {
@@ -185,12 +187,13 @@ function VehicleSelectionComponent() {
           tier,
           routeInfo.distance,
           routeInfo.duration,
-          bookingDetails?.stops.length || 0
+          bookingDetails?.stops.length || 0,
+          activeOptions
         );
         return { ...tier, estimatedPrice };
       })
       .sort((a, b) => a.estimatedPrice - b.estimatedPrice);
-  }, [filteredTiers, routeInfo, bookingDetails]);
+  }, [filteredTiers, routeInfo, bookingDetails?.stops.length, selectedOptions]);
 
   const handleUpdateTrip = (newDetails: BookingDetails) => {
     const queryParams = new URLSearchParams();
