@@ -342,6 +342,8 @@ function VehicleSelectionComponent() {
                         <CardContent className="grid gap-6">
                              <div className="h-64 rounded-lg overflow-hidden">
                                <RouteMap 
+                                  isLoaded={isLoaded}
+                                  loadError={loadError}
                                   pickup={bookingDetails.pickup}
                                   dropoff={bookingDetails.dropoff}
                                   stops={bookingDetails.stops.map(s => s.address)}
