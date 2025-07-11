@@ -56,26 +56,24 @@ const NumberSelect = ({
     min?: number;
     placeholder: string;
 }) => (
-    <div className="flex items-center gap-1">
-        <div className="text-primary shrink-0">
-            {icon}
-        </div>
-        <Select
-            value={String(value)}
-            onValueChange={(val) => onValueChange(Number(val))}
-        >
-            <SelectTrigger className="w-[80px] bg-white">
+    <Select
+        value={String(value)}
+        onValueChange={(val) => onValueChange(Number(val))}
+    >
+        <SelectTrigger className="w-full bg-white">
+            <div className="flex items-center gap-2">
+                <div className="text-primary">{icon}</div>
                 <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-                {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
-                    <SelectItem key={num} value={String(num)}>
-                        {num}
-                    </SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
-    </div>
+            </div>
+        </SelectTrigger>
+        <SelectContent>
+            {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
+                <SelectItem key={num} value={String(num)}>
+                    {num}
+                </SelectItem>
+            ))}
+        </SelectContent>
+    </Select>
 );
 
 
