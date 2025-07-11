@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { collection, getDocs, query, where, doc, updateDoc, writeBatch, Timestamp } from "firebase/firestore";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
+import { useLoadScript } from "@react-google-maps/api";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,6 +34,9 @@ import { fr } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RouteMap } from "@/components/route-map";
+import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from "@/lib/config";
+
+const libraries = ['places'] as any;
 
 const optionIcons: Record<ReservationOption, React.ElementType> = {
     'Siège bébé': Baby,
@@ -47,6 +51,12 @@ export default function DriverDashboardPage() {
   const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries,
+  });
+
 
   const fetchDriverAndRides = async (currentUser: FirebaseUser) => {
     setLoading(true);
@@ -202,7 +212,7 @@ export default function DriverDashboardPage() {
                             <Card key={ride.id} className="p-4">
                                 <div className="space-y-3">
                                     <div className="h-32 w-full rounded-md overflow-hidden border">
-                                        <RouteMap pickup={ride.pickup} dropoff={ride.dropoff} stops={ride.stops} isInteractive={false} />
+                                        <RouteMap isLoaded={isLoaded} loadError={loadError} pickup={ride.pickup} dropoff={ride.dropoff} stops={ride.stops} isInteractive={false} />
                                     </div>
                                     <div className="flex flex-col sm:flex-row gap-4 justify-between">
                                         <div className="space-y-3 flex-grow">
@@ -313,3 +323,5 @@ export default function DriverDashboardPage() {
     </div>
   );
 }
+
+    
