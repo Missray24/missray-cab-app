@@ -135,6 +135,7 @@ export default function NewRidesPage() {
                                      <RouteMap 
                                         isLoaded={isLoaded}
                                         loadError={loadError}
+                                        apiKey={NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
                                         pickup={ride.pickup} 
                                         dropoff={ride.dropoff} 
                                         stops={ride.stops} 
