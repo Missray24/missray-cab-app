@@ -46,26 +46,26 @@ const NumberSelect = ({
     value,
     onValueChange,
     max,
-    min = 0
+    min = 0,
+    placeholder
 }: {
     icon: React.ReactNode;
     value: number;
     onValueChange: (value: number) => void;
     max: number;
     min?: number;
+    placeholder: string;
 }) => (
-    <div className="flex w-full items-center rounded-lg border p-2 justify-between gap-2">
-        <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-lg text-primary-foreground">
-                {icon}
-            </div>
+    <div className="flex w-full items-center rounded-lg border p-2 justify-start gap-2">
+        <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-lg text-primary-foreground">
+            {icon}
         </div>
         <Select
             value={String(value)}
             onValueChange={(val) => onValueChange(Number(val))}
         >
-            <SelectTrigger className="w-[80px] bg-white text-black">
-                <SelectValue placeholder={value} />
+            <SelectTrigger className="w-full">
+                <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
                 {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
@@ -194,6 +194,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                     icon={<Users className="h-5 w-5" />}
                     value={passengers}
                     onValueChange={setPassengers}
+                    placeholder='Passagers'
                     min={1}
                     max={8}
                 />
@@ -201,6 +202,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                     icon={<Briefcase className="h-5 w-5" />}
                     value={suitcases}
                     onValueChange={setSuitcases}
+                    placeholder='Valises'
                     min={0}
                     max={10}
                 />
