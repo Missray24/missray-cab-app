@@ -1,22 +1,23 @@
 
-'use client';
-
-import { Suspense, useEffect, useState } from 'react';
-import type { User } from 'firebase/auth';
-import { onAuthStateChanged } from 'firebase/auth';
+import { Suspense, type ReactNode } from 'react';
+import { onAuthStateChanged, type User } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import type { Metadata } from 'next';
+import { useState, useEffect } from 'react';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { auth } from '@/lib/firebase';
 import { AppHeader } from '@/components/app-header';
+import type { Metadata } from 'next';
 
+// Export metadata from the server component layout.
 export const metadata: Metadata = {
   manifest: '/manifest-client.json',
 };
 
 // This AuthProvider is a client component that handles authentication checks.
-function AuthProvider({ children }: { children: React.ReactNode }) {
+function AuthProvider({ children }: { children: ReactNode }) {
+  'use client';
+
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -59,12 +60,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// AppLayout is now a client component that wraps the AuthProvider.
-// The metadata export is removed from here to prevent build errors.
+// AppLayout is the main Server Component for this route.
 export default function AppLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <Suspense>
