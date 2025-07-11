@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
-import { ArrowRight, Users, Briefcase, Info, Backpack, Milestone, Timer, MapPin, ChevronDown } from 'lucide-react';
+import { Users, Briefcase, Backpack, Milestone, Timer, MapPin, ChevronDown } from 'lucide-react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { useLoadScript } from '@react-google-maps/api';
 
@@ -176,21 +176,24 @@ function VehicleSelectionComponent() {
   }
 
   return (
-    <div className="relative h-full w-full">
-        <RouteMap 
-            isLoaded={isLoaded}
-            loadError={loadError}
-            apiKey={NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
-            pickup={bookingDetails.pickup}
-            dropoff={bookingDetails.dropoff}
-            stops={bookingDetails.stops}
-            onRouteInfoFetched={setRouteInfo}
-            isInteractive={false}
-        />
+    <div className="relative h-full w-full flex flex-col">
+        {/* Map takes up all available space */}
+        <div className="absolute inset-0">
+            <RouteMap 
+                isLoaded={isLoaded}
+                loadError={loadError}
+                apiKey={NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
+                pickup={bookingDetails.pickup}
+                dropoff={bookingDetails.dropoff}
+                stops={bookingDetails.stops}
+                onRouteInfoFetched={setRouteInfo}
+                isInteractive={false}
+            />
+        </div>
 
-        {/* Top Itinerary Card */}
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-lg">
-            <Card className="shadow-lg">
+        {/* Top Itinerary Card - flex-shrink: 0 so it doesn't get squashed */}
+        <div className="relative p-2 flex-shrink-0">
+            <Card className="shadow-lg max-w-lg mx-auto">
                 <CardContent className="p-3 text-sm">
                     {routeInfo ? (
                         <div className="flex items-center justify-between">
@@ -215,8 +218,11 @@ function VehicleSelectionComponent() {
             </Card>
         </div>
 
-        {/* Bottom Selection Panel */}
-        <div className="absolute bottom-0 left-0 right-0">
+        {/* Spacer to push bottom panel down */}
+        <div className="flex-grow"></div>
+
+        {/* Bottom Selection Panel - flex-shrink: 0 and contains its own scrolling */}
+        <div className="relative flex-shrink-0">
              <Card className="m-2 max-w-2xl mx-auto rounded-xl shadow-2xl">
                  <CardHeader>
                      <CardTitle>Choisissez votre véhicule</CardTitle>
@@ -258,7 +264,7 @@ function VehicleSelectionComponent() {
                             </div>
                         </CollapsibleContent>
                     </Collapsible>
-                    <div className="max-h-[35vh] overflow-y-auto pr-2 space-y-2">
+                    <div className="max-h-[30vh] overflow-y-auto pr-2 space-y-2">
                      {loading || !routeInfo || authLoading ? (
                         Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)
                       ) : (
