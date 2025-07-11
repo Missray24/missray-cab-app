@@ -37,7 +37,7 @@ function LoginComponent() {
     e.preventDefault();
     setIsLoading(true);
 
-    const bookingParams = searchParams.toString() ? '?' + searchParams.toString() : '';
+    const bookingParams = searchParams.toString();
 
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
@@ -54,6 +54,12 @@ function LoginComponent() {
       
       const userDoc = querySnapshot.docs[0].data();
       const userRole = userDoc.role;
+      
+      // If there are booking params in the URL, the user is in the middle of a booking flow.
+      if (bookingParams && userRole === 'client') {
+          router.push(`/book/payment?${bookingParams}`);
+          return;
+      }
 
       if (userRole === 'admin') {
         toast({ title: "Succès", description: "Connexion réussie. Redirection..." });
@@ -61,13 +67,9 @@ function LoginComponent() {
       } else if (userRole === 'driver') {
         toast({ title: "Succès", description: "Bienvenue sur votre espace chauffeur." });
         router.push('/driver/dashboard');
-      } else { // client
-        if(bookingParams) {
-          router.push(`/book/payment${bookingParams}`);
-        } else {
-           toast({ title: "Succès", description: "Connexion réussie." });
-           router.push('/my-bookings');
-        }
+      } else { // client (without booking in progress)
+        toast({ title: "Succès", description: "Connexion réussie." });
+        router.push('/my-bookings');
       }
 
     } catch (error: any) {
