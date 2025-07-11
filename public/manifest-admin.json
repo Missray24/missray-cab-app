@@ -1,0 +1,21 @@
+{
+  "name": "Missray Cab Admin",
+  "short_name": "Admin VTC",
+  "description": "Tableau de bord administrateur pour Missray Cab.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#223aff",
+  "icons": [
+    {
+      "src": "/icons/icon-admin-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-admin-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
