@@ -78,6 +78,9 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                     paymentMethod,
                     serviceTierId: tier.id,
                     stripePaymentId: stripePaymentId || null,
+                    passengers: bookingDetails.passengers,
+                    suitcases: bookingDetails.suitcases,
+                    carryOnLuggage: bookingDetails.carryOnLuggage,
                 };
 
                 const docRef = await addDoc(collection(db, "reservations"), reservationData);
@@ -174,10 +177,24 @@ const useBookingDetails = () => {
         const tierId = params.get('tierId');
         const distance = params.get('distance');
         const duration = params.get('duration');
+        const passengers = params.get('passengers');
+        const suitcases = params.get('suitcases');
+        const carryOnLuggage = params.get('carryOnLuggage');
 
         if (!pickup || !dropoff || !tierId) return null;
 
-        return { pickup, dropoff, stops, scheduledTime: scheduledTime ? new Date(scheduledTime) : null, tierId, distance, duration };
+        return { 
+            pickup, 
+            dropoff, 
+            stops, 
+            scheduledTime: scheduledTime ? new Date(scheduledTime) : null, 
+            tierId, 
+            distance, 
+            duration,
+            passengers: passengers ? parseInt(passengers) : undefined,
+            suitcases: suitcases ? parseInt(suitcases) : undefined,
+            carryOnLuggage: carryOnLuggage ? parseInt(carryOnLuggage) : undefined,
+        };
     }, [searchParams]);
 };
 

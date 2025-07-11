@@ -57,6 +57,9 @@ export interface Reservation {
   paymentMethod: PaymentMethod;
   serviceTierId: string;
   stripePaymentId?: string;
+  passengers?: number;
+  suitcases?: number;
+  carryOnLuggage?: number;
 }
 
 export type DocumentStatus = 'Pending' | 'Approved' | 'Rejected';
@@ -122,6 +125,7 @@ export interface ServiceTier {
   capacity: {
     passengers: number;
     suitcases: number;
+    carryOnLuggage?: number;
   };
 }
 
@@ -135,5 +139,3 @@ export interface Zone {
   minutesBeforeNoShow: number;
   polygon?: { lat: number; lng: number }[];
 }
-
-    

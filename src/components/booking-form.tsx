@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase, Crosshair } from 'lucide-react';
+import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase, Crosshair, Backpack } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -32,6 +32,7 @@ export interface BookingDetails {
     scheduledTime: Date | null;
     passengers?: number;
     suitcases?: number;
+    carryOnLuggage?: number;
 }
 
 interface BookingFormProps {
@@ -57,26 +58,24 @@ const NumberSelect = ({
     placeholder: string;
     icon: React.ReactNode;
 }) => (
-    <div className='flex items-center gap-1'>
-        <Select
-            value={String(value)}
-            onValueChange={(val) => onValueChange(Number(val))}
-        >
-            <SelectTrigger className="w-full h-9 bg-white">
-                 <div className="flex items-center gap-2">
-                    <div className="text-primary">{icon}</div>
-                    <SelectValue placeholder={placeholder} />
-                </div>
-            </SelectTrigger>
-            <SelectContent>
-                {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
-                    <SelectItem key={num} value={String(num)}>
-                        {num}
-                    </SelectItem>
-                ))}
-            </SelectContent>
-        </Select>
-    </div>
+    <Select
+        value={String(value)}
+        onValueChange={(val) => onValueChange(Number(val))}
+    >
+        <SelectTrigger className="w-full h-9 bg-white">
+             <div className="flex items-center gap-2">
+                <div className="text-primary">{icon}</div>
+                <SelectValue placeholder={placeholder} />
+            </div>
+        </SelectTrigger>
+        <SelectContent>
+            {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
+                <SelectItem key={num} value={String(num)}>
+                    {num}
+                </SelectItem>
+            ))}
+        </SelectContent>
+    </Select>
 );
 
 
@@ -93,6 +92,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
   const [isSpecialLocation, setIsSpecialLocation] = useState(false);
   const [passengers, setPassengers] = useState<number>(initialDetails.passengers || 1);
   const [suitcases, setSuitcases] = useState<number>(initialDetails.suitcases || 0);
+  const [carryOnLuggage, setCarryOnLuggage] = useState<number>(initialDetails.carryOnLuggage || 0);
 
   useEffect(() => {
     const checkSpecialLocation = (address: string) => 
@@ -172,7 +172,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
         dropoff: dropoffAddress,
         stops: stops.filter(s => s.address),
         scheduledTime: scheduledDateTime,
-        ...(isSpecialLocation && { passengers, suitcases })
+        ...(isSpecialLocation && { passengers, suitcases, carryOnLuggage })
     });
   }
 
@@ -230,7 +230,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
       </div>
 
       {isSpecialLocation && (
-          <div className="flex gap-4">
+          <div className="grid grid-cols-3 gap-2">
                <NumberSelect
                     icon={<Users className="h-4 w-4" />}
                     value={passengers}
@@ -244,6 +244,14 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                     value={suitcases}
                     onValueChange={setSuitcases}
                     placeholder='Valises'
+                    min={0}
+                    max={10}
+                />
+                <NumberSelect
+                    icon={<Backpack className="h-4 w-4" />}
+                    value={carryOnLuggage}
+                    onValueChange={setCarryOnLuggage}
+                    placeholder='Bagages à main'
                     min={0}
                     max={10}
                 />

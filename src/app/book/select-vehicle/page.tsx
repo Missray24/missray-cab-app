@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit, Backpack } from 'lucide-react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 
 import { LandingHeader } from '@/components/landing-header';
@@ -56,6 +56,7 @@ function VehicleSelectionComponent() {
     const scheduledTime = searchParams.get('scheduledTime');
     const passengers = searchParams.get('passengers');
     const suitcases = searchParams.get('suitcases');
+    const carryOnLuggage = searchParams.get('carryOnLuggage');
     
     if (!pickup || !dropoff) return null;
 
@@ -66,6 +67,7 @@ function VehicleSelectionComponent() {
       scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
       passengers: passengers ? parseInt(passengers) : undefined,
       suitcases: suitcases ? parseInt(suitcases) : undefined,
+      carryOnLuggage: carryOnLuggage ? parseInt(carryOnLuggage) : undefined,
     };
   }, [searchParams]);
   
@@ -114,10 +116,12 @@ function VehicleSelectionComponent() {
   useEffect(() => {
     if (!bookingDetails || allServiceTiers.length === 0) return;
 
-    const { passengers, suitcases } = bookingDetails;
-    if (passengers !== undefined && suitcases !== undefined) {
+    const { passengers, suitcases, carryOnLuggage } = bookingDetails;
+    if (passengers !== undefined && suitcases !== undefined && carryOnLuggage !== undefined) {
         const suitableTiers = allServiceTiers.filter(tier => 
-            tier.capacity.passengers >= passengers && tier.capacity.suitcases >= suitcases
+            tier.capacity.passengers >= passengers && 
+            tier.capacity.suitcases >= suitcases &&
+            (tier.capacity.carryOnLuggage === undefined || tier.capacity.carryOnLuggage >= carryOnLuggage)
         );
         setFilteredTiers(suitableTiers);
     } else {
@@ -138,6 +142,9 @@ function VehicleSelectionComponent() {
     }
     if (newDetails.suitcases) {
         queryParams.set('suitcases', String(newDetails.suitcases));
+    }
+    if (newDetails.carryOnLuggage) {
+        queryParams.set('carryOnLuggage', String(newDetails.carryOnLuggage));
     }
     router.replace(`/book/select-vehicle?${queryParams.toString()}`);
     setRouteInfo(null);
@@ -281,16 +288,19 @@ function VehicleSelectionComponent() {
                                         <p className="font-medium">{bookingDetails.dropoff}</p>
                                     </div>
                                 </div>
-                                {bookingDetails.passengers && (
+                                {(bookingDetails.passengers || bookingDetails.suitcases || bookingDetails.carryOnLuggage) && (
                                     <>
                                         <Separator />
-                                        <div className="flex items-center gap-4">
-                                            <Badge variant="secondary" className="text-base">
+                                        <div className="flex items-center gap-4 flex-wrap">
+                                            {bookingDetails.passengers && <Badge variant="secondary" className="text-base">
                                                 <Users className="h-4 w-4 mr-2" /> {bookingDetails.passengers}
-                                            </Badge>
-                                             <Badge variant="secondary" className="text-base">
+                                            </Badge>}
+                                            {bookingDetails.suitcases && <Badge variant="secondary" className="text-base">
                                                 <Briefcase className="h-4 w-4 mr-2" /> {bookingDetails.suitcases}
-                                            </Badge>
+                                            </Badge>}
+                                            {bookingDetails.carryOnLuggage && <Badge variant="secondary" className="text-base">
+                                                <Backpack className="h-4 w-4 mr-2" /> {bookingDetails.carryOnLuggage}
+                                            </Badge>}
                                         </div>
                                     </>
                                 )}
