@@ -44,7 +44,7 @@ import { auth, db } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
-  { href: '/driver-dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
+  { href: '/driver/dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
   { href: '/driver/reservations', icon: CalendarCheck, label: 'Mes Courses' },
   { href: '/driver/earnings', icon: TrendingUp, label: 'Mes Revenus' },
   { href: '/driver/vehicles', icon: Car, label: 'Mes Véhicules' },
@@ -123,7 +123,7 @@ function DriverLayoutContent({
     <>
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <Link href="/driver-dashboard" className="flex items-center gap-2">
+          <Link href="/driver/dashboard" className="flex items-center gap-2">
             <h2 className="text-lg font-headline font-semibold group-data-[state=collapsed]:hidden uppercase bg-gradient-to-r from-white/90 to-white/60 bg-clip-text text-transparent">
                 MISSRAY CAB
             </h2>
