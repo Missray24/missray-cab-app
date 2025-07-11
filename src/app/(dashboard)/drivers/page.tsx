@@ -5,6 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { MoreHorizontal, FileText, CheckCircle, XCircle, AlertCircle, CalendarIcon } from "lucide-react";
 import { collection, getDocs, addDoc, updateDoc, doc, query, where } from "firebase/firestore";
+import { format } from "date-fns";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -402,33 +403,35 @@ export default function DriversPage() {
                    {doc.expirationDate && (
                        <div className="text-xs text-muted-foreground flex items-center gap-2 pt-2">
                            <CalendarIcon className="h-4 w-4" />
-                           <span>Expire le: {new Date(doc.expirationDate).toLocaleDateString('fr-FR')}</span>
+                           <span>Expire le: {format(new Date(doc.expirationDate), 'dd/MM/yyyy')}</span>
                        </div>
                    )}
                  </CardHeader>
                 <CardContent className="flex-grow space-y-2">
-                  <div className="aspect-[4/3] w-full rounded-md overflow-hidden border">
-                    <Image
-                      src={doc.url}
-                      alt={`${doc.name} (Recto)`}
-                      data-ai-hint="official document"
-                      width={400}
-                      height={300}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  {doc.urlVerso && (
-                    <div className="aspect-[4/3] w-full rounded-md overflow-hidden border">
-                      <Image
-                        src={doc.urlVerso}
-                        alt={`${doc.name} (Verso)`}
-                        data-ai-hint="official document"
-                        width={400}
-                        height={300}
-                        className="h-full w-full object-cover"
-                      />
+                    <div className={cn("grid gap-2", doc.urlVerso ? "grid-cols-2" : "grid-cols-1")}>
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="aspect-[4/3] w-full rounded-md overflow-hidden border">
+                            <Image
+                            src={doc.url}
+                            alt={`${doc.name} (Recto)`}
+                            data-ai-hint="official document"
+                            width={400}
+                            height={300}
+                            className="h-full w-full object-cover"
+                            />
+                        </a>
+                        {doc.urlVerso && (
+                            <a href={doc.urlVerso} target="_blank" rel="noopener noreferrer" className="aspect-[4/3] w-full rounded-md overflow-hidden border">
+                                <Image
+                                    src={doc.urlVerso}
+                                    alt={`${doc.name} (Verso)`}
+                                    data-ai-hint="official document"
+                                    width={400}
+                                    height={300}
+                                    className="h-full w-full object-cover"
+                                />
+                            </a>
+                        )}
                     </div>
-                  )}
                 </CardContent>
                  <CardFooter className="gap-2">
                    <Button

@@ -7,8 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { onAuthStateChanged } from 'firebase/auth';
 import { collection, query, where, getDocs, doc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { Upload, FileCheck2, CheckCircle, XCircle, AlertCircle, CalendarIcon } from 'lucide-react';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { Upload, CheckCircle, XCircle, AlertCircle, CalendarIcon } from 'lucide-react';
 import Image from 'next/image';
 
 import { Button } from "@/components/ui/button";
@@ -16,9 +16,9 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -54,7 +54,7 @@ export default function DriverDocumentsPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedDocRequirement, setSelectedDocRequirement] = useState<RequiredDriverDoc | null>(null);
 
-    const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<FileUploadForm>({
+    const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<FileUploadForm>({
         resolver: zodResolver(fileUploadSchema)
     });
 
@@ -78,11 +78,11 @@ export default function DriverDocumentsPage() {
         return () => unsubscribe();
     }, []);
 
-    const updateUserDataInDb = async (dataToUpdate: object) => {
+    const updateUserDataInDb = async (newDocuments: DriverDocument[]) => {
         if (!user) return;
         try {
             const userRef = doc(db, "users", user.id);
-            await updateDoc(userRef, dataToUpdate);
+            await updateDoc(userRef, { 'driverProfile.documents': newDocuments });
         } catch (error) {
             console.error('Error updating user data:', error);
             throw new Error("Mise à jour échouée.");
@@ -110,17 +110,16 @@ export default function DriverDocumentsPage() {
                 urlVerso = await getDownloadURL(snapshot.ref);
             }
             
-            if (!urlRecto) {
-                toast({ variant: 'destructive', title: 'Erreur', description: 'Le fichier recto est manquant.'});
+            if (!urlRecto && !existingDoc) {
+                toast({ variant: 'destructive', title: 'Erreur', description: 'Le fichier recto est obligatoire.'});
                 return;
             }
 
             const updatedDoc: DriverDocument = {
-                ...(existingDoc || {}),
                 id: selectedDocRequirement.id,
                 name: selectedDocRequirement.name,
                 type: selectedDocRequirement.type,
-                url: urlRecto,
+                url: urlRecto!,
                 urlVerso: urlVerso,
                 expirationDate: data.expirationDate || existingDoc?.expirationDate,
                 status: 'Pending',
@@ -128,7 +127,7 @@ export default function DriverDocumentsPage() {
             
             const updatedDocuments = documents.filter(d => d.id !== selectedDocRequirement.id).concat(updatedDoc);
 
-            await updateUserDataInDb({ 'driverProfile.documents': updatedDocuments });
+            await updateUserDataInDb(updatedDocuments);
             setDocuments(updatedDocuments);
             toast({ title: 'Succès', description: 'Document mis à jour. Il est en attente de validation.' });
             closeModal();
@@ -142,7 +141,7 @@ export default function DriverDocumentsPage() {
         setSelectedDocRequirement(docRequirement);
         const existingDoc = documents.find(d => d.id === docRequirement.id);
         reset({
-            expirationDate: existingDoc?.expirationDate || ''
+            expirationDate: existingDoc?.expirationDate ? format(new Date(existingDoc.expirationDate), 'yyyy-MM-dd') : ''
         });
         setIsModalOpen(true);
     };
@@ -150,6 +149,7 @@ export default function DriverDocumentsPage() {
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedDocRequirement(null);
+        reset();
     };
 
     const renderDocumentCard = (docRequirement: RequiredDriverDoc) => {
@@ -173,13 +173,13 @@ export default function DriverDocumentsPage() {
                 <CardContent className="flex-grow flex flex-col items-center justify-center">
                     {uploadedDoc?.url ? (
                         <div className={cn("grid w-full gap-2", uploadedDoc.urlVerso ? "grid-cols-2" : "grid-cols-1")}>
-                            <div className="aspect-[4/3] w-full rounded-md overflow-hidden border relative">
+                            <a href={uploadedDoc.url} target="_blank" rel="noopener noreferrer" className="aspect-[4/3] w-full rounded-md overflow-hidden border relative block">
                                  <Image src={uploadedDoc.url} alt={`${uploadedDoc.name} Recto`} layout="fill" objectFit="cover" data-ai-hint="official document" />
-                            </div>
+                            </a>
                             {uploadedDoc.urlVerso && (
-                                <div className="aspect-[4/3] w-full rounded-md overflow-hidden border relative">
+                                <a href={uploadedDoc.urlVerso} target="_blank" rel="noopener noreferrer" className="aspect-[4/3] w-full rounded-md overflow-hidden border relative block">
                                     <Image src={uploadedDoc.urlVerso} alt={`${uploadedDoc.name} Verso`} layout="fill" objectFit="cover" data-ai-hint="official document" />
-                                </div>
+                                </a>
                             )}
                         </div>
                     ) : (
@@ -193,7 +193,7 @@ export default function DriverDocumentsPage() {
                     {uploadedDoc?.expirationDate && (
                         <div className="text-xs text-muted-foreground flex items-center gap-2 w-full justify-center">
                             <CalendarIcon className="h-3 w-3" />
-                            <span>Expire le: {new Date(uploadedDoc.expirationDate).toLocaleDateString('fr-FR')}</span>
+                            <span>Expire le: {format(new Date(uploadedDoc.expirationDate), 'dd/MM/yyyy')}</span>
                         </div>
                     )}
                      <Badge className={cn("capitalize w-full justify-center py-1", currentStatus.color)}>
@@ -212,8 +212,8 @@ export default function DriverDocumentsPage() {
         return (
             <div className="flex flex-col gap-6">
                 <PageHeader title="Mes Documents" />
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {Array.from({length: 8}).map((_, i) => <Skeleton key={i} className="h-72 w-full" />)}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {Array.from({length: 8}).map((_, i) => <Skeleton key={i} className="h-80 w-full" />)}
                 </div>
             </div>
         )
@@ -226,7 +226,7 @@ export default function DriverDocumentsPage() {
                 {requiredDriverDocs.map(docReq => renderDocumentCard(docReq))}
             </div>
 
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+            <Dialog open={isModalOpen} onOpenChange={closeModal}>
                 <DialogContent>
                     <form onSubmit={handleSubmit(handleFileUpload)}>
                         <DialogHeader>
@@ -236,12 +236,12 @@ export default function DriverDocumentsPage() {
                         <div className="space-y-4 py-4">
                              <div className={cn("grid gap-4", selectedDocRequirement?.hasVerso ? "grid-cols-2" : "grid-cols-1")}>
                                 <div className="space-y-2">
-                                    <Label htmlFor="fileRecto" className="text-xs">{selectedDocRequirement?.hasVerso ? 'Recto' : 'Fichier'}</Label>
+                                    <Label htmlFor="fileRecto" className="text-sm">{selectedDocRequirement?.hasVerso ? 'Fichier Recto' : 'Fichier'}</Label>
                                     <Input id="fileRecto" type="file" {...register("fileRecto")} accept="image/*,application/pdf" />
                                 </div>
                                 {selectedDocRequirement?.hasVerso && (
                                    <div className="space-y-2">
-                                        <Label htmlFor="fileVerso" className="text-xs">Verso</Label>
+                                        <Label htmlFor="fileVerso" className="text-sm">Fichier Verso</Label>
                                         <Input id="fileVerso" type="file" {...register("fileVerso")} accept="image/*,application/pdf" />
                                     </div>
                                 )}
