@@ -9,11 +9,6 @@ import { auth } from '@/lib/firebase';
 import { AppHeader } from '@/components/app-header';
 import type { Metadata } from 'next';
 
-// Export metadata from the server component layout.
-export const metadata: Metadata = {
-  manifest: '/manifest-client.json',
-};
-
 // This AuthProvider is a client component that handles authentication checks.
 function AuthProvider({ children }: { children: ReactNode }) {
   'use client';
