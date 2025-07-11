@@ -13,6 +13,8 @@ import {
   LogOut,
   TrendingUp,
   Settings,
+  Car,
+  FileText,
 } from 'lucide-react';
 
 import {
@@ -45,6 +47,8 @@ const navItems = [
   { href: '/driver-dashboard', icon: LayoutDashboard, label: 'Tableau de bord' },
   { href: '/driver/reservations', icon: CalendarCheck, label: 'Mes Courses' },
   { href: '/driver/earnings', icon: TrendingUp, label: 'Mes Revenus' },
+  { href: '/driver/vehicles', icon: Car, label: 'Mes Véhicules' },
+  { href: '/driver/documents', icon: FileText, label: 'Mes Documents' },
   { href: '/driver/settings', icon: Settings, label: 'Profil' },
 ];
 
