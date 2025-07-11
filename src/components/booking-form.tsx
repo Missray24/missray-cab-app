@@ -56,15 +56,15 @@ const NumberSelect = ({
     min?: number;
     placeholder: string;
 }) => (
-    <div className="flex w-full items-center rounded-lg border p-2 justify-start gap-2">
-        <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-lg text-primary-foreground">
+    <div className="flex w-full items-center rounded-lg border p-2 justify-start gap-1">
+        <div className="p-2 rounded-lg text-primary">
             {icon}
         </div>
         <Select
             value={String(value)}
             onValueChange={(val) => onValueChange(Number(val))}
         >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full bg-white">
                 <SelectValue placeholder={placeholder} />
             </SelectTrigger>
             <SelectContent>
