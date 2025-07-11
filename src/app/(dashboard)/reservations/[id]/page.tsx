@@ -45,7 +45,7 @@ const timelineSteps = [
 const optionIcons: Record<ReservationOption, React.ElementType> = {
     'Siège bébé': Baby,
     'Rehausseur': Armchair,
-    'Animal de compagnie': Dog,
+    'Animal': Dog,
 };
 
 export default function ReservationDetailsPage() {
@@ -218,7 +218,7 @@ export default function ReservationDetailsPage() {
                <div className="grid md:grid-cols-2 gap-4">
                  <div>
                    <p className="font-medium text-muted-foreground">Montant Total</p>
-                   <p className="font-medium">{reservation.amount.toFixed(2)}€ ({reservation.paymentMethod})</p>
+                   <p className="font-medium">{reservation.totalAmount.toFixed(2)}€ ({reservation.paymentMethod})</p>
                  </div>
                  <div>
                    <p className="font-medium text-muted-foreground">Paiement Chauffeur</p>

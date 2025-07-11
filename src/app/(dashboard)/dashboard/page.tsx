@@ -20,7 +20,7 @@ import {
   Car,
   MoreVertical,
 } from 'lucide-react';
-import { collection, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, limit, doc, updateDoc, where } from "firebase/firestore";
 
 import {
   Card,
@@ -43,6 +43,23 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -51,8 +68,9 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Reservation } from '@/lib/types';
+import { reservationStatuses, paymentMethods, type Reservation, type ReservationStatus, type PaymentMethod, type User, type ServiceTier } from '@/lib/types';
 import { db } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 const chartData = [
   { month: 'Jan', reservations: 186, revenue: 4230 },
@@ -74,32 +92,182 @@ const chartConfig = {
   },
 };
 
+const initialFormData = {
+  clientId: '',
+  driverId: '',
+  pickup: '',
+  dropoff: '',
+  serviceTierId: '',
+  amount: '',
+  driverPayout: '',
+  status: 'Nouvelle demande' as ReservationStatus,
+  paymentMethod: 'Carte' as PaymentMethod,
+};
+
+
 export default function DashboardPage() {
   const [recentReservations, setRecentReservations] = React.useState<Reservation[]>([]);
+  const [clients, setClients] = React.useState<User[]>([]);
+  const [drivers, setDrivers] = React.useState<User[]>([]);
+  const [serviceTiers, setServiceTiers] = React.useState<ServiceTier[]>([]);
   const [loading, setLoading] = React.useState(true);
-  
-  React.useEffect(() => {
-    const fetchRecentReservations = async () => {
-      try {
+  const [editingReservation, setEditingReservation] = React.useState<Reservation | null>(null);
+  const [editFormData, setEditFormData] = React.useState(initialFormData);
+  const { toast } = useToast();
+
+  const fetchData = async () => {
+    try {
+        setLoading(true);
         const reservationsRef = collection(db, "reservations");
         const q = query(reservationsRef, orderBy("date", "desc"), limit(5));
-        const querySnapshot = await getDocs(q);
-        const reservationsData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data(),
-        })) as Reservation[];
-        setRecentReservations(reservationsData);
+
+        const clientsQuery = query(collection(db, "users"), where("role", "==", "client"));
+        const driversQuery = query(collection(db, "users"), where("role", "==", "driver"));
+        
+        const [reservationsSnap, clientsSnap, tiersSnap, driversSnap] = await Promise.all([
+          getDocs(q),
+          getDocs(clientsQuery),
+          getDocs(collection(db, "serviceTiers")),
+          getDocs(driversQuery),
+        ]);
+        
+        setRecentReservations(reservationsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Reservation[]);
+        setClients(clientsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[]);
+        setServiceTiers(tiersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as ServiceTier[]);
+        setDrivers(driversSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as User[]);
+
       } catch (error) {
         console.error("Error fetching recent reservations: ", error);
+        toast({ variant: 'destructive', title: "Erreur", description: "Impossible de charger les données." });
       } finally {
         setLoading(false);
       }
-    };
-    
-    fetchRecentReservations();
+  };
+  
+  React.useEffect(() => {
+    fetchData();
   }, []);
 
+  React.useEffect(() => {
+    if (editingReservation) {
+      setEditFormData({
+        clientId: editingReservation.clientId,
+        driverId: editingReservation.driverId,
+        pickup: editingReservation.pickup,
+        dropoff: editingReservation.dropoff,
+        serviceTierId: editingReservation.serviceTierId,
+        amount: String(editingReservation.amount),
+        driverPayout: String(editingReservation.driverPayout),
+        status: editingReservation.status,
+        paymentMethod: editingReservation.paymentMethod,
+      });
+    }
+  }, [editingReservation]);
+  
+  const handleFormChange = (setter: React.Dispatch<React.SetStateAction<typeof initialFormData>>) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setter(prev => ({ ...prev, [e.target.id]: e.target.value }));
+  };
+
+  const handleSelectChange = (setter: React.Dispatch<React.SetStateAction<typeof initialFormData>>) => (id: string, value: string) => {
+    setter(prev => ({ ...prev, [id]: value }));
+  }
+
+  const handleSaveChanges = async () => {
+    if (!editingReservation) return;
+
+    const selectedClient = clients.find(c => c.id === editFormData.clientId);
+    const selectedDriver = drivers.find(d => d.id === editFormData.driverId);
+    if (!selectedClient || !selectedDriver) {
+        toast({ variant: 'destructive', title: "Erreur", description: "Client ou chauffeur invalide." });
+        return;
+    }
+    
+    try {
+        const updatedData = {
+          ...editingReservation,
+          ...editFormData,
+          clientName: selectedClient.name,
+          driverName: selectedDriver.name,
+          amount: parseFloat(editFormData.amount) || 0,
+          driverPayout: parseFloat(editFormData.driverPayout) || 0,
+        };
+        
+        const resRef = doc(db, "reservations", editingReservation.id);
+        await updateDoc(resRef, updatedData);
+
+        setRecentReservations(prev => prev.map(res => res.id === editingReservation.id ? updatedData : res));
+        setEditingReservation(null);
+        toast({ title: "Succès", description: "Réservation mise à jour." });
+    } catch(error) {
+        console.error("Error updating reservation: ", error);
+        toast({ variant: 'destructive', title: "Erreur", description: "Impossible de mettre à jour la réservation." });
+    }
+  };
+
+  const reservationForm = (formData: typeof initialFormData, formChangeHandler: any, selectChangeHandler: any) => (
+    <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-6">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="clientId">Client</Label>
+          <Select value={formData.clientId} onValueChange={(value) => selectChangeHandler('clientId', value)}>
+            <SelectTrigger id="clientId"><SelectValue placeholder="Sélectionner un client" /></SelectTrigger>
+            <SelectContent>{clients.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="driverId">Chauffeur</Label>
+          <Select value={formData.driverId} onValueChange={(value) => selectChangeHandler('driverId', value)}>
+            <SelectTrigger id="driverId"><SelectValue placeholder="Sélectionner un chauffeur" /></SelectTrigger>
+            <SelectContent>{drivers.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="pickup">Adresse de départ</Label>
+        <Input id="pickup" value={formData.pickup} onChange={formChangeHandler} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="dropoff">Adresse d'arrivée</Label>
+        <Input id="dropoff" value={formData.dropoff} onChange={formChangeHandler} />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="serviceTierId">Gamme</Label>
+        <Select value={formData.serviceTierId} onValueChange={(value) => selectChangeHandler('serviceTierId', value)}>
+          <SelectTrigger id="serviceTierId"><SelectValue placeholder="Sélectionner une gamme" /></SelectTrigger>
+          <SelectContent>{serviceTiers.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent>
+        </Select>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="status">Statut</Label>
+          <Select value={formData.status} onValueChange={(value) => selectChangeHandler('status', value)}>
+            <SelectTrigger id="status"><SelectValue placeholder="Sélectionner un statut" /></SelectTrigger>
+            <SelectContent>{reservationStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="paymentMethod">Moyen de paiement</Label>
+          <Select value={formData.paymentMethod} onValueChange={(value) => selectChangeHandler('paymentMethod', value)}>
+            <SelectTrigger id="paymentMethod"><SelectValue placeholder="Sélectionner un moyen de paiement" /></SelectTrigger>
+            <SelectContent>{paymentMethods.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+          </Select>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="amount">Prix Total (€)</Label>
+          <Input id="amount" type="number" value={formData.amount} onChange={formChangeHandler} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="driverPayout">Prix Chauffeur (€)</Label>
+          <Input id="driverPayout" type="number" value={formData.driverPayout} onChange={formChangeHandler} />
+        </div>
+      </div>
+    </div>
+  );
+
   return (
+    <>
     <div className="flex flex-col gap-6">
       <PageHeader title="Tableau de bord">
         <Button>Nouvelle Réservation</Button>
@@ -213,7 +381,7 @@ export default function DashboardPage() {
                     <TableCell>{reservation.date}</TableCell>
                     <TableCell>{reservation.paymentMethod}</TableCell>
                     <TableCell className="text-right">
-                      {reservation.amount.toFixed(2)}€
+                      {reservation.totalAmount.toFixed(2)}€
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>
@@ -226,7 +394,7 @@ export default function DashboardPage() {
                           <DropdownMenuItem asChild>
                             <Link href={`/reservations/${reservation.id}`}>Voir les détails</Link>
                           </DropdownMenuItem>
-                          <DropdownMenuItem>Modifier</DropdownMenuItem>
+                          <DropdownMenuItem onSelect={() => setEditingReservation(reservation)}>Modifier</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -294,5 +462,20 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
+
+    <Dialog open={!!editingReservation} onOpenChange={(isOpen) => !isOpen && setEditingReservation(null)}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Modifier la réservation</DialogTitle>
+            <DialogDescription>Mettez à jour les détails de la réservation ci-dessous.</DialogDescription>
+          </DialogHeader>
+          {reservationForm(editFormData, handleFormChange(setEditFormData), handleSelectChange(setEditFormData))}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingReservation(null)}>Annuler</Button>
+            <Button onClick={handleSaveChanges}>Sauvegarder</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
