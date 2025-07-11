@@ -54,7 +54,7 @@ const NumberSelect = ({
     max: number;
     min?: number;
 }) => (
-    <div className="flex w-full items-center rounded-lg border p-2 justify-between gap-2 bg-white">
+    <div className="flex w-full items-center rounded-lg border p-2 justify-between gap-2">
         <div className="flex items-center gap-2">
             <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-lg text-primary-foreground">
                 {icon}
