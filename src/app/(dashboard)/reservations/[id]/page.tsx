@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { notFound, useParams } from 'next/navigation';
-import { CheckCircle2, Car, MapPin, User, Star, Clock, Baby, Armchair, Dog } from 'lucide-react';
+import { CheckCircle2, Car, MapPin, User, Star, Clock, Baby, Armchair, Dog, Download } from 'lucide-react';
 import { doc, getDoc } from "firebase/firestore";
 import { useLoadScript } from '@react-google-maps/api';
 
@@ -17,6 +17,9 @@ import { cn } from '@/lib/utils';
 import { db } from '@/lib/firebase';
 import { RouteMap } from '@/components/route-map';
 import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
+import { Button } from '@/components/ui/button';
+import { generateInvoice } from '@/ai/flows/generate-invoice-flow';
+import { useToast } from '@/hooks/use-toast';
 
 const libraries = ['places'] as any;
 
@@ -53,6 +56,8 @@ export default function ReservationDetailsPage() {
   const [reservation, setReservation] = useState<Reservation | null | undefined>(undefined);
   const [tier, setTier] = useState<ServiceTier | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isGeneratingInvoice, setIsGeneratingInvoice] = useState(false);
+  const { toast } = useToast();
 
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -92,6 +97,33 @@ export default function ReservationDetailsPage() {
     fetchReservation();
   }, [params.id]);
 
+  const handleDownloadInvoice = async () => {
+    if (!reservation) return;
+    setIsGeneratingInvoice(true);
+    try {
+      const { pdfBase64, error } = await generateInvoice({ reservationId: reservation.id });
+      if (error || !pdfBase64) {
+        throw new Error(error || 'La génération du PDF a échoué.');
+      }
+      
+      const link = document.createElement('a');
+      link.href = `data:application/pdf;base64,${pdfBase64}`;
+      link.download = `facture-INV-${reservation.id.substring(0, 8).toUpperCase()}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({ title: "Succès", description: "La facture a été téléchargée." });
+
+    } catch (e: any) {
+      console.error('Invoice generation failed:', e);
+      toast({ variant: 'destructive', title: 'Erreur', description: e.message || "Impossible de générer la facture." });
+    } finally {
+      setIsGeneratingInvoice(false);
+    }
+  };
+
+
   if (loading) {
     return (
       <div className="flex flex-col gap-6">
@@ -117,7 +149,17 @@ export default function ReservationDetailsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title={`Réservation ${reservation.id.substring(0, 8).toUpperCase()}`}>
+      <PageHeader 
+        title={`Réservation ${reservation.id.substring(0, 8).toUpperCase()}`}
+        action={
+          reservation.status === 'Terminée' && (
+            <Button onClick={handleDownloadInvoice} disabled={isGeneratingInvoice}>
+              <Download className="mr-2 h-4 w-4" />
+              {isGeneratingInvoice ? 'Génération...' : 'Télécharger la facture'}
+            </Button>
+          )
+        }
+      >
         <Badge
           variant={
             reservation.status === 'Terminée'
@@ -271,3 +313,5 @@ export default function ReservationDetailsPage() {
     </div>
   );
 }
+
+    
