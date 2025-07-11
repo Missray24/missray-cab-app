@@ -10,10 +10,7 @@ import type { Metadata } from 'next';
 import { Skeleton } from '@/components/ui/skeleton';
 import { auth } from '@/lib/firebase';
 
-export const metadata: Metadata = {
-  manifest: '/manifest-client.json',
-};
-
+// This AuthProvider is a client component that handles authentication checks.
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -52,7 +49,8 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-
+// AppLayout is now a client component that wraps the AuthProvider.
+// The metadata export is removed from here to prevent build errors.
 export default function AppLayout({
   children,
 }: {
