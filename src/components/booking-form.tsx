@@ -42,21 +42,19 @@ interface BookingFormProps {
 const specialLocationKeywords = ['gare', 'aéroport', 'aeroport', 'port'];
 
 const NumberSelect = ({
-    label,
     icon,
     value,
     onValueChange,
     max,
     min = 0
 }: {
-    label: string;
     icon: React.ReactNode;
     value: number;
     onValueChange: (value: number) => void;
     max: number;
     min?: number;
 }) => (
-    <div className="flex items-center rounded-lg border p-2 justify-between">
+    <div className="flex items-center rounded-lg border p-2 justify-between bg-white">
         <div className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-lg text-primary-foreground">
                 {icon}
@@ -193,7 +191,6 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
       {isSpecialLocation && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                <NumberSelect
-                    label="Passagers"
                     icon={<Users className="h-5 w-5" />}
                     value={passengers}
                     onValueChange={setPassengers}
@@ -201,7 +198,6 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                     max={8}
                 />
                 <NumberSelect
-                    label="Valises"
                     icon={<Briefcase className="h-5 w-5" />}
                     value={suitcases}
                     onValueChange={setSuitcases}
