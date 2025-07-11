@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit, Backpack, Baby, Armchair, Dog } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit, Backpack, Baby, Armchair, Dog, Minus, Plus } from 'lucide-react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 
 import { LandingHeader } from '@/components/landing-header';
@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { db, auth } from '@/lib/firebase';
-import { type ServiceTier, type ReservationOption, reservationOptions } from '@/lib/types';
+import { type ServiceTier, type ReservationOption, reservationOptions, type SelectedOption } from '@/lib/types';
 import { RouteMap } from '@/components/route-map';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -26,21 +26,12 @@ import { AuthDialog } from '@/components/auth-dialog';
 import { calculatePrice } from '@/lib/pricing';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 
 interface RouteInfo {
     distance: string;
     duration: string;
 }
-
-const optionIcons: Record<ReservationOption, React.ElementType> = {
-    'Siège bébé': Baby,
-    'Rehausseur': Armchair,
-    'Animal de compagnie': Dog,
-};
-
 
 function VehicleSelectionComponent() {
   const searchParams = useSearchParams();
@@ -58,7 +49,7 @@ function VehicleSelectionComponent() {
   
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
-  const [selectedOptions, setSelectedOptions] = useState<ReservationOption[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOption[]>([]);
 
   // Memoize booking details to prevent re-parsing on every render
   const bookingDetails = useMemo(() => {
@@ -176,6 +167,8 @@ function VehicleSelectionComponent() {
   }
 
   const handleChooseTier = (tierId: string) => {
+    const optionsToPass = selectedOptions.filter(opt => opt.quantity > 0);
+
     if (currentUser) {
         const params = new URLSearchParams(searchParams.toString());
         params.set('tierId', tierId);
@@ -183,7 +176,10 @@ function VehicleSelectionComponent() {
             params.set('distance', routeInfo.distance);
             params.set('duration', routeInfo.duration);
         }
-        selectedOptions.forEach(opt => params.append('option', opt));
+        if (optionsToPass.length > 0) {
+            params.set('options', JSON.stringify(optionsToPass));
+        }
+        
         router.push(`/book/payment?${params.toString()}`);
     } else {
         setSelectedTierId(tierId);
@@ -191,12 +187,14 @@ function VehicleSelectionComponent() {
     }
   };
   
-  const handleOptionChange = (option: ReservationOption, checked: boolean | 'indeterminate') => {
-    if (typeof checked === 'boolean') {
-      setSelectedOptions(prev => 
-        checked ? [...prev, option] : prev.filter(o => o !== option)
-      );
-    }
+  const handleOptionQuantityChange = (optionName: ReservationOption, newQuantity: number) => {
+    setSelectedOptions(prev => {
+        const existingOption = prev.find(o => o.name === optionName);
+        if (existingOption) {
+            return prev.map(o => o.name === optionName ? { ...o, quantity: newQuantity } : o);
+        }
+        return [...prev, { name: optionName, quantity: newQuantity }];
+    });
   };
 
   if (!bookingDetails) {
@@ -349,22 +347,39 @@ function VehicleSelectionComponent() {
                         <CardContent>
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 {reservationOptions.map((option) => {
-                                    const Icon = optionIcons[option];
-                                    const isChecked = selectedOptions.includes(option);
+                                    const selected = selectedOptions.find(o => o.name === option.name);
+                                    const quantity = selected ? selected.quantity : 0;
+                                    const Icon = option.icon;
+                                    
                                     return (
-                                        <Label key={option} htmlFor={`option-${option}`} className={cn(
-                                            "flex flex-col items-center justify-center gap-3 rounded-lg border-2 p-4 cursor-pointer transition-colors hover:bg-accent/50",
-                                            isChecked ? "border-primary bg-primary/10" : "border-muted"
+                                        <div key={option.name} className={cn(
+                                            "rounded-lg border-2 p-4 text-center transition-colors",
+                                            quantity > 0 ? "border-primary bg-primary/10" : "border-muted"
                                         )}>
-                                            <Icon className={cn("h-8 w-8", isChecked ? "text-primary" : "text-muted-foreground")} />
-                                            <span className="font-semibold text-center">{option}</span>
-                                            <Checkbox
-                                                id={`option-${option}`}
-                                                checked={isChecked}
-                                                onCheckedChange={(checked) => handleOptionChange(option, checked)}
-                                                className="sr-only" // Hide the actual checkbox, the card is the button
-                                            />
-                                        </Label>
+                                            <Icon className={cn("h-8 w-8 mx-auto", quantity > 0 ? "text-primary" : "text-muted-foreground")} />
+                                            <p className="font-semibold mt-2">{option.name}</p>
+                                            <div className="flex items-center justify-center gap-3 mt-3">
+                                                <Button 
+                                                  variant="outline" 
+                                                  size="icon" 
+                                                  className="h-7 w-7 rounded-full"
+                                                  onClick={() => handleOptionQuantityChange(option.name, Math.max(0, quantity - 1))}
+                                                  disabled={quantity === 0}
+                                                >
+                                                    <Minus className="h-4 w-4" />
+                                                </Button>
+                                                <span className="font-bold text-lg w-6 text-center">{quantity}</span>
+                                                <Button 
+                                                  variant="outline" 
+                                                  size="icon" 
+                                                  className="h-7 w-7 rounded-full"
+                                                  onClick={() => handleOptionQuantityChange(option.name, Math.min(3, quantity + 1))}
+                                                  disabled={quantity >= 3}
+                                                >
+                                                    <Plus className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
                                     );
                                 })}
                             </div>
@@ -446,7 +461,7 @@ function VehicleSelectionComponent() {
                 tierId: selectedTierId!, 
                 stops: bookingDetails.stops.map(s => s.address),
                 routeInfo: routeInfo,
-                options: selectedOptions,
+                options: selectedOptions.filter(o => o.quantity > 0),
             }}
         />
       )}

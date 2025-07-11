@@ -1,12 +1,19 @@
 
 
+import type { LucideIcon } from "lucide-react";
+
 export type ReservationOption = 'Siège bébé' | 'Rehausseur' | 'Animal de compagnie';
 
-export const reservationOptions: ReservationOption[] = [
-  'Siège bébé',
-  'Rehausseur',
-  'Animal de compagnie',
+export const reservationOptions: { name: ReservationOption, icon: LucideIcon }[] = [
+  { name: 'Siège bébé', icon: require('lucide-react').Baby },
+  { name: 'Rehausseur', icon: require('lucide-react').Armchair },
+  { name: 'Animal de compagnie', icon: require('lucide-react').Dog },
 ];
+
+export interface SelectedOption {
+    name: ReservationOption;
+    quantity: number;
+}
 
 export type ReservationStatus =
   | 'Nouvelle demande'
@@ -68,7 +75,7 @@ export interface Reservation {
   passengers?: number;
   suitcases?: number;
   backpacks?: number;
-  options?: ReservationOption[];
+  options?: SelectedOption[];
 }
 
 export type DocumentStatus = 'Pending' | 'Approved' | 'Rejected';

@@ -33,7 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
 import { sendEmail } from '@/ai/flows/send-email-flow';
-import type { ReservationOption } from '@/lib/types';
+import type { SelectedOption } from '@/lib/types';
 
 interface AuthDialogProps {
   open: boolean;
@@ -48,7 +48,7 @@ interface AuthDialogProps {
     passengers?: number;
     suitcases?: number;
     backpacks?: number;
-    options: ReservationOption[];
+    options: SelectedOption[];
   };
 }
 
@@ -111,7 +111,9 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
     if (bookingDetails.passengers) params.set('passengers', String(bookingDetails.passengers));
     if (bookingDetails.suitcases) params.set('suitcases', String(bookingDetails.suitcases));
     if (bookingDetails.backpacks) params.set('backpacks', String(bookingDetails.backpacks));
-    if (bookingDetails.options) bookingDetails.options.forEach(opt => params.append('option', opt));
+    if (bookingDetails.options && bookingDetails.options.length > 0) {
+        params.set('options', JSON.stringify(bookingDetails.options));
+    }
     
     router.push(`/book/payment?${params.toString()}`);
     onOpenChange(false);

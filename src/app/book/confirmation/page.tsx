@@ -223,11 +223,12 @@ function ConfirmationComponent() {
                         <h3 className="font-semibold text-lg">Options sélectionnées</h3>
                         <div className="flex flex-wrap gap-2">
                            {reservation.options.map(option => {
-                                const Icon = optionIcons[option];
+                                const Icon = optionIcons[option.name];
                                 return (
-                                    <Badge key={option} variant="outline" className="text-base py-1">
+                                    <Badge key={option.name} variant="outline" className="text-base py-1">
                                         <Icon className="h-4 w-4 mr-2" />
-                                        {option}
+                                        {option.name}
+                                        {option.quantity > 1 && <span className="ml-2 font-bold">x{option.quantity}</span>}
                                     </Badge>
                                 );
                            })}

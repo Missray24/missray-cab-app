@@ -19,7 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { db, auth } from '@/lib/firebase';
-import type { ServiceTier, PaymentMethod, ReservationOption } from '@/lib/types';
+import type { ServiceTier, PaymentMethod, ReservationOption, SelectedOption } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY } from '@/lib/config';
 import { createPaymentIntent } from '@/ai/flows/create-payment-intent-flow';
@@ -169,9 +169,8 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
 }
 
 const useBookingDetails = () => {
-    const searchParams = useSearchParams();
     return useMemo(() => {
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(window.location.search);
         const pickup = params.get('pickup');
         const dropoff = params.get('dropoff');
         const stops = params.getAll('stop');
@@ -182,7 +181,8 @@ const useBookingDetails = () => {
         const passengers = params.get('passengers');
         const suitcases = params.get('suitcases');
         const backpacks = params.get('backpacks');
-        const options = params.getAll('option') as ReservationOption[];
+        const optionsParam = params.get('options');
+        const options = optionsParam ? JSON.parse(optionsParam) as SelectedOption[] : [];
 
         if (!pickup || !dropoff || !tierId) return null;
 
@@ -199,7 +199,7 @@ const useBookingDetails = () => {
             backpacks: backpacks ? parseInt(backpacks) : undefined,
             options,
         };
-    }, [searchParams]);
+    }, []);
 };
 
 function PaymentComponent() {
