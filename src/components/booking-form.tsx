@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState } from 'react';
-import { MapPin, Plus, X, Calendar as CalendarIcon } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -21,28 +21,42 @@ export interface BookingDetails {
     dropoff: string;
     stops: { id: number; address: string }[];
     scheduledTime: Date | null;
+    passengers?: number;
+    suitcases?: number;
 }
 
 interface BookingFormProps {
-    initialDetails?: Partial<{
-        pickup: string;
-        dropoff: string;
-        stops: string[];
-        scheduledTime: Date | null;
-    }>;
+    initialDetails?: Partial<BookingDetails>;
     onSubmit: (details: BookingDetails) => void;
     submitButtonText?: string;
 }
+
+const specialLocationKeywords = ['gare', 'aéroport', 'aeroport', 'port'];
 
 export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = "Voir les véhicules" }: BookingFormProps) {
   const { toast } = useToast();
   
   const [pickupAddress, setPickupAddress] = useState(initialDetails.pickup || '');
   const [stops, setStops] = useState<{ id: number; address: string }[]>(
-    (initialDetails.stops || []).map((address, i) => ({ id: Date.now() + i, address }))
+    (initialDetails.stops || []).map((address, i) => ({ id: Date.now() + i, address: address.address }))
   );
   const [dropoffAddress, setDropoffAddress] = useState(initialDetails.dropoff || '');
   const [scheduledDateTime, setScheduledDateTime] = useState<Date | null>(initialDetails.scheduledTime || null);
+
+  const [isSpecialLocation, setIsSpecialLocation] = useState(false);
+  const [passengers, setPassengers] = useState<number>(initialDetails.passengers || 1);
+  const [suitcases, setSuitcases] = useState<number>(initialDetails.suitcases || 0);
+
+  useEffect(() => {
+    const checkSpecialLocation = (address: string) => 
+        specialLocationKeywords.some(keyword => address.toLowerCase().includes(keyword));
+
+    if (checkSpecialLocation(pickupAddress) || checkSpecialLocation(dropoffAddress)) {
+        setIsSpecialLocation(true);
+    } else {
+        setIsSpecialLocation(false);
+    }
+  }, [pickupAddress, dropoffAddress]);
 
   const handleAddStop = () => {
     if (stops.length < 4) {
@@ -82,8 +96,9 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
     onSubmit({
         pickup: pickupAddress,
         dropoff: dropoffAddress,
-        stops: stops.filter(s => s.address), // Pass only non-empty stops
-        scheduledTime: scheduledDateTime
+        stops: stops.filter(s => s.address),
+        scheduledTime: scheduledDateTime,
+        ...(isSpecialLocation && { passengers, suitcases })
     });
   }
 
@@ -126,6 +141,34 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
           <Plus className="h-5 w-5" />
         </Button>
       </div>
+
+      {isSpecialLocation && (
+          <div className="grid grid-cols-2 gap-4">
+              <div className="relative">
+                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input 
+                      type="number"
+                      placeholder="Passagers"
+                      value={passengers}
+                      onChange={(e) => setPassengers(Math.max(1, parseInt(e.target.value) || 1))}
+                      min={1}
+                      className="h-9 text-base bg-white pl-10"
+                  />
+              </div>
+              <div className="relative">
+                  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input 
+                      type="number"
+                      placeholder="Valises"
+                      value={suitcases}
+                      onChange={(e) => setSuitcases(Math.max(0, parseInt(e.target.value) || 0))}
+                      min={0}
+                      className="h-9 text-base bg-white pl-10"
+                  />
+              </div>
+          </div>
+      )}
+
       <div className="flex items-center gap-2">
          <div className="relative inline-flex h-9 w-full">
             <Popover>

@@ -23,6 +23,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { BookingForm, type BookingDetails } from '@/components/booking-form';
 import { AuthDialog } from '@/components/auth-dialog';
 import { calculatePrice } from '@/lib/pricing';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface RouteInfo {
     distance: string;
@@ -33,7 +35,8 @@ function VehicleSelectionComponent() {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
+  const [allServiceTiers, setAllServiceTiers] = useState<ServiceTier[]>([]);
+  const [filteredTiers, setFilteredTiers] = useState<ServiceTier[]>([]);
   const [loading, setLoading] = useState(true);
   const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -51,14 +54,18 @@ function VehicleSelectionComponent() {
     const dropoff = searchParams.get('dropoff');
     const stops = searchParams.getAll('stop');
     const scheduledTime = searchParams.get('scheduledTime');
+    const passengers = searchParams.get('passengers');
+    const suitcases = searchParams.get('suitcases');
     
     if (!pickup || !dropoff) return null;
 
     return {
       pickup,
       dropoff,
-      stops: stops.map(s => s), // Ensure it's an array of strings
+      stops: stops.map(s => ({ id: Date.now() + Math.random(), address: s})),
       scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
+      passengers: passengers ? parseInt(passengers) : undefined,
+      suitcases: suitcases ? parseInt(suitcases) : undefined,
     };
   }, [searchParams]);
   
@@ -82,7 +89,6 @@ function VehicleSelectionComponent() {
 
   useEffect(() => {
     if (!bookingDetails) {
-      // Redirect back to home if essential params are missing
       router.replace('/');
       return;
     }
@@ -95,7 +101,7 @@ function VehicleSelectionComponent() {
           id: doc.id,
           ...doc.data(),
         })) as ServiceTier[];
-        setServiceTiers(tiersData);
+        setAllServiceTiers(tiersData);
       } catch (error) {
         console.error("Error fetching service tiers: ", error);
       } finally {
@@ -105,6 +111,20 @@ function VehicleSelectionComponent() {
     fetchTiers();
   }, [bookingDetails, router]);
   
+  useEffect(() => {
+    if (!bookingDetails || allServiceTiers.length === 0) return;
+
+    const { passengers, suitcases } = bookingDetails;
+    if (passengers !== undefined && suitcases !== undefined) {
+        const suitableTiers = allServiceTiers.filter(tier => 
+            tier.capacity.passengers >= passengers && tier.capacity.suitcases >= suitcases
+        );
+        setFilteredTiers(suitableTiers);
+    } else {
+        setFilteredTiers(allServiceTiers);
+    }
+  }, [bookingDetails, allServiceTiers]);
+
   const handleUpdateTrip = (newDetails: BookingDetails) => {
     const queryParams = new URLSearchParams();
     queryParams.set('pickup', newDetails.pickup);
@@ -113,24 +133,20 @@ function VehicleSelectionComponent() {
     if (newDetails.scheduledTime) {
       queryParams.set('scheduledTime', newDetails.scheduledTime.toISOString());
     }
-    // Use router.replace to update URL without adding to history
+    if (newDetails.passengers) {
+        queryParams.set('passengers', String(newDetails.passengers));
+    }
+    if (newDetails.suitcases) {
+        queryParams.set('suitcases', String(newDetails.suitcases));
+    }
     router.replace(`/book/select-vehicle?${queryParams.toString()}`);
-    setRouteInfo(null); // Reset route info to trigger recalculation
+    setRouteInfo(null);
     setIsEditing(false);
   }
 
   const handleChooseTier = (tierId: string) => {
     if (currentUser) {
-        // If user is logged in, proceed to payment
-        const params = new URLSearchParams();
-        if (bookingDetails) {
-            params.set('pickup', bookingDetails.pickup);
-            params.set('dropoff', bookingDetails.dropoff);
-            bookingDetails.stops.forEach(s => params.append('stop', s));
-            if (bookingDetails.scheduledTime) {
-                params.set('scheduledTime', bookingDetails.scheduledTime.toISOString());
-            }
-        }
+        const params = new URLSearchParams(searchParams.toString());
         params.set('tierId', tierId);
         if (routeInfo) {
             params.set('distance', routeInfo.distance);
@@ -138,14 +154,12 @@ function VehicleSelectionComponent() {
         }
         router.push(`/book/payment?${params.toString()}`);
     } else {
-        // If user is not logged in, open auth dialog
         setSelectedTierId(tierId);
         setIsAuthDialogOpen(true);
     }
   };
 
   if (!bookingDetails) {
-    // Render loading or null while redirecting
     return <div className="flex flex-col min-h-dvh bg-muted/40"><LandingHeader /><main className="flex-1"></main><LandingFooter /></div>;
   }
 
@@ -167,7 +181,7 @@ function VehicleSelectionComponent() {
                         <BookingForm 
                             initialDetails={{
                                 ...bookingDetails,
-                                stops: bookingDetails.stops.map(s => ({id: Date.now() + Math.random(), address: s})),
+                                stops: bookingDetails.stops,
                             }} 
                             onSubmit={handleUpdateTrip}
                             submitButtonText="Mettre à jour le trajet"
@@ -193,7 +207,7 @@ function VehicleSelectionComponent() {
                                <RouteMap 
                                   pickup={bookingDetails.pickup}
                                   dropoff={bookingDetails.dropoff}
-                                  stops={bookingDetails.stops}
+                                  stops={bookingDetails.stops.map(s => s.address)}
                                   onRouteInfoFetched={setRouteInfo}
                                />
                             </div>
@@ -255,11 +269,11 @@ function VehicleSelectionComponent() {
                                         <p className="font-medium">{bookingDetails.pickup}</p>
                                     </div>
                                     {bookingDetails.stops.map((stop, index) => (
-                                        stop && <div key={index} className="flex items-center gap-3 pl-1">
+                                        stop.address && <div key={index} className="flex items-center gap-3 pl-1">
                                             <div className="flex items-center justify-center h-5 w-5 rounded-full bg-muted text-muted-foreground text-xs font-bold">
                                                 {index + 1}
                                             </div>
-                                            <p className="text-sm font-medium text-muted-foreground">{stop}</p>
+                                            <p className="text-sm font-medium text-muted-foreground">{stop.address}</p>
                                         </div>
                                     ))}
                                     <div className="flex items-start gap-3">
@@ -267,6 +281,19 @@ function VehicleSelectionComponent() {
                                         <p className="font-medium">{bookingDetails.dropoff}</p>
                                     </div>
                                 </div>
+                                {bookingDetails.passengers && (
+                                    <>
+                                        <Separator />
+                                        <div className="flex items-center gap-4">
+                                            <Badge variant="secondary" className="text-base">
+                                                <Users className="h-4 w-4 mr-2" /> {bookingDetails.passengers}
+                                            </Badge>
+                                             <Badge variant="secondary" className="text-base">
+                                                <Briefcase className="h-4 w-4 mr-2" /> {bookingDetails.suitcases}
+                                            </Badge>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </CardContent>
                     </Card>
@@ -277,8 +304,8 @@ function VehicleSelectionComponent() {
                         Array.from({ length: 4 }).map((_, i) => (
                           <Card key={i}><CardHeader><Skeleton className="aspect-video w-full" /></CardHeader><CardContent className="space-y-2"><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-full" /><Button disabled className="w-full mt-2"><Skeleton className="h-5 w-24" /></Button></CardContent></Card>
                         ))
-                      ) : (
-                        serviceTiers.map((tier) => {
+                      ) : filteredTiers.length > 0 ? (
+                        filteredTiers.map((tier) => {
                           const estimatedPrice = calculatePrice(
                               tier,
                               routeInfo.distance,
@@ -328,6 +355,14 @@ function VehicleSelectionComponent() {
                             </div>
                           );
                         })
+                      ) : (
+                        <Alert>
+                            <Info className="h-4 w-4" />
+                            <AlertTitle>Aucune gamme disponible</AlertTitle>
+                            <AlertDescription>
+                                Aucun de nos véhicules ne correspond à votre demande de {bookingDetails.passengers} passagers et {bookingDetails.suitcases} valises. Veuillez modifier votre demande ou nous contacter.
+                            </AlertDescription>
+                        </Alert>
                       )}
                     </div>
                 </div>
@@ -342,6 +377,7 @@ function VehicleSelectionComponent() {
             bookingDetails={{
                 ...bookingDetails, 
                 tierId: selectedTierId!, 
+                stops: bookingDetails.stops.map(s => s.address),
                 routeInfo: routeInfo,
             }}
         />
