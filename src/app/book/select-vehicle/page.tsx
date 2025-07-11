@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit, Backpack } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit, Backpack, AlertCircle } from 'lucide-react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 
 import { LandingHeader } from '@/components/landing-header';
@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from '@/lib/utils';
 
 
 interface RouteInfo {
@@ -46,7 +47,8 @@ const NumberSelect = ({
     max,
     min = 0,
     icon,
-    label
+    label,
+    disabled = false,
 }: {
     value: number | undefined;
     onValueChange: (value: number) => void;
@@ -54,26 +56,41 @@ const NumberSelect = ({
     min?: number;
     icon: React.ReactNode;
     label: string;
+    disabled?: boolean;
 }) => (
-    <Select
-        value={value !== undefined ? String(value) : ""}
-        onValueChange={(val) => onValueChange(Number(val))}
-    >
-        <SelectTrigger className="h-9 bg-white w-full">
-             <div className="flex items-center gap-2">
-                <div className="text-primary">{icon}</div>
-                <span className="truncate">{label}</span>
-                {value !== undefined && value > 0 && <span className="ml-auto font-bold text-primary">{value}</span>}
-            </div>
-        </SelectTrigger>
-        <SelectContent>
-            {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
-                <SelectItem key={num} value={String(num)}>
-                    {num}
-                </SelectItem>
-            ))}
-        </SelectContent>
-    </Select>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className={cn(disabled && "cursor-not-allowed")}>
+            <Select
+                value={value !== undefined ? String(value) : ""}
+                onValueChange={(val) => onValueChange(Number(val))}
+                disabled={disabled}
+            >
+                <SelectTrigger className="h-9 bg-white w-full" aria-label={label}>
+                     <div className="flex items-center gap-2 truncate">
+                        <div className="text-primary flex-shrink-0">{icon}</div>
+                        <span className="truncate">{label}</span>
+                        {value !== undefined && value > 0 && <span className="ml-auto font-bold text-primary pl-1">{value}</span>}
+                    </div>
+                </SelectTrigger>
+                <SelectContent>
+                    {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
+                        <SelectItem key={num} value={String(num)}>
+                            {num}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+          </div>
+        </TooltipTrigger>
+        {disabled && (
+          <TooltipContent>
+            <p>La limite d'options a été atteinte pour le nombre de passagers.</p>
+          </TooltipContent>
+        )}
+      </Tooltip>
+    </TooltipProvider>
 );
 
 function VehicleSelectionComponent() {
@@ -111,11 +128,27 @@ function VehicleSelectionComponent() {
       dropoff,
       stops: stops.map(s => ({ id: Date.now() + Math.random(), address: s})),
       scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
-      passengers: passengers ? parseInt(passengers) : undefined,
+      passengers: passengers ? parseInt(passengers) : 1, // Default to 1 passenger if not specified
       suitcases: suitcases ? parseInt(suitcases) : undefined,
       backpacks: backpacks ? parseInt(backpacks) : undefined,
     };
   }, [searchParams]);
+  
+  const { maxChildSeats, totalChildSeatsSelected } = useMemo(() => {
+    const passengers = bookingDetails?.passengers || 1;
+    let maxSeats = 0;
+    if (passengers >= 4) maxSeats = 3;
+    else if (passengers === 3) maxSeats = 2;
+    else if (passengers === 2) maxSeats = 1;
+
+    const childSeats = selectedOptions.filter(opt => opt.name === 'Siège bébé' || opt.name === 'Rehausseur');
+    const totalSelected = childSeats.reduce((sum, opt) => sum + opt.quantity, 0);
+
+    return { maxChildSeats: maxSeats, totalChildSeatsSelected: totalSelected };
+  }, [bookingDetails?.passengers, selectedOptions]);
+
+  const isChildSeatLimitReached = totalChildSeatsSelected >= maxChildSeats;
+  const isChildSeatLimitExceeded = totalChildSeatsSelected > maxChildSeats;
   
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -213,6 +246,10 @@ function VehicleSelectionComponent() {
   }
 
   const handleChooseTier = (tierId: string) => {
+    if (isChildSeatLimitExceeded) {
+        // This is a safety check, the UI should prevent this state.
+        return;
+    }
     const optionsToPass = selectedOptions.filter(opt => opt.quantity > 0);
 
     if (currentUser) {
@@ -395,14 +432,20 @@ function VehicleSelectionComponent() {
                     <Card>
                         <CardHeader>
                             <CardTitle>Options de la course</CardTitle>
-                            <CardDescription>Sélectionnez les options dont vous avez besoin pour ce trajet.</CardDescription>
+                            <CardDescription>
+                                {maxChildSeats > 0 
+                                    ? `Pour ${bookingDetails.passengers} passagers, vous pouvez ajouter jusqu'à ${maxChildSeats} sièges enfants.`
+                                    : `Le nombre de passagers ne permet pas d'ajouter de siège enfant.`}
+                            </CardDescription>
                         </CardHeader>
                         <CardContent>
-                             <div className="grid grid-cols-3 gap-2">
+                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                 {reservationOptions.map((option) => {
                                     const selected = selectedOptions.find(o => o.name === option.name);
                                     const quantity = selected ? selected.quantity : 0;
-                                    
+                                    const isChildSeat = option.name === 'Siège bébé' || option.name === 'Rehausseur';
+                                    const isDisabled = isChildSeat && isChildSeatLimitReached && quantity === 0;
+
                                     return (
                                         <NumberSelect
                                             key={option.name}
@@ -412,10 +455,20 @@ function VehicleSelectionComponent() {
                                             min={0}
                                             max={2}
                                             label={option.name}
+                                            disabled={isDisabled}
                                         />
                                     );
                                 })}
                             </div>
+                            {isChildSeatLimitExceeded && (
+                                <Alert variant="destructive" className="mt-4">
+                                    <AlertCircle className="h-4 w-4" />
+                                    <AlertTitle>Trop d'options sélectionnées</AlertTitle>
+                                    <AlertDescription>
+                                        Vous avez dépassé le nombre de sièges enfants autorisés pour {bookingDetails.passengers} passagers. Veuillez en retirer.
+                                    </AlertDescription>
+                                </Alert>
+                            )}
                         </CardContent>
                     </Card>
         
@@ -462,7 +515,7 @@ function VehicleSelectionComponent() {
                                           </TooltipContent>
                                       </Tooltip>
                                   </TooltipProvider>
-                                    <Button className="w-full md:w-auto mt-2" onClick={() => handleChooseTier(tier.id)}>
+                                    <Button className="w-full md:w-auto mt-2" onClick={() => handleChooseTier(tier.id)} disabled={isChildSeatLimitExceeded}>
                                        Choisir <ArrowRight className="ml-2" />
                                     </Button>
                                 </div>
