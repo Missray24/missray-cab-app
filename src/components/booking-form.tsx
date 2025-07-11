@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase } from 'lucide-react';
+import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase, Minus } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -32,6 +32,36 @@ interface BookingFormProps {
 }
 
 const specialLocationKeywords = ['gare', 'aéroport', 'aeroport', 'port'];
+
+const NumberSelector = ({ icon, value, onValueChange, min = 0 }: { icon: React.ReactNode, value: number, onValueChange: (value: number) => void, min?: number }) => (
+    <div className="flex items-center justify-between p-2 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 border border-indigo-100 dark:border-slate-700">
+        <div className="flex items-center gap-2 text-primary">
+            {icon}
+        </div>
+        <div className="flex items-center gap-2">
+            <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6 rounded-full"
+                onClick={() => onValueChange(Math.max(min, value - 1))}
+            >
+                <Minus className="h-4 w-4" />
+            </Button>
+            <span className="w-8 text-center font-bold text-lg">{value}</span>
+            <Button
+                type="button"
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6 rounded-full"
+                onClick={() => onValueChange(value + 1)}
+            >
+                <Plus className="h-4 w-4" />
+            </Button>
+        </div>
+    </div>
+);
+
 
 export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = "Voir les véhicules" }: BookingFormProps) {
   const { toast } = useToast();
@@ -144,28 +174,18 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
 
       {isSpecialLocation && (
           <div className="grid grid-cols-2 gap-4">
-              <div className="relative">
-                  <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
-                      type="number"
-                      placeholder="Passagers"
-                      value={passengers}
-                      onChange={(e) => setPassengers(Math.max(1, parseInt(e.target.value) || 1))}
-                      min={1}
-                      className="h-9 text-base bg-white pl-10"
-                  />
-              </div>
-              <div className="relative">
-                  <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                  <Input 
-                      type="number"
-                      placeholder="Valises"
-                      value={suitcases}
-                      onChange={(e) => setSuitcases(Math.max(0, parseInt(e.target.value) || 0))}
-                      min={0}
-                      className="h-9 text-base bg-white pl-10"
-                  />
-              </div>
+              <NumberSelector 
+                  icon={<Users className="h-5 w-5" />} 
+                  value={passengers}
+                  onValueChange={setPassengers}
+                  min={1}
+              />
+              <NumberSelector 
+                  icon={<Briefcase className="h-5 w-5" />} 
+                  value={suitcases}
+                  onValueChange={setSuitcases}
+                  min={0}
+              />
           </div>
       )}
 
