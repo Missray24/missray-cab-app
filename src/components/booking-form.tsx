@@ -36,7 +36,7 @@ const specialLocationKeywords = ['gare', 'aéroport', 'aeroport', 'port'];
 const NumberSelector = ({ label, icon, value, onValueChange, min = 0 }: { label: string, icon: React.ReactNode, value: number, onValueChange: (value: number) => void, min?: number }) => (
     <div className="flex items-center justify-between rounded-lg border p-2">
         <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-full text-primary-foreground">
+            <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-lg text-primary-foreground">
                {icon}
             </div>
             <Label className="font-semibold text-foreground">{label}</Label>
