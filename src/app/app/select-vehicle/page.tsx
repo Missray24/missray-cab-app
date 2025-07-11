@@ -5,7 +5,7 @@ import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
-import { ArrowRight, Users, Briefcase, Info, Backpack, Milestone, Timer, MapPin } from 'lucide-react';
+import { ArrowRight, Users, Briefcase, Info, Backpack, Milestone, Timer, MapPin, ChevronDown } from 'lucide-react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 import { useLoadScript } from '@react-google-maps/api';
 
@@ -23,6 +23,11 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
 
 interface RouteInfo {
@@ -217,32 +222,42 @@ function VehicleSelectionComponent() {
                      <CardTitle>Choisissez votre véhicule</CardTitle>
                  </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                        {reservationOptions.map((option) => {
-                            const selected = selectedOptions.find(o => o.name === option.name);
-                            const quantity = selected ? selected.quantity : 0;
-                            return (
-                                <Select
-                                    key={option.name}
-                                    value={String(quantity)}
-                                    onValueChange={(val) => handleOptionQuantityChange(option.name, Number(val))}
-                                >
-                                    <SelectTrigger className="h-9 bg-background w-full">
-                                        <div className="flex items-center gap-2 truncate">
-                                            <div className="text-primary flex-shrink-0"><option.icon className="h-4 w-4"/></div>
-                                            <span className="truncate">{option.name}</span>
-                                            {quantity > 0 && <span className="ml-auto font-bold text-primary pl-1">{quantity}</span>}
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {Array.from({ length: 3 }, (_, i) => i).map(num => (
-                                            <SelectItem key={num} value={String(num)}>{num}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            );
-                        })}
-                    </div>
+                    <Collapsible>
+                        <CollapsibleTrigger asChild>
+                           <Button variant="outline" className="w-full justify-between">
+                                Ajouter des options
+                                <ChevronDown className="h-4 w-4 transition-transform [&[data-state=open]]:rotate-180" />
+                           </Button>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent className="pt-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                {reservationOptions.map((option) => {
+                                    const selected = selectedOptions.find(o => o.name === option.name);
+                                    const quantity = selected ? selected.quantity : 0;
+                                    return (
+                                        <Select
+                                            key={option.name}
+                                            value={String(quantity)}
+                                            onValueChange={(val) => handleOptionQuantityChange(option.name, Number(val))}
+                                        >
+                                            <SelectTrigger className="h-9 bg-background w-full">
+                                                <div className="flex items-center gap-2 truncate">
+                                                    <div className="text-primary flex-shrink-0"><option.icon className="h-4 w-4"/></div>
+                                                    <span className="truncate">{option.name}</span>
+                                                    {quantity > 0 && <span className="ml-auto font-bold text-primary pl-1">{quantity}</span>}
+                                                </div>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Array.from({ length: 3 }, (_, i) => i).map(num => (
+                                                    <SelectItem key={num} value={String(num)}>{num}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    );
+                                })}
+                            </div>
+                        </CollapsibleContent>
+                    </Collapsible>
                     <div className="max-h-[35vh] overflow-y-auto pr-2 space-y-2">
                      {loading || !routeInfo || authLoading ? (
                         Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24 w-full rounded-lg" />)
