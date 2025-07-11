@@ -118,6 +118,8 @@ export interface DriverProfile {
     documents: DriverDocument[];
 }
 
+export type UserStatus = 'Active' | 'Blocked' | 'Suspended' | 'Pending';
+
 export interface User {
   id: string;
   uid: string;
@@ -128,7 +130,7 @@ export interface User {
   email: string;
   phone: string;
   joinDate: string;
-  status: 'Active' | 'Blocked' | 'Suspended';
+  status: UserStatus;
   driverProfile?: DriverProfile;
 }
 

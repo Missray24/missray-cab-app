@@ -121,7 +121,7 @@ export default function SignupDriverPage() {
       );
       const user = userCredential.user;
 
-      // 2. Create driver document in Firestore's users collection
+      // 2. Create driver document in Firestore's users collection with 'Pending' status
       const driverData = {
         uid: user.uid,
         name: driverName,
@@ -131,7 +131,7 @@ export default function SignupDriverPage() {
         phone: phoneInputRef.current?.getNumber() || '',
         role: 'driver',
         joinDate: new Date().toLocaleDateString('fr-CA'),
-        status: 'Active' as const,
+        status: 'Pending' as const, // Set status to Pending
         driverProfile: {
           company: {
             name: values.companyName,
@@ -156,17 +156,12 @@ export default function SignupDriverPage() {
 
       await addDoc(collection(db, 'users'), driverData);
       
-      // 3. Send emails
-      await sendEmail({
-        type: 'new_driver_welcome',
-        to: { email: values.email, name: driverName },
-        params: { driverName: driverName },
-      });
-
+      // 3. Do not send welcome email yet. It will be sent upon admin approval.
+      
       toast({
-        title: 'Inscription réussie !',
+        title: 'Inscription soumise !',
         description:
-          'Votre compte chauffeur a été créé. Vous allez être redirigé vers la page de connexion.',
+          'Votre compte a été créé et est en attente de validation par un administrateur. Vous serez notifié par email.',
       });
 
       router.push('/login');

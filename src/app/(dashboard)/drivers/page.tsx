@@ -51,6 +51,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { db } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { IntlTelInput, type IntlTelInputRef } from "@/components/ui/intl-tel-input";
+import { sendEmail } from "@/ai/flows/send-email-flow";
 
 const initialFormState = {
   firstName: '',
@@ -221,6 +222,25 @@ export default function DriversPage() {
     }
     handleCloseModal();
   };
+  
+  const handleApproveDriver = async (driverToApprove: User) => {
+    try {
+        const driverRef = doc(db, "users", driverToApprove.id);
+        await updateDoc(driverRef, { status: 'Active' });
+
+        await sendEmail({
+            type: 'new_driver_welcome',
+            to: { email: driverToApprove.email, name: driverToApprove.name },
+            params: { driverName: driverToApprove.name },
+        });
+
+        setDrivers(prev => prev.map(d => d.id === driverToApprove.id ? { ...d, status: 'Active' } : d));
+        toast({ title: "Chauffeur Approuvé!", description: `${driverToApprove.name} est maintenant actif et a été notifié.` });
+    } catch (error) {
+        console.error("Error approving driver:", error);
+        toast({ variant: "destructive", title: "Erreur", description: "Impossible d'approuver le chauffeur." });
+    }
+  };
 
   const handleStatusToggle = async (driverToToggle: User) => {
     const newStatus = driverToToggle.status === 'Active' ? 'Suspended' : 'Active';
@@ -302,7 +322,12 @@ export default function DriversPage() {
                       <TableCell>{driver.driverProfile?.vehicles?.[0]?.brand} {driver.driverProfile?.vehicles?.[0]?.model}</TableCell>
                       <TableCell>{driver.driverProfile?.vehicles?.[0]?.licensePlate}</TableCell>
                       <TableCell>
-                        <Badge variant={driver.status === 'Active' ? 'secondary' : 'destructive'}>
+                        <Badge variant={
+                            driver.status === 'Active' ? 'secondary' 
+                            : driver.status === 'Pending' ? 'default'
+                            : 'destructive'}
+                            className={cn(driver.status === 'Pending' && 'bg-yellow-500 text-white')}
+                        >
                           {driver.status}
                         </Badge>
                       </TableCell>
@@ -316,15 +341,22 @@ export default function DriversPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                             {driver.status === 'Pending' && (
+                                <DropdownMenuItem onSelect={() => handleApproveDriver(driver)}>
+                                    Approuver le profil
+                                </DropdownMenuItem>
+                            )}
                             <DropdownMenuItem onSelect={() => setViewingDriver(driver)}>
                               View Documents
                             </DropdownMenuItem>
                             <DropdownMenuItem onSelect={() => handleOpenModal('edit', driver)}>
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleStatusToggle(driver)}>
-                              {driver.status === 'Active' ? 'Suspend' : 'Reactivate'}
-                            </DropdownMenuItem>
+                             {driver.status !== 'Pending' && (
+                                <DropdownMenuItem onSelect={() => handleStatusToggle(driver)}>
+                                {driver.status === 'Active' ? 'Suspend' : 'Reactivate'}
+                                </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
