@@ -57,7 +57,7 @@ const NumberSelect = ({
     placeholder: string;
     icon: React.ReactNode;
 }) => (
-    <div className='flex items-center'>
+    <div className='flex items-center gap-1'>
         <Select
             value={String(value)}
             onValueChange={(val) => onValueChange(Number(val))}
