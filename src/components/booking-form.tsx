@@ -48,7 +48,7 @@ const NumberSelect = ({
     value,
     onValueChange,
     max,
-    min = 1,
+    min = 0,
     icon,
     placeholder
 }: {
@@ -167,6 +167,17 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
         description: 'Veuillez renseigner une adresse de départ et d\'arrivée.',
       });
       return;
+    }
+
+    if (isSpecialLocation) {
+        if (passengers === undefined || suitcases === undefined || carryOnLuggage === undefined) {
+            toast({
+                variant: 'destructive',
+                title: 'Informations requises',
+                description: 'Pour les trajets depuis/vers une gare ou un aéroport, veuillez spécifier le nombre de passagers, de valises et de bagages à main.',
+            });
+            return;
+        }
     }
     
     onSubmit({
