@@ -66,12 +66,6 @@ const initialFormState = {
     evtcAdsNumber: '',
     commission: '',
   },
-  vehicle: {
-    brand: '',
-    model: '',
-    licensePlate: '',
-    registrationDate: '',
-  },
 };
 
 type ModalState = {
@@ -120,7 +114,6 @@ export default function DriversPage() {
         email: modalState.driver.email || '',
         phone: modalState.driver.phone || '',
         company: { ...(modalState.driver.driverProfile?.company || {}), commission: String(modalState.driver.driverProfile?.company?.commission || '') },
-        vehicle: modalState.driver.driverProfile?.vehicle || {},
       });
     } else {
       setEditFormData(initialFormState);
@@ -140,7 +133,7 @@ export default function DriversPage() {
     const keys = id.split('.');
   
     if (keys.length === 2) {
-      const [section, field] = keys as ['company' | 'vehicle', string];
+      const [section, field] = keys as ['company', string];
       setEditFormData(prev => ({
         ...prev,
         [section]: { ...(prev[section] as object), [field]: value },
@@ -179,16 +172,12 @@ export default function DriversPage() {
       email,
       phone: phoneInputRef.current?.getNumber() || editFormData.phone,
       driverProfile: {
+        ...modalState.driver?.driverProfile,
         company: {
+          ...modalState.driver?.driverProfile?.company,
           ...restOfForm.company,
           commission: parseFloat(String(restOfForm.company.commission)) || 0,
         },
-        vehicle: restOfForm.vehicle,
-        totalRides: modalState.driver?.driverProfile?.totalRides || 0,
-        totalEarnings: modalState.driver?.driverProfile?.totalEarnings || 0,
-        unpaidAmount: modalState.driver?.driverProfile?.unpaidAmount || 0,
-        paymentDetails: modalState.driver?.driverProfile?.paymentDetails || { method: 'Bank Transfer' as const, account: '' },
-        documents: modalState.driver?.driverProfile?.documents || [],
       }
     };
     
@@ -212,6 +201,15 @@ export default function DriversPage() {
           role: 'driver' as const,
           status: 'Active' as const,
           joinDate: new Date().toLocaleDateString('fr-CA'),
+          driverProfile: {
+             ...driverData.driverProfile,
+             vehicles: [],
+             documents: [],
+             totalRides: 0,
+             totalEarnings: 0,
+             unpaidAmount: 0,
+             paymentDetails: { method: 'Bank Transfer' as const, account: '' },
+          }
         };
         const docRef = await addDoc(collection(db, "users"), fullDriverData);
         setDrivers(prev => [...prev, { id: docRef.id, ...fullDriverData }]);
@@ -278,8 +276,8 @@ export default function DriversPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Name</TableHead>
-                  <TableHead>Vehicle</TableHead>
-                  <TableHead>License Plate</TableHead>
+                  <TableHead>Véhicule Principal</TableHead>
+                  <TableHead>Immatriculation</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>
                     <span className="sr-only">Actions</span>
@@ -301,8 +299,8 @@ export default function DriversPage() {
                   drivers.map((driver) => (
                     <TableRow key={driver.id}>
                       <TableCell className="font-medium">{driver.name}</TableCell>
-                      <TableCell>{driver.driverProfile?.vehicle?.brand} {driver.driverProfile?.vehicle?.model}</TableCell>
-                      <TableCell>{driver.driverProfile?.vehicle?.licensePlate}</TableCell>
+                      <TableCell>{driver.driverProfile?.vehicles?.[0]?.brand} {driver.driverProfile?.vehicles?.[0]?.model}</TableCell>
+                      <TableCell>{driver.driverProfile?.vehicles?.[0]?.licensePlate}</TableCell>
                       <TableCell>
                         <Badge variant={driver.status === 'Active' ? 'secondary' : 'destructive'}>
                           {driver.status}
@@ -417,10 +415,9 @@ export default function DriversPage() {
             </DialogDescription>
           </DialogHeader>
           <Tabs defaultValue="personal" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="personal">Informations personnelles</TabsTrigger>
               <TabsTrigger value="company">Informations entreprise</TabsTrigger>
-              <TabsTrigger value="vehicle">Informations véhicule</TabsTrigger>
             </TabsList>
             <TabsContent value="personal" className="pt-4">
               <div className="space-y-4">
@@ -483,26 +480,6 @@ export default function DriversPage() {
                   <Label htmlFor="isVatSubjected" className="font-normal">
                     Assujetti à la TVA
                   </Label>
-                </div>
-              </div>
-            </TabsContent>
-            <TabsContent value="vehicle" className="pt-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="vehicle.brand">Marque</Label>
-                  <Input id="vehicle.brand" value={editFormData.vehicle.brand} onChange={handleEditFormChange} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vehicle.model">Modèle</Label>
-                  <Input id="vehicle.model" value={editFormData.vehicle.model} onChange={handleEditFormChange} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vehicle.licensePlate">Immatriculation</Label>
-                  <Input id="vehicle.licensePlate" value={editFormData.vehicle.licensePlate} onChange={handleEditFormChange} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="vehicle.registrationDate">Première date d'immatriculation</Label>
-                  <Input id="vehicle.registrationDate" type="date" value={editFormData.vehicle.registrationDate} onChange={handleEditFormChange} />
                 </div>
               </div>
             </TabsContent>

@@ -142,13 +142,7 @@ export default function SignupDriverPage() {
             isVatSubjected: values.isVatSubjected,
             commission: 20, // Default commission
           },
-          vehicle: {
-            // Placeholder vehicle info
-            brand: '',
-            model: '',
-            licensePlate: '',
-            registrationDate: '',
-          },
+          vehicles: [],
           totalRides: 0,
           totalEarnings: 0,
           unpaidAmount: 0,

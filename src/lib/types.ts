@@ -84,6 +84,15 @@ export interface DriverDocument {
   name: string;
   url: string;
   status: DocumentStatus;
+  type: string;
+}
+
+export interface Vehicle {
+    id: string;
+    brand: string;
+    model: string;
+    licensePlate: string;
+    registrationDate: string;
 }
 
 export interface DriverProfile {
@@ -96,12 +105,7 @@ export interface DriverProfile {
       evtcAdsNumber?: string;
       commission?: number;
     };
-    vehicle: {
-      brand: string;
-      model: string;
-      licensePlate: string;
-      registrationDate: string;
-    };
+    vehicles: Vehicle[];
     totalRides: number;
     totalEarnings: number;
     unpaidAmount: number;
