@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
@@ -11,6 +10,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useLoadScript } from '@react-google-maps/api';
 
 import { LandingHeader } from '@/components/landing-header';
 import { LandingFooter } from '@/components/landing-footer';
@@ -22,12 +22,16 @@ import { db, auth } from '@/lib/firebase';
 import type { Reservation, ServiceTier, ReservationOption } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { RouteMap } from '@/components/route-map';
+import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
 
 const optionIcons: Record<ReservationOption, React.ElementType> = {
     'Siège bébé': Baby,
     'Rehausseur': Armchair,
     'Animal': Dog,
 };
+
+const libraries = ['places'] as any;
 
 function ConfirmationComponent() {
   const searchParams = useSearchParams();
@@ -39,6 +43,11 @@ function ConfirmationComponent() {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   
+  const { isLoaded, loadError } = useLoadScript({
+    googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
+    libraries,
+  });
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (!currentUser) {
@@ -136,6 +145,40 @@ function ConfirmationComponent() {
 
   const reservationDate = new Date(reservation.date);
   const statusDetails = getStatusDetails();
+  
+  if (reservation.status === 'Recherche de chauffeur') {
+    return (
+        <div className="relative h-screen w-screen">
+             <RouteMap 
+                isLoaded={isLoaded}
+                loadError={loadError}
+                apiKey={NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
+                pickup={reservation.pickup}
+                dropoff={reservation.dropoff}
+                stops={reservation.stops}
+                isInteractive={false}
+            />
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm"></div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center p-4">
+                <Card className="max-w-md w-full text-center">
+                    <CardHeader>
+                         {statusDetails && <statusDetails.Icon className={cn("h-16 w-16 mb-4 mx-auto", statusDetails.color)} />}
+                        <CardTitle className="text-3xl font-headline text-center">{statusDetails?.title}</CardTitle>
+                        <CardDescription>
+                            {statusDetails?.description}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Button asChild className="w-full" size="lg">
+                            <Link href="/my-bookings">Retour à mes réservations</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            </div>
+        </div>
+    );
+  }
+
 
   return (
     <div className="flex flex-col min-h-dvh bg-muted/40">
