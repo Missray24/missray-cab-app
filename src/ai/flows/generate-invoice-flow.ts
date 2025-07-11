@@ -135,8 +135,14 @@ const generateInvoiceFlow = ai.defineFlow(
       // Table Row
       const rideDescription = `Course VTC du ${new Date(reservation.date).toLocaleDateString('fr-FR')} de "${reservation.pickup}" à "${reservation.dropoff}"`;
       const descriptionY = await drawText(page, rideDescription, { x: margin + 10, y: currentY, font, size: 10, maxWidth: width - margin * 4 - 150, lineHeight: 12 });
-      page.drawText(`${(reservation.totalAmount - reservation.vatAmount).toFixed(2)} €`, { x: width - margin - 150, y: currentY, font, size: 10 });
-      page.drawText(`${reservation.totalAmount.toFixed(2)} €`, { x: width - margin - 70, y: currentY, font, size: 10 });
+      
+      // Fallback for amount and vatAmount
+      const totalAmount = reservation.totalAmount || reservation.amount || 0;
+      const vatAmount = reservation.vatAmount || 0;
+      const subtotalAmount = totalAmount - vatAmount;
+
+      page.drawText(`${subtotalAmount.toFixed(2)} €`, { x: width - margin - 150, y: currentY, font, size: 10 });
+      page.drawText(`${totalAmount.toFixed(2)} €`, { x: width - margin - 70, y: currentY, font, size: 10 });
       currentY = descriptionY - 20;
 
       // 8. Add Totals
@@ -145,15 +151,15 @@ const generateInvoiceFlow = ai.defineFlow(
       currentY -= 20;
 
       page.drawText('Sous-total HT:', { x: totalsX, y: currentY, font, size: 10 });
-      page.drawText(`${(reservation.totalAmount - reservation.vatAmount).toFixed(2)} €`, { x: width - margin - 70, y: currentY, font, size: 10 });
+      page.drawText(`${subtotalAmount.toFixed(2)} €`, { x: width - margin - 70, y: currentY, font, size: 10 });
       currentY -= 15;
 
       page.drawText(`TVA (10%):`, { x: totalsX, y: currentY, font, size: 10 });
-      page.drawText(`${reservation.vatAmount.toFixed(2)} €`, { x: width - margin - 70, y: currentY, font, size: 10 });
+      page.drawText(`${vatAmount.toFixed(2)} €`, { x: width - margin - 70, y: currentY, font, size: 10 });
       currentY -= 20;
 
       page.drawText('Total TTC:', { x: totalsX, y: currentY, font: boldFont, size: 12 });
-      page.drawText(`${reservation.totalAmount.toFixed(2)} €`, { x: width - margin - 70, y: currentY, font: boldFont, size: 12 });
+      page.drawText(`${totalAmount.toFixed(2)} €`, { x: width - margin - 70, y: currentY, font: boldFont, size: 12 });
 
       // 9. Add Footer
       const footerY = margin;
