@@ -129,8 +129,8 @@ function VehicleSelectionComponent() {
       stops: stops.map(s => ({ id: Date.now() + Math.random(), address: s})),
       scheduledTime: scheduledTime ? new Date(scheduledTime) : null,
       passengers: passengers ? parseInt(passengers) : 1, // Default to 1 passenger if not specified
-      suitcases: suitcases ? parseInt(suitcases) : undefined,
-      backpacks: backpacks ? parseInt(backpacks) : undefined,
+      suitcases: suitcases ? parseInt(suitcases) : 0,
+      backpacks: backpacks ? parseInt(backpacks) : 0,
     };
   }, [searchParams]);
   
@@ -528,7 +528,7 @@ function VehicleSelectionComponent() {
                             <Info className="h-4 w-4" />
                             <AlertTitle>Aucune gamme disponible</AlertTitle>
                             <AlertDescription>
-                                Aucun de nos véhicules ne correspond à votre demande de {bookingDetails.passengers || 'passagers'} et {bookingDetails.suitcases || 'valises'}. Veuillez modifier votre demande ou nous contacter.
+                                Aucun de nos véhicules ne correspond à votre demande pour {bookingDetails.passengers} passager(s) et {bookingDetails.suitcases} valise(s). Veuillez modifier votre demande ou nous contacter.
                             </AlertDescription>
                         </Alert>
                       )}

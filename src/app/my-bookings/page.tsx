@@ -148,6 +148,9 @@ function MyBookingsComponent() {
     if (details.scheduledTime) {
       queryParams.set('scheduledTime', details.scheduledTime.toISOString());
     }
+    if (details.passengers) queryParams.set('passengers', String(details.passengers));
+    if (details.suitcases) queryParams.set('suitcases', String(details.suitcases));
+    if (details.backpacks) queryParams.set('backpacks', String(details.backpacks));
     router.push(`/book/select-vehicle?${queryParams.toString()}`);
   }
 
