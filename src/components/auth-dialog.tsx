@@ -96,7 +96,6 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
   });
   
   const handleAuthSuccess = () => {
-    // After login/signup, redirect to the payment page with booking details
     const params = new URLSearchParams();
     if (bookingDetails) {
         params.set('pickup', bookingDetails.pickup);
