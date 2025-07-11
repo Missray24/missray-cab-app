@@ -51,6 +51,7 @@ const initialFormState = {
     suitcases: '2',
     backpacks: '2',
   },
+  registrationDate: '',
 };
 
 type ModalState = {
@@ -64,7 +65,7 @@ export default function ServiceTiersPage() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalState, setModalState] = useState<ModalState>({ mode: 'add', tier: null, isOpen: false });
-  const [formData, setFormData] = useState(initialFormState);
+  const [formData, setFormData] = useState<any>(initialFormState);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -101,7 +102,8 @@ export default function ServiceTiersPage() {
             passengers: String(capacity?.passengers || 4),
             suitcases: String(capacity?.suitcases || 2),
             backpacks: String(capacity?.backpacks || 2),
-        }
+        },
+        registrationDate: modalState.tier.registrationDate,
       } as any);
       setPreviewUrl(photoUrl);
     } else {
@@ -181,7 +183,8 @@ export default function ServiceTiersPage() {
         passengers: parseInt(formData.capacity.passengers, 10),
         suitcases: parseInt(formData.capacity.suitcases, 10),
         backpacks: parseInt(formData.capacity.backpacks, 10),
-      }
+      },
+      registrationDate: formData.registrationDate,
     };
 
     if (modalState.mode === 'edit' && modalState.tier) {
@@ -225,6 +228,10 @@ export default function ServiceTiersPage() {
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
                 <Textarea id="description" placeholder="Description courte de la gamme" value={formData.description} onChange={handleFormChange} />
+              </div>
+               <div className="space-y-2">
+                <Label htmlFor="registrationDate">Date de 1ère immatriculation</Label>
+                <Input id="registrationDate" type="date" value={formData.registrationDate} onChange={handleFormChange} />
               </div>
             </div>
             <div className="space-y-2">
@@ -317,7 +324,7 @@ export default function ServiceTiersPage() {
                 <div className="aspect-video w-full rounded-md overflow-hidden border mb-4">
                   <Image
                     src={tier.photoUrl}
-                    alt={`Photo of ${tier.name}`}
+                    alt={`Photo de ${tier.name}`}
                     data-ai-hint="sedan car"
                     width={400}
                     height={225}
@@ -328,6 +335,7 @@ export default function ServiceTiersPage() {
                 <CardDescription>{tier.description}</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-2 text-sm flex-grow">
+                <div className="flex justify-between"><span className="text-muted-foreground">Date de mise en service</span><span className="font-medium">{tier.registrationDate}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Prise en charge</span><span className="font-medium">{tier.baseFare.toFixed(2)}€</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Prix / km</span><span className="font-medium">{tier.perKm.toFixed(2)}€</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Prix / minute</span><span className="font-medium">{tier.perMinute.toFixed(2)}€</span></div>
