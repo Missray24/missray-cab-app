@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { collection, getDocs, query, where, doc, updateDoc, writeBatch, Timestamp } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { useLoadScript } from "@react-google-maps/api";
 
@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Reservation, ReservationOption, ServiceTier, User } from "@/lib/types";
+import type { Reservation, ReservationOption, ReservationStatus, ServiceTier, User } from "@/lib/types";
+import { reservationStatuses } from "@/lib/types";
 import { db, auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, CalendarCheck, Car, CheckCircle, DollarSign, Users, Briefcase, Backpack, MapPin, Milestone, Timer, Baby, Armchair, Dog, CreditCard } from "lucide-react";
@@ -35,6 +36,15 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RouteMap } from "@/components/route-map";
 import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from "@/lib/config";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+
 
 const libraries = ['places'] as any;
 
@@ -106,6 +116,7 @@ export default function DriverDashboardPage() {
         fetchDriverAndRides(currentUser);
       } else {
         setLoading(false);
+        // router.push('/login');
       }
     });
     return () => unsubscribe();
@@ -140,6 +151,36 @@ export default function DriverDashboardPage() {
     } catch (error) {
         console.error("Error accepting ride:", error);
         toast({ variant: "destructive", title: "Erreur", description: "Impossible d'accepter la course." });
+    }
+  };
+
+  const handleStatusChange = async (reservationId: string, newStatus: ReservationStatus) => {
+    const reservation = upcomingRides.find(r => r.id === reservationId);
+    if (!reservation) return;
+
+    try {
+      const resRef = doc(db, "reservations", reservationId);
+      const statusHistoryEntry = { status: newStatus, timestamp: new Date().toLocaleString('fr-FR') };
+      
+      await updateDoc(resRef, { 
+        status: newStatus,
+        statusHistory: [...reservation.statusHistory, statusHistoryEntry]
+      });
+
+      // Optimistically update UI
+      setUpcomingRides(prev => prev.map(res => 
+        res.id === reservationId ? { ...res, status: newStatus, statusHistory: [...res.statusHistory, statusHistoryEntry] } : res
+      ));
+
+      // If the ride is finished or cancelled, remove it from the upcoming list
+      if (['Terminée', 'Annulée par le chauffeur (sans frais)', 'Annulée par le client (sans frais)', 'Annulée par le chauffeur (avec frais)', 'Annulée par le client (avec frais)', 'No-show'].includes(newStatus)) {
+        setUpcomingRides(prev => prev.filter(res => res.id !== reservationId));
+      }
+
+      toast({ title: "Statut mis à jour", description: `La course est maintenant: ${newStatus}` });
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast({ variant: "destructive", title: "Erreur", description: "Impossible de mettre à jour le statut." });
     }
   };
 
@@ -215,6 +256,7 @@ export default function DriverDashboardPage() {
                                         <RouteMap 
                                             isLoaded={isLoaded}
                                             loadError={loadError}
+                                            apiKey={NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
                                             pickup={ride.pickup} 
                                             dropoff={ride.dropoff} 
                                             stops={ride.stops} 
@@ -239,9 +281,9 @@ export default function DriverDashboardPage() {
                                             </div>
                                             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                                                 {tier && <Badge variant="outline">{tier.name}</Badge>}
-                                                {ride.passengers && <span className="flex items-center gap-1.5"><Users className="h-4 w-4" />{ride.passengers}</span>}
-                                                {ride.suitcases !== undefined && <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{ride.suitcases}</span>}
-                                                {ride.backpacks !== undefined && <span className="flex items-center gap-1.5"><Backpack className="h-4 w-4" />{ride.backpacks}</span>}
+                                                {ride.passengers !== null && <span className="flex items-center gap-1.5"><Users className="h-4 w-4" />{ride.passengers}</span>}
+                                                {ride.suitcases !== null && <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{ride.suitcases}</span>}
+                                                {ride.backpacks !== null && <span className="flex items-center gap-1.5"><Backpack className="h-4 w-4" />{ride.backpacks}</span>}
                                                 <Badge variant="secondary" className="capitalize flex items-center gap-1.5"><CreditCard className="h-4 w-4" />{ride.paymentMethod}</Badge>
                                             </div>
                                             {ride.options && ride.options.length > 0 && (
@@ -281,8 +323,8 @@ export default function DriverDashboardPage() {
                     <TableHeader>
                         <TableRow>
                             <TableHead>Course</TableHead>
-                            <TableHead className="text-right">Client</TableHead>
-                            <TableHead></TableHead>
+                            <TableHead>Client</TableHead>
+                            <TableHead>Statut</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -290,8 +332,8 @@ export default function DriverDashboardPage() {
                             Array.from({ length: 3 }).map((_, i) => (
                                 <TableRow key={i}>
                                     <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                                    <TableCell><Skeleton className="h-4 w-24 ml-auto" /></TableCell>
-                                    <TableCell><Skeleton className="h-9 w-9 rounded-full" /></TableCell>
+                                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                    <TableCell><Skeleton className="h-9 w-32" /></TableCell>
                                 </TableRow>
                             ))
                         ) : upcomingRides.length > 0 ? (
@@ -302,16 +344,24 @@ export default function DriverDashboardPage() {
                                     <div className="text-sm text-muted-foreground">vers {ride.dropoff}</div>
                                     <div className="text-xs text-muted-foreground mt-1 flex items-center gap-2">
                                         {format(new Date(ride.date), "d MMM yyyy 'à' HH:mm", { locale: fr })}
-                                        <Badge variant="secondary" className="capitalize">{ride.status}</Badge>
                                     </div>
                                 </TableCell>
-                                <TableCell className="text-right">{ride.clientName}</TableCell>
+                                <TableCell>{ride.clientName}</TableCell>
                                 <TableCell>
-                                    <Button asChild size="icon" variant="ghost">
-                                        <Link href={`/driver/reservations`}>
-                                            <ArrowRight />
-                                        </Link>
-                                    </Button>
+                                     <Select value={ride.status} onValueChange={(value: ReservationStatus) => handleStatusChange(ride.id, value)}>
+                                        <SelectTrigger className={cn("w-full md:w-[180px] text-xs h-8",
+                                            ride.status === 'Terminée' ? 'border-green-500' :
+                                            ride.status.startsWith('Annulée') || ride.status === 'No-show' ? 'border-red-500' :
+                                            'border-blue-500'
+                                        )}>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {reservationStatuses
+                                                .filter(s => s !== 'Nouvelle demande') // Can't go back to 'new'
+                                                .map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
                                 </TableCell>
                             </TableRow>
                             ))
