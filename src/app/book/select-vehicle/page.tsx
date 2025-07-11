@@ -28,6 +28,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 interface RouteInfo {
     distance: string;
@@ -140,6 +141,22 @@ function VehicleSelectionComponent() {
         setFilteredTiers(allServiceTiers);
     }
   }, [bookingDetails, allServiceTiers]);
+  
+  const sortedAndPricedTiers = useMemo(() => {
+    if (!routeInfo) return [];
+
+    return filteredTiers
+      .map(tier => {
+        const estimatedPrice = calculatePrice(
+          tier,
+          routeInfo.distance,
+          routeInfo.duration,
+          bookingDetails?.stops.length || 0
+        );
+        return { ...tier, estimatedPrice };
+      })
+      .sort((a, b) => a.estimatedPrice - b.estimatedPrice);
+  }, [filteredTiers, routeInfo, bookingDetails]);
 
   const handleUpdateTrip = (newDetails: BookingDetails) => {
     const queryParams = new URLSearchParams();
@@ -333,19 +350,21 @@ function VehicleSelectionComponent() {
                             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                                 {reservationOptions.map((option) => {
                                     const Icon = optionIcons[option];
+                                    const isChecked = selectedOptions.includes(option);
                                     return (
-                                        <div key={option} className="flex items-center gap-3 rounded-md border p-4 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                        <Label key={option} htmlFor={`option-${option}`} className={cn(
+                                            "flex flex-col items-center justify-center gap-3 rounded-lg border-2 p-4 cursor-pointer transition-colors hover:bg-accent/50",
+                                            isChecked ? "border-primary bg-primary/10" : "border-muted"
+                                        )}>
+                                            <Icon className={cn("h-8 w-8", isChecked ? "text-primary" : "text-muted-foreground")} />
+                                            <span className="font-semibold text-center">{option}</span>
                                             <Checkbox
                                                 id={`option-${option}`}
-                                                checked={selectedOptions.includes(option)}
+                                                checked={isChecked}
                                                 onCheckedChange={(checked) => handleOptionChange(option, checked)}
-                                                className="h-5 w-5"
+                                                className="sr-only" // Hide the actual checkbox, the card is the button
                                             />
-                                            <Label htmlFor={`option-${option}`} className="font-medium flex items-center gap-2 cursor-pointer text-base">
-                                                <Icon className="h-5 w-5 text-primary" />
-                                                {option}
-                                            </Label>
-                                        </div>
+                                        </Label>
                                     );
                                 })}
                             </div>
@@ -358,14 +377,8 @@ function VehicleSelectionComponent() {
                         Array.from({ length: 4 }).map((_, i) => (
                           <Card key={i}><CardHeader><Skeleton className="aspect-video w-full" /></CardHeader><CardContent className="space-y-2"><Skeleton className="h-6 w-3/4" /><Skeleton className="h-4 w-full" /><Button disabled className="w-full mt-2"><Skeleton className="h-5 w-24" /></Button></CardContent></Card>
                         ))
-                      ) : filteredTiers.length > 0 ? (
-                        filteredTiers.map((tier) => {
-                          const estimatedPrice = calculatePrice(
-                              tier,
-                              routeInfo.distance,
-                              routeInfo.duration,
-                              bookingDetails.stops.length
-                          );
+                      ) : sortedAndPricedTiers.length > 0 ? (
+                        sortedAndPricedTiers.map((tier) => {
                           return (
                             <div key={tier.id} className="bg-card rounded-lg shadow-sm flex flex-col md:flex-row md:items-center overflow-hidden">
                               <div className="md:w-1/4">
@@ -393,7 +406,7 @@ function VehicleSelectionComponent() {
                                           <TooltipTrigger asChild>
                                               <span className="font-bold text-lg text-foreground whitespace-nowrap flex items-center justify-end gap-1.5 cursor-help">
                                                   <Info className="h-4 w-4 text-muted-foreground" />
-                                                  Estimation: {estimatedPrice.toFixed(2)}€
+                                                  Estimation: {tier.estimatedPrice.toFixed(2)}€
                                               </span>
                                           </TooltipTrigger>
                                           <TooltipContent>
