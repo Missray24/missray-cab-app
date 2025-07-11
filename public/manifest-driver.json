@@ -1,21 +1,20 @@
 {
-  "name": "Missray Cab Chauffeur",
-  "short_name": "VTC Chauffeur",
-  "description": "Application pour les chauffeurs Missray Cab.",
-  "start_url": "/driver/dashboard",
-  "display": "standalone",
-  "background_color": "#111827",
-  "theme_color": "#223aff",
-  "icons": [
-    {
-      "src": "/icons/icon-driver-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-driver-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+    "name": "Missray Cab Chauffeur",
+    "short_name": "Missray Chauffeur",
+    "start_url": "/driver/dashboard",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#223aff",
+    "icons": [
+        {
+            "src": "/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
 }

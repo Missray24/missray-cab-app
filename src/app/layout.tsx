@@ -4,9 +4,8 @@ import 'intl-tel-input/build/css/intlTelInput.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'missray cab Dashboard',
-  description: 'Admin dashboard for missray cab',
-  manifest: '/manifest.json',
+  title: 'missray cab',
+  description: 'Votre chauffeur VTC de confiance',
 };
 
 export default function RootLayout({
