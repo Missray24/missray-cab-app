@@ -260,7 +260,7 @@ export default function ReservationDetailsPage() {
                <div className="grid md:grid-cols-2 gap-4">
                  <div>
                    <p className="font-medium text-muted-foreground">Montant Total</p>
-                   <p className="font-medium">{reservation.totalAmount.toFixed(2)}€ ({reservation.paymentMethod})</p>
+                   <p className="font-medium">{(reservation.totalAmount || reservation.amount || 0).toFixed(2)}€ ({reservation.paymentMethod})</p>
                  </div>
                  <div>
                    <p className="font-medium text-muted-foreground">Paiement Chauffeur</p>
@@ -313,5 +313,3 @@ export default function ReservationDetailsPage() {
     </div>
   );
 }
-
-    
