@@ -13,6 +13,7 @@ interface AutocompleteInputProps {
   onPlaceSelected: (address: string) => void;
   className?: string;
   defaultValue?: string;
+  value?: string; // Add value prop to make it a controlled component
 }
 
 const libraries = ['places'];
@@ -23,6 +24,7 @@ export function AutocompleteInput({
   onPlaceSelected,
   className,
   defaultValue = '',
+  value = '',
 }: AutocompleteInputProps) {
   const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
@@ -31,6 +33,12 @@ export function AutocompleteInput({
 
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+        inputRef.current.value = value;
+    }
+  }, [value]);
 
   const handlePlaceChanged = () => {
     if (autocompleteRef.current) {
@@ -48,6 +56,10 @@ export function AutocompleteInput({
         onPlaceSelected(inputRef.current.value);
     }
   };
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      onPlaceSelected(e.target.value);
+  }
 
   if (loadError) return <div>Error loading maps</div>;
   if (!isLoaded) return <Skeleton className={className || "h-9 w-full"} />;
@@ -72,6 +84,7 @@ export function AutocompleteInput({
           className={`${className || ''} pl-10`}
           defaultValue={defaultValue}
           onBlur={handleBlur}
+          onChange={handleChange}
         />
       </Autocomplete>
     </div>

@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase } from 'lucide-react';
+import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase, Crosshair } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
 
 
 export interface BookingDetails {
@@ -42,38 +43,40 @@ interface BookingFormProps {
 const specialLocationKeywords = ['gare', 'aéroport', 'aeroport', 'port'];
 
 const NumberSelect = ({
-    icon,
     value,
     onValueChange,
     max,
     min = 0,
-    placeholder
+    placeholder,
+    icon
 }: {
-    icon: React.ReactNode;
     value: number;
     onValueChange: (value: number) => void;
     max: number;
     min?: number;
     placeholder: string;
+    icon: React.ReactNode;
 }) => (
-    <Select
-        value={String(value)}
-        onValueChange={(val) => onValueChange(Number(val))}
-    >
-        <SelectTrigger className="w-full bg-white h-9">
-            <div className="flex items-center gap-2">
-                <div className="text-primary">{icon}</div>
-                <SelectValue placeholder={placeholder} />
-            </div>
-        </SelectTrigger>
-        <SelectContent>
-            {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
-                <SelectItem key={num} value={String(num)}>
-                    {num}
-                </SelectItem>
-            ))}
-        </SelectContent>
-    </Select>
+    <div className='flex items-center gap-2'>
+        <Select
+            value={String(value)}
+            onValueChange={(val) => onValueChange(Number(val))}
+        >
+            <SelectTrigger className="w-full bg-white h-9">
+                 <div className="flex items-center gap-2">
+                    <div className="text-primary">{icon}</div>
+                    <SelectValue placeholder={placeholder} />
+                </div>
+            </SelectTrigger>
+            <SelectContent>
+                {Array.from({ length: max - min + 1 }, (_, i) => min + i).map(num => (
+                    <SelectItem key={num} value={String(num)}>
+                        {num}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    </div>
 );
 
 
@@ -127,6 +130,33 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
     setScheduledDateTime(newDateTime);
   };
   
+  const handleGeolocate = () => {
+    if (!navigator.geolocation) {
+        toast({ variant: 'destructive', title: 'Erreur', description: 'La géolocalisation n\'est pas supportée par votre navigateur.' });
+        return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        try {
+            const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`);
+            const data = await response.json();
+            if (data.results && data.results[0]) {
+                const address = data.results[0].formatted_address;
+                setPickupAddress(address);
+            } else {
+                throw new Error('No results found');
+            }
+        } catch (error) {
+            console.error("Error reverse geocoding:", error);
+            toast({ variant: 'destructive', title: 'Erreur', description: 'Impossible de trouver une adresse pour votre position.' });
+        }
+    }, (error) => {
+        console.error("Geolocation error:", error);
+        toast({ variant: 'destructive', title: 'Erreur de géolocalisation', description: 'Impossible d\'obtenir votre position. Veuillez vérifier vos autorisations.' });
+    });
+  };
+
   const handleSubmit = () => {
     if (!pickupAddress || !dropoffAddress) {
       toast({
@@ -148,13 +178,26 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
 
   return (
     <div className="space-y-4">
-      <AutocompleteInput
-        icon={<MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500 animate-icon-pulse" />}
-        placeholder="Adresse de départ"
-        onPlaceSelected={(address) => setPickupAddress(address)}
-        defaultValue={pickupAddress}
-        className="h-9 text-base bg-white"
-      />
+       <div className="relative flex items-center">
+            <AutocompleteInput
+                icon={<MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-green-500 animate-icon-pulse" />}
+                placeholder="Adresse de départ"
+                onPlaceSelected={(address) => setPickupAddress(address)}
+                defaultValue={pickupAddress}
+                value={pickupAddress} // Controlled component
+                className="h-9 text-base bg-white pr-10" // Add padding for the button
+            />
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 text-muted-foreground hover:text-primary"
+                onClick={handleGeolocate}
+                aria-label="Me localiser"
+            >
+                <Crosshair className="h-4 w-4" />
+            </Button>
+        </div>
       
       {stops.map((stop, index) => (
         <div key={stop.id} className="flex items-center gap-2">
@@ -189,7 +232,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
       {isSpecialLocation && (
           <div className="flex gap-4">
                <NumberSelect
-                    icon={<Users className="h-5 w-5" />}
+                    icon={<Users className="h-4 w-4" />}
                     value={passengers}
                     onValueChange={setPassengers}
                     placeholder='Passagers'
@@ -197,7 +240,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                     max={8}
                 />
                 <NumberSelect
-                    icon={<Briefcase className="h-5 w-5" />}
+                    icon={<Briefcase className="h-4 w-4" />}
                     value={suitcases}
                     onValueChange={setSuitcases}
                     placeholder='Valises'
