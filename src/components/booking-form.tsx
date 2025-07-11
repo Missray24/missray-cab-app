@@ -3,7 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase, Crosshair, Backpack, Baby, Armchair, Dog } from 'lucide-react';
+import { MapPin, Plus, X, Calendar as CalendarIcon, Users, Briefcase, Crosshair, Backpack } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -24,9 +24,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from '@/lib/config';
-import { Checkbox } from './ui/checkbox';
-import type { ReservationOption } from '@/lib/types';
-import { reservationOptions } from '@/lib/types';
 
 
 export interface BookingDetails {
@@ -37,7 +34,6 @@ export interface BookingDetails {
     passengers?: number;
     suitcases?: number;
     carryOnLuggage?: number;
-    options?: ReservationOption[];
 }
 
 interface BookingFormProps {
@@ -98,13 +94,7 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
   const [passengers, setPassengers] = useState<number | undefined>(initialDetails.passengers);
   const [suitcases, setSuitcases] = useState<number | undefined>(initialDetails.suitcases);
   const [carryOnLuggage, setCarryOnLuggage] = useState<number | undefined>(initialDetails.carryOnLuggage);
-  const [options, setOptions] = useState<ReservationOption[]>(initialDetails.options || []);
   
-  const optionIcons: Record<ReservationOption, React.ElementType> = {
-    'Siège bébé': Baby,
-    'Rehausseur': Armchair,
-    'Animal de compagnie': Dog,
-  };
 
   useEffect(() => {
     const checkSpecialLocation = (address: string) => 
@@ -168,14 +158,6 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
         toast({ variant: 'destructive', title: 'Erreur de géolocalisation', description: 'Impossible d\'obtenir votre position. Veuillez vérifier vos autorisations.' });
     });
   };
-  
-   const handleOptionChange = (option: ReservationOption, checked: boolean | 'indeterminate') => {
-    if (typeof checked === 'boolean') {
-      setOptions(prev => 
-        checked ? [...prev, option] : prev.filter(o => o !== option)
-      );
-    }
-  };
 
   const handleSubmit = () => {
     if (!pickupAddress || !dropoffAddress) {
@@ -195,7 +177,6 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
         passengers,
         suitcases,
         carryOnLuggage,
-        options,
     });
   }
 
@@ -275,28 +256,6 @@ export function BookingForm({ initialDetails = {}, onSubmit, submitButtonText = 
                 max={10}
                 placeholder="Bagages main"
             />
-      </div>
-      
-      <div>
-        <Label className="text-sm font-medium">Options</Label>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-2 mt-2">
-          {reservationOptions.map((option) => {
-            const Icon = optionIcons[option];
-            return (
-              <div key={option} className="flex items-center gap-2">
-                <Checkbox
-                  id={option}
-                  checked={options.includes(option)}
-                  onCheckedChange={(checked) => handleOptionChange(option, checked)}
-                />
-                <Label htmlFor={option} className="font-normal flex items-center gap-1.5 cursor-pointer">
-                  <Icon className="h-4 w-4 text-primary" />
-                  {option}
-                </Label>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
 

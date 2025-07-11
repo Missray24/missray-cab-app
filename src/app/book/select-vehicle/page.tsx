@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { db, auth } from '@/lib/firebase';
-import type { ServiceTier, ReservationOption } from '@/lib/types';
+import { type ServiceTier, type ReservationOption, reservationOptions } from '@/lib/types';
 import { RouteMap } from '@/components/route-map';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -26,6 +26,8 @@ import { AuthDialog } from '@/components/auth-dialog';
 import { calculatePrice } from '@/lib/pricing';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface RouteInfo {
     distance: string;
@@ -55,6 +57,7 @@ function VehicleSelectionComponent() {
   
   const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
+  const [selectedOptions, setSelectedOptions] = useState<ReservationOption[]>([]);
 
   // Memoize booking details to prevent re-parsing on every render
   const bookingDetails = useMemo(() => {
@@ -65,7 +68,6 @@ function VehicleSelectionComponent() {
     const passengers = searchParams.get('passengers');
     const suitcases = searchParams.get('suitcases');
     const carryOnLuggage = searchParams.get('carryOnLuggage');
-    const options = searchParams.getAll('option') as ReservationOption[];
     
     if (!pickup || !dropoff) return null;
 
@@ -77,7 +79,6 @@ function VehicleSelectionComponent() {
       passengers: passengers ? parseInt(passengers) : undefined,
       suitcases: suitcases ? parseInt(suitcases) : undefined,
       carryOnLuggage: carryOnLuggage ? parseInt(carryOnLuggage) : undefined,
-      options,
     };
   }, [searchParams]);
   
@@ -151,7 +152,6 @@ function VehicleSelectionComponent() {
     if (newDetails.passengers) queryParams.set('passengers', String(newDetails.passengers));
     if (newDetails.suitcases) queryParams.set('suitcases', String(newDetails.suitcases));
     if (newDetails.carryOnLuggage) queryParams.set('carryOnLuggage', String(newDetails.carryOnLuggage));
-    if (newDetails.options) newDetails.options.forEach(opt => queryParams.append('option', opt));
     
     router.replace(`/book/select-vehicle?${queryParams.toString()}`);
     setRouteInfo(null);
@@ -166,10 +166,19 @@ function VehicleSelectionComponent() {
             params.set('distance', routeInfo.distance);
             params.set('duration', routeInfo.duration);
         }
+        selectedOptions.forEach(opt => params.append('option', opt));
         router.push(`/book/payment?${params.toString()}`);
     } else {
         setSelectedTierId(tierId);
         setIsAuthDialogOpen(true);
+    }
+  };
+  
+  const handleOptionChange = (option: ReservationOption, checked: boolean | 'indeterminate') => {
+    if (typeof checked === 'boolean') {
+      setSelectedOptions(prev => 
+        checked ? [...prev, option] : prev.filter(o => o !== option)
+      );
     }
   };
 
@@ -295,7 +304,7 @@ function VehicleSelectionComponent() {
                                         <p className="font-medium">{bookingDetails.dropoff}</p>
                                     </div>
                                 </div>
-                                {(bookingDetails.passengers || bookingDetails.suitcases || bookingDetails.carryOnLuggage || (bookingDetails.options && bookingDetails.options.length > 0)) && (
+                                {(bookingDetails.passengers || bookingDetails.suitcases || bookingDetails.carryOnLuggage) && (
                                     <>
                                         <Separator />
                                         <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
@@ -308,15 +317,37 @@ function VehicleSelectionComponent() {
                                             {bookingDetails.carryOnLuggage && <Badge variant="secondary" className="text-base">
                                                 <Backpack className="h-4 w-4 mr-2" /> {bookingDetails.carryOnLuggage}
                                             </Badge>}
-                                            {bookingDetails.options?.map(opt => {
-                                                const Icon = optionIcons[opt];
-                                                return <Badge key={opt} variant="secondary" className="text-base">
-                                                    <Icon className="h-4 w-4 mr-2" /> {opt}
-                                                </Badge>
-                                            })}
                                         </div>
                                     </>
                                 )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Options de la course</CardTitle>
+                            <CardDescription>Sélectionnez les options dont vous avez besoin pour ce trajet.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                {reservationOptions.map((option) => {
+                                    const Icon = optionIcons[option];
+                                    return (
+                                        <div key={option} className="flex items-center gap-3 rounded-md border p-4 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                                            <Checkbox
+                                                id={`option-${option}`}
+                                                checked={selectedOptions.includes(option)}
+                                                onCheckedChange={(checked) => handleOptionChange(option, checked)}
+                                                className="h-5 w-5"
+                                            />
+                                            <Label htmlFor={`option-${option}`} className="font-medium flex items-center gap-2 cursor-pointer text-base">
+                                                <Icon className="h-5 w-5 text-primary" />
+                                                {option}
+                                            </Label>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </CardContent>
                     </Card>
@@ -402,7 +433,7 @@ function VehicleSelectionComponent() {
                 tierId: selectedTierId!, 
                 stops: bookingDetails.stops.map(s => s.address),
                 routeInfo: routeInfo,
-                options: bookingDetails.options || [],
+                options: selectedOptions,
             }}
         />
       )}
