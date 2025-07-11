@@ -61,7 +61,6 @@ const NumberSelect = ({
             <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-lg text-primary-foreground">
                 {icon}
             </div>
-            <Label className="font-semibold text-foreground">{label}</Label>
         </div>
         <Select
             value={String(value)}
