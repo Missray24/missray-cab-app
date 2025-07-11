@@ -1,5 +1,4 @@
 
-
 import { Baby, Armchair, Dog, type LucideIcon } from "lucide-react";
 
 export type ReservationOption = 'Siège bébé' | 'Rehausseur' | 'Animal';
@@ -72,9 +71,9 @@ export interface Reservation {
   paymentMethod: PaymentMethod;
   serviceTierId: string;
   stripePaymentId?: string;
-  passengers?: number;
-  suitcases?: number;
-  backpacks?: number;
+  passengers: number | null;
+  suitcases: number | null;
+  backpacks: number | null;
   options?: SelectedOption[];
   distance?: string;
   duration?: string;
@@ -98,6 +97,7 @@ export interface Vehicle {
 }
 
 export interface DriverProfile {
+    activeZoneIds: string[];
     company: {
       name?: string;
       address?: string;
@@ -149,6 +149,7 @@ export interface ServiceTier {
     suitcases: number;
     backpacks?: number;
   };
+  registrationDate: string;
 }
 
 export interface Zone {

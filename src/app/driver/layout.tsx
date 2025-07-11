@@ -16,6 +16,7 @@ import {
   Car,
   FileText,
   BellRing,
+  Map,
 } from 'lucide-react';
 
 import {
@@ -50,6 +51,7 @@ const navItems = [
   { href: '/driver/new-rides', icon: BellRing, label: 'Nouvelles courses', id: 'new-rides' },
   { href: '/driver/reservations', icon: CalendarCheck, label: 'Mes Courses' },
   { href: '/driver/earnings', icon: TrendingUp, label: 'Mes Revenus' },
+  { href: '/driver/zones', icon: Map, label: 'Mes Zones' },
   { href: '/driver/vehicles', icon: Car, label: 'Mes Véhicules' },
   { href: '/driver/documents', icon: FileText, label: 'Mes Documents' },
   { href: '/driver/settings', icon: Settings, label: 'Profil' },

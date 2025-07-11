@@ -2,25 +2,20 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { collection, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, updateDoc, onSnapshot } from "firebase/firestore";
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Users, Briefcase, Backpack, MapPin, Baby, Armchair, Dog, Milestone, Timer, CreditCard } from "lucide-react";
-import { useLoadScript } from "@react-google-maps/api";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Reservation, ReservationOption, ServiceTier, User } from "@/lib/types";
+import type { Reservation, ReservationOption, ServiceTier, User, Zone } from "@/lib/types";
 import { db, auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
-import { RouteMap } from "@/components/route-map";
-import { NEXT_PUBLIC_GOOGLE_MAPS_API_KEY } from "@/lib/config";
-
-const libraries = ['places'] as any;
 
 const optionIcons: Record<ReservationOption, React.ElementType> = {
     'Siège bébé': Baby,
@@ -28,19 +23,29 @@ const optionIcons: Record<ReservationOption, React.ElementType> = {
     'Animal': Dog,
 };
 
+// Helper function to check if a point is inside a polygon
+const isPointInPolygon = (point: google.maps.LatLng, polygon: google.maps.Polygon) => {
+    return window.google.maps.geometry.spherical.containsLocation(point, polygon);
+};
+
+
 export default function NewRidesPage() {
   const [driver, setDriver] = useState<User | null>(null);
   const [availableRides, setAvailableRides] = useState<Reservation[]>([]);
   const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
+  const [zones, setZones] = useState<Zone[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
 
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || '',
-    libraries,
-  });
 
-  const fetchDriverAndRides = async (currentUser: FirebaseUser) => {
+  useEffect(() => {
+    if (typeof window.google !== 'undefined') {
+        setGeocoder(new window.google.maps.Geocoder());
+    }
+  }, []);
+
+  const fetchDriverAndData = async (currentUser: FirebaseUser) => {
     setLoading(true);
     try {
       const usersRef = collection(db, "users");
@@ -55,17 +60,61 @@ export default function NewRidesPage() {
       const driverData = { id: driverSnapshot.docs[0].id, ...driverSnapshot.docs[0].data() } as User;
       setDriver(driverData);
 
-      // Fetch service tiers to get names
-      const tiersSnapshot = await getDocs(collection(db, "serviceTiers"));
-      setServiceTiers(tiersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ServiceTier)));
-
+      // Fetch service tiers and zones
+      const [tiersSnapshot, zonesSnapshot] = await Promise.all([
+        getDocs(collection(db, "serviceTiers")),
+        getDocs(collection(db, "zones"))
+      ]);
+      const tiersData = tiersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ServiceTier));
+      const zonesData = zonesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Zone));
+      setServiceTiers(tiersData);
+      setZones(zonesData);
+      
       const availableQuery = query(collection(db, "reservations"), where("status", "==", "Nouvelle demande"));
-      const availableSnapshot = await getDocs(availableQuery);
-      setAvailableRides(availableSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Reservation)));
+      
+      const unsubscribe = onSnapshot(availableQuery, async (snapshot) => {
+          const allRides = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Reservation));
+          
+          if (driverData.driverProfile?.activeZoneIds && driverData.driverProfile.activeZoneIds.length > 0 && geocoder && zonesData.length > 0) {
+              const driverZones = zonesData.filter(z => driverData.driverProfile!.activeZoneIds.includes(z.id) && z.polygon);
+              if (driverZones.length > 0) {
+                  const filteredRides = [];
+                  for (const ride of allRides) {
+                      try {
+                          const geocodeResult = await geocoder.geocode({ address: ride.pickup });
+                          if (geocodeResult.results.length > 0) {
+                              const rideLocation = geocodeResult.results[0].geometry.location;
+                              const isInDriverZone = driverZones.some(zone => {
+                                  const googlePolygon = new window.google.maps.Polygon({ paths: zone.polygon });
+                                  return isPointInPolygon(rideLocation, googlePolygon);
+                              });
+                              if (isInDriverZone) {
+                                  filteredRides.push(ride);
+                              }
+                          }
+                      } catch (e) {
+                          console.error("Geocoding failed for ride:", ride.id, e);
+                          // By default, include ride if geocoding fails? Or exclude?
+                          // Let's include it to not miss potential rides.
+                          filteredRides.push(ride);
+                      }
+                  }
+                  setAvailableRides(filteredRides);
+              } else {
+                 setAvailableRides([]); // Driver has zones selected, but none have polygons or exist
+              }
+          } else {
+              // If driver has no zones selected, or geocoder/zones not ready, show all rides.
+              setAvailableRides(allRides);
+          }
+          setLoading(false);
+      });
+
+      return () => unsubscribe();
+
     } catch (error) {
       console.error("Error fetching data: ", error);
       toast({ variant: 'destructive', title: "Erreur", description: "Impossible de charger les données." });
-    } finally {
       setLoading(false);
     }
   };
@@ -73,14 +122,16 @@ export default function NewRidesPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
-        fetchDriverAndRides(currentUser);
+        fetchDriverAndData(currentUser);
       } else {
         setLoading(false);
       }
     });
-    return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    // This effect should only run once, so we pass an empty dependency array.
+    // The onSnapshot will handle updates.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [geocoder]); // Re-run if geocoder becomes available.
+
 
   const handleAcceptRide = async (reservationId: string) => {
     if (!driver) return;
@@ -102,10 +153,6 @@ export default function NewRidesPage() {
 
         toast({ title: "Course acceptée!", description: "La course a été ajoutée à votre planning." });
 
-        if (auth.currentUser) {
-            fetchDriverAndRides(auth.currentUser);
-        }
-
     } catch (error) {
         console.error("Error accepting ride:", error);
         toast({ variant: "destructive", title: "Erreur", description: "Impossible d'accepter la course." });
@@ -118,7 +165,7 @@ export default function NewRidesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Liste des demandes en attente</CardTitle>
-          <CardDescription>Consultez les dernières demandes et acceptez celles qui vous intéressent.</CardDescription>
+          <CardDescription>Consultez les dernières demandes dans vos zones et acceptez celles qui vous intéressent.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
             {loading ? (
@@ -131,17 +178,6 @@ export default function NewRidesPage() {
                     return (
                         <Card key={ride.id} className="p-4">
                             <div className="space-y-3">
-                                <div className="h-32 w-full rounded-md overflow-hidden border">
-                                     <RouteMap 
-                                        isLoaded={isLoaded}
-                                        loadError={loadError}
-                                        apiKey={NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
-                                        pickup={ride.pickup} 
-                                        dropoff={ride.dropoff} 
-                                        stops={ride.stops} 
-                                        isInteractive={false} 
-                                    />
-                                </div>
                                 <div className="flex flex-col sm:flex-row gap-4 justify-between">
                                     <div className="space-y-3 flex-grow">
                                         <div className="font-semibold">{format(new Date(ride.date), "EEEE d MMM yyyy 'à' HH:mm", { locale: fr })}</div>
@@ -185,7 +221,7 @@ export default function NewRidesPage() {
                 })
             ) : (
                 <div className="text-center text-muted-foreground py-16">
-                    Aucune nouvelle course pour le moment.
+                    Aucune nouvelle course pour le moment dans vos zones.
                 </div>
             )}
         </CardContent>
