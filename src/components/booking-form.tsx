@@ -34,29 +34,29 @@ interface BookingFormProps {
 const specialLocationKeywords = ['gare', 'aéroport', 'aeroport', 'port'];
 
 const NumberSelector = ({ label, icon, value, onValueChange, min = 0 }: { label: string, icon: React.ReactNode, value: number, onValueChange: (value: number) => void, min?: number }) => (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-[#223aff]/10 to-[#006df1]/10 text-primary-foreground">
+    <div className="flex items-center justify-between rounded-lg border p-2">
         <div className="flex items-center gap-3">
-            <div className="bg-white/70 text-primary p-2 rounded-full">
+            <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-full text-primary-foreground">
                {icon}
             </div>
-            <Label className="font-bold text-primary">{label}</Label>
+            <Label className="font-semibold text-foreground">{label}</Label>
         </div>
         <div className="flex items-center gap-2">
             <Button
                 type="button"
                 size="icon"
                 variant="ghost"
-                className="h-7 w-7 rounded-full text-primary hover:bg-primary/20 hover:text-primary"
+                className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted"
                 onClick={() => onValueChange(Math.max(min, value - 1))}
             >
                 <Minus className="h-4 w-4" />
             </Button>
-            <span className="w-8 text-center font-bold text-lg text-primary">{value}</span>
+            <span className="w-8 text-center font-bold text-lg text-foreground">{value}</span>
             <Button
                 type="button"
                 size="icon"
                 variant="ghost"
-                className="h-7 w-7 rounded-full text-primary hover:bg-primary/20 hover:text-primary"
+                className="h-8 w-8 rounded-full text-muted-foreground hover:bg-muted"
                 onClick={() => onValueChange(value + 1)}
             >
                 <Plus className="h-4 w-4" />
