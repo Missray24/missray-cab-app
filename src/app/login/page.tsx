@@ -60,7 +60,7 @@ function LoginComponent() {
         router.push('/dashboard');
       } else if (userRole === 'driver') {
         toast({ title: "Succès", description: "Bienvenue sur votre espace chauffeur." });
-        router.push('/driver/dashboard');
+        router.push('/driver-dashboard');
       } else { // client
         if(bookingParams) {
           router.push(`/book/payment${bookingParams}`);
