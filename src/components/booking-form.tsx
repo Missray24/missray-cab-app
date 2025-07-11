@@ -54,7 +54,7 @@ const NumberSelect = ({
     max: number;
     min?: number;
 }) => (
-    <div className="inline-flex items-center rounded-lg border p-2 justify-start gap-2 bg-white w-auto">
+    <div className="inline-flex items-center rounded-lg border p-2 justify-between gap-2 bg-white w-auto">
         <div className="flex items-center">
             <div className="bg-gradient-to-br from-[#223aff] to-[#006df1] p-2 rounded-lg text-primary-foreground">
                 {icon}
@@ -64,7 +64,7 @@ const NumberSelect = ({
             value={String(value)}
             onValueChange={(val) => onValueChange(Number(val))}
         >
-            <SelectTrigger className="w-[60px] bg-white text-black">
+            <SelectTrigger className="w-[80px] bg-white text-black">
                 <SelectValue placeholder={value} />
             </SelectTrigger>
             <SelectContent>
