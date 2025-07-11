@@ -6,19 +6,27 @@ import { collection, getDocs, query, where, doc, updateDoc } from "firebase/fire
 import { onAuthStateChanged, type User as FirebaseUser } from "firebase/auth";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Users, Briefcase, Backpack, MapPin, Baby, Armchair, Dog } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PageHeader } from "@/components/page-header";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Reservation, User } from "@/lib/types";
+import type { Reservation, ReservationOption, ServiceTier, User } from "@/lib/types";
 import { db, auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+
+const optionIcons: Record<ReservationOption, React.ElementType> = {
+    'Siège bébé': Baby,
+    'Rehausseur': Armchair,
+    'Animal': Dog,
+};
 
 export default function NewRidesPage() {
   const [driver, setDriver] = useState<User | null>(null);
   const [availableRides, setAvailableRides] = useState<Reservation[]>([]);
+  const [serviceTiers, setServiceTiers] = useState<ServiceTier[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -36,6 +44,10 @@ export default function NewRidesPage() {
       }
       const driverData = { id: driverSnapshot.docs[0].id, ...driverSnapshot.docs[0].data() } as User;
       setDriver(driverData);
+
+      // Fetch service tiers to get names
+      const tiersSnapshot = await getDocs(collection(db, "serviceTiers"));
+      setServiceTiers(tiersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ServiceTier)));
 
       const availableQuery = query(collection(db, "reservations"), where("status", "==", "Nouvelle demande"));
       const availableSnapshot = await getDocs(availableQuery);
@@ -98,50 +110,54 @@ export default function NewRidesPage() {
           <CardTitle>Liste des demandes en attente</CardTitle>
           <CardDescription>Consultez les dernières demandes et acceptez celles qui vous intéressent.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Course</TableHead>
-                <TableHead>Client</TableHead>
-                <TableHead className="text-right">Vos Gains Estimés</TableHead>
-                <TableHead className="w-[100px]"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                    <TableCell><Skeleton className="h-4 w-16 ml-auto" /></TableCell>
-                    <TableCell><Skeleton className="h-9 w-24" /></TableCell>
-                  </TableRow>
+        <CardContent className="space-y-4">
+            {loading ? (
+                Array.from({ length: 3 }).map((_, i) => (
+                    <Skeleton key={i} className="h-40 w-full" />
                 ))
-              ) : availableRides.length > 0 ? (
-                availableRides.map((ride) => (
-                  <TableRow key={ride.id}>
-                    <TableCell>
-                      <div className="font-medium">{ride.pickup}</div>
-                      <div className="text-sm text-muted-foreground">vers {ride.dropoff}</div>
-                      <div className="text-xs text-muted-foreground mt-1">{format(new Date(ride.date), "d MMM yyyy 'à' HH:mm", { locale: fr })}</div>
-                    </TableCell>
-                    <TableCell>{ride.clientName}</TableCell>
-                    <TableCell className="text-right font-semibold">{(ride.amount * 0.8).toFixed(2)}€</TableCell>
-                    <TableCell>
-                      <Button size="sm" onClick={() => handleAcceptRide(ride.id)}>Accepter</Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center">
+            ) : availableRides.length > 0 ? (
+                availableRides.map((ride) => {
+                    const tier = serviceTiers.find(t => t.id === ride.serviceTierId);
+                    return (
+                        <Card key={ride.id} className="p-4">
+                            <div className="flex flex-col sm:flex-row gap-4 justify-between">
+                                <div className="space-y-3 flex-grow">
+                                    <div className="font-semibold">{format(new Date(ride.date), "EEEE d MMM yyyy 'à' HH:mm", { locale: fr })}</div>
+                                    <div className="flex items-start gap-2">
+                                        <MapPin className="h-5 w-5 mt-0.5 text-primary" />
+                                        <div className="text-sm">
+                                            <div className="font-medium">{ride.pickup}</div>
+                                            <div className="text-muted-foreground">vers {ride.dropoff}</div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+                                        {tier && <Badge variant="outline">{tier.name}</Badge>}
+                                        {ride.passengers && <span className="flex items-center gap-1.5"><Users className="h-4 w-4" />{ride.passengers}</span>}
+                                        {ride.suitcases !== undefined && <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{ride.suitcases}</span>}
+                                        {ride.backpacks !== undefined && <span className="flex items-center gap-1.5"><Backpack className="h-4 w-4" />{ride.backpacks}</span>}
+                                    </div>
+                                    {ride.options && ride.options.length > 0 && (
+                                        <div className="flex flex-wrap gap-2">
+                                            {ride.options.map(option => {
+                                                const Icon = optionIcons[option.name];
+                                                return (<Badge key={option.name} variant="secondary" className="py-1"><Icon className="h-4 w-4 mr-2" />{option.name} {option.quantity > 1 && `x${option.quantity}`}</Badge>);
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex-shrink-0 flex flex-col items-end justify-between gap-2">
+                                    <div className="text-lg font-bold text-primary">{ride.driverPayout.toFixed(2)}€</div>
+                                    <Button size="sm" onClick={() => handleAcceptRide(ride.id)}>Accepter</Button>
+                                </div>
+                            </div>
+                        </Card>
+                    )
+                })
+            ) : (
+                <div className="text-center text-muted-foreground py-16">
                     Aucune nouvelle course pour le moment.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+                </div>
+            )}
         </CardContent>
       </Card>
     </div>
