@@ -117,12 +117,13 @@ function VehicleSelectionComponent() {
     if (!bookingDetails || allServiceTiers.length === 0) return;
 
     const { passengers, suitcases, carryOnLuggage } = bookingDetails;
-    if (passengers !== undefined && suitcases !== undefined && carryOnLuggage !== undefined) {
-        const suitableTiers = allServiceTiers.filter(tier => 
-            tier.capacity.passengers >= passengers && 
-            tier.capacity.suitcases >= suitcases &&
-            (tier.capacity.carryOnLuggage === undefined || tier.capacity.carryOnLuggage >= carryOnLuggage)
-        );
+    if (passengers !== undefined || suitcases !== undefined || carryOnLuggage !== undefined) {
+        const suitableTiers = allServiceTiers.filter(tier => {
+            const passengerCheck = passengers === undefined || tier.capacity.passengers >= passengers;
+            const suitcaseCheck = suitcases === undefined || tier.capacity.suitcases >= suitcases;
+            const carryOnCheck = carryOnLuggage === undefined || tier.capacity.carryOnLuggage === undefined || tier.capacity.carryOnLuggage >= carryOnLuggage;
+            return passengerCheck && suitcaseCheck && carryOnCheck;
+        });
         setFilteredTiers(suitableTiers);
     } else {
         setFilteredTiers(allServiceTiers);
