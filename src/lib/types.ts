@@ -1,5 +1,13 @@
 
 
+export type ReservationOption = 'Siège bébé' | 'Rehausseur' | 'Animal de compagnie';
+
+export const reservationOptions: ReservationOption[] = [
+  'Siège bébé',
+  'Rehausseur',
+  'Animal de compagnie',
+];
+
 export type ReservationStatus =
   | 'Nouvelle demande'
   | 'Acceptée'
@@ -60,6 +68,7 @@ export interface Reservation {
   passengers?: number;
   suitcases?: number;
   carryOnLuggage?: number;
+  options?: ReservationOption[];
 }
 
 export type DocumentStatus = 'Pending' | 'Approved' | 'Rejected';

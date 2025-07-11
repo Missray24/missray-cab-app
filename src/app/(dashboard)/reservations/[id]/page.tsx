@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { notFound, useParams } from 'next/navigation';
 import Image from 'next/image';
-import { CheckCircle2, Car, MapPin, User, Star, Clock } from 'lucide-react';
+import { CheckCircle2, Car, MapPin, User, Star, Clock, Baby, Armchair, Dog } from 'lucide-react';
 import { doc, getDoc } from "firebase/firestore";
 
 import { PageHeader } from '@/components/page-header';
@@ -12,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Reservation, ReservationStatus, ServiceTier } from '@/lib/types';
+import type { Reservation, ReservationStatus, ServiceTier, ReservationOption } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { db } from '@/lib/firebase';
 
@@ -37,6 +38,12 @@ const timelineSteps = [
   { status: 'Voyageur à bord', icon: User },
   { status: 'Terminée', icon: Star },
 ];
+
+const optionIcons: Record<ReservationOption, React.ElementType> = {
+    'Siège bébé': Baby,
+    'Rehausseur': Armchair,
+    'Animal de compagnie': Dog,
+};
 
 export default function ReservationDetailsPage() {
   const params = useParams<{ id: string }>();
@@ -210,6 +217,25 @@ export default function ReservationDetailsPage() {
                    <p className="font-medium">{reservation.driverPayout.toFixed(2)}€</p>
                  </div>
                </div>
+                {reservation.options && reservation.options.length > 0 && (
+                    <>
+                    <Separator />
+                    <div>
+                        <p className="font-medium text-muted-foreground mb-2">Options</p>
+                        <div className="flex flex-wrap gap-2">
+                           {reservation.options.map(option => {
+                                const Icon = optionIcons[option];
+                                return (
+                                    <Badge key={option} variant="secondary" className="text-base py-1">
+                                        <Icon className="h-4 w-4 mr-2" />
+                                        {option}
+                                    </Badge>
+                                );
+                           })}
+                        </div>
+                    </div>
+                    </>
+                )}
             </CardContent>
           </Card>
         </div>

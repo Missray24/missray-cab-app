@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useRef, useState } from 'react';
@@ -32,6 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
 import { sendEmail } from '@/ai/flows/send-email-flow';
+import type { ReservationOption } from '@/lib/types';
 
 interface AuthDialogProps {
   open: boolean;
@@ -43,6 +45,10 @@ interface AuthDialogProps {
     scheduledTime: Date | null;
     tierId: string;
     routeInfo: { distance: string; duration: string } | null;
+    passengers?: number;
+    suitcases?: number;
+    carryOnLuggage?: number;
+    options: ReservationOption[];
   };
 }
 
@@ -102,6 +108,10 @@ export function AuthDialog({ open, onOpenChange, bookingDetails }: AuthDialogPro
       params.set('distance', bookingDetails.routeInfo.distance);
       params.set('duration', bookingDetails.routeInfo.duration);
     }
+    if (bookingDetails.passengers) params.set('passengers', String(bookingDetails.passengers));
+    if (bookingDetails.suitcases) params.set('suitcases', String(bookingDetails.suitcases));
+    if (bookingDetails.carryOnLuggage) params.set('carryOnLuggage', String(bookingDetails.carryOnLuggage));
+    if (bookingDetails.options) bookingDetails.options.forEach(opt => params.append('option', opt));
     
     router.push(`/book/payment?${params.toString()}`);
     onOpenChange(false);

@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams, useRouter, notFound } from 'next/navigation';
 import { onAuthStateChanged, type User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
-import { CheckCircle2, MapPin, User as UserIcon, Briefcase, XCircle, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, MapPin, User as UserIcon, Briefcase, XCircle, ShieldCheck, Baby, Armchair, Dog } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import Link from 'next/link';
@@ -18,9 +19,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { db, auth } from '@/lib/firebase';
-import type { Reservation, ServiceTier } from '@/lib/types';
+import type { Reservation, ServiceTier, ReservationOption } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+
+const optionIcons: Record<ReservationOption, React.ElementType> = {
+    'Siège bébé': Baby,
+    'Rehausseur': Armchair,
+    'Animal de compagnie': Dog,
+};
 
 function ConfirmationComponent() {
   const searchParams = useSearchParams();
@@ -208,6 +215,27 @@ function ConfirmationComponent() {
                         <p className="font-bold text-foreground">{reservation.amount.toFixed(2)}€ ({reservation.paymentMethod})</p>
                     </div>
                 </div>
+                
+                {reservation.options && reservation.options.length > 0 && (
+                  <>
+                    <Separator />
+                     <div className="space-y-2">
+                        <h3 className="font-semibold text-lg">Options sélectionnées</h3>
+                        <div className="flex flex-wrap gap-2">
+                           {reservation.options.map(option => {
+                                const Icon = optionIcons[option];
+                                return (
+                                    <Badge key={option} variant="outline" className="text-base py-1">
+                                        <Icon className="h-4 w-4 mr-2" />
+                                        {option}
+                                    </Badge>
+                                );
+                           })}
+                        </div>
+                    </div>
+                  </>
+                )}
+
 
                 <Separator />
                 <Button asChild className="w-full" size="lg">

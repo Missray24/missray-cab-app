@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
@@ -7,7 +8,7 @@ import Image from 'next/image';
 import { collection, getDocs } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit, Backpack } from 'lucide-react';
+import { ArrowRight, Calendar, Clock, MapPin, Users, Briefcase, Info, Milestone, Timer, Edit, Backpack, Baby, Armchair, Dog } from 'lucide-react';
 import { onAuthStateChanged, type User as FirebaseUser } from 'firebase/auth';
 
 import { LandingHeader } from '@/components/landing-header';
@@ -16,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { db, auth } from '@/lib/firebase';
-import type { ServiceTier } from '@/lib/types';
+import type { ServiceTier, ReservationOption } from '@/lib/types';
 import { RouteMap } from '@/components/route-map';
 import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -30,6 +31,13 @@ interface RouteInfo {
     distance: string;
     duration: string;
 }
+
+const optionIcons: Record<ReservationOption, React.ElementType> = {
+    'Siège bébé': Baby,
+    'Rehausseur': Armchair,
+    'Animal de compagnie': Dog,
+};
+
 
 function VehicleSelectionComponent() {
   const searchParams = useSearchParams();
@@ -57,6 +65,7 @@ function VehicleSelectionComponent() {
     const passengers = searchParams.get('passengers');
     const suitcases = searchParams.get('suitcases');
     const carryOnLuggage = searchParams.get('carryOnLuggage');
+    const options = searchParams.getAll('option') as ReservationOption[];
     
     if (!pickup || !dropoff) return null;
 
@@ -68,6 +77,7 @@ function VehicleSelectionComponent() {
       passengers: passengers ? parseInt(passengers) : undefined,
       suitcases: suitcases ? parseInt(suitcases) : undefined,
       carryOnLuggage: carryOnLuggage ? parseInt(carryOnLuggage) : undefined,
+      options,
     };
   }, [searchParams]);
   
@@ -138,15 +148,11 @@ function VehicleSelectionComponent() {
     if (newDetails.scheduledTime) {
       queryParams.set('scheduledTime', newDetails.scheduledTime.toISOString());
     }
-    if (newDetails.passengers) {
-        queryParams.set('passengers', String(newDetails.passengers));
-    }
-    if (newDetails.suitcases) {
-        queryParams.set('suitcases', String(newDetails.suitcases));
-    }
-    if (newDetails.carryOnLuggage) {
-        queryParams.set('carryOnLuggage', String(newDetails.carryOnLuggage));
-    }
+    if (newDetails.passengers) queryParams.set('passengers', String(newDetails.passengers));
+    if (newDetails.suitcases) queryParams.set('suitcases', String(newDetails.suitcases));
+    if (newDetails.carryOnLuggage) queryParams.set('carryOnLuggage', String(newDetails.carryOnLuggage));
+    if (newDetails.options) newDetails.options.forEach(opt => queryParams.append('option', opt));
+    
     router.replace(`/book/select-vehicle?${queryParams.toString()}`);
     setRouteInfo(null);
     setIsEditing(false);
@@ -289,10 +295,10 @@ function VehicleSelectionComponent() {
                                         <p className="font-medium">{bookingDetails.dropoff}</p>
                                     </div>
                                 </div>
-                                {(bookingDetails.passengers || bookingDetails.suitcases || bookingDetails.carryOnLuggage) && (
+                                {(bookingDetails.passengers || bookingDetails.suitcases || bookingDetails.carryOnLuggage || (bookingDetails.options && bookingDetails.options.length > 0)) && (
                                     <>
                                         <Separator />
-                                        <div className="flex items-center gap-4 flex-wrap">
+                                        <div className="flex items-center gap-x-4 gap-y-2 flex-wrap">
                                             {bookingDetails.passengers && <Badge variant="secondary" className="text-base">
                                                 <Users className="h-4 w-4 mr-2" /> {bookingDetails.passengers}
                                             </Badge>}
@@ -302,6 +308,12 @@ function VehicleSelectionComponent() {
                                             {bookingDetails.carryOnLuggage && <Badge variant="secondary" className="text-base">
                                                 <Backpack className="h-4 w-4 mr-2" /> {bookingDetails.carryOnLuggage}
                                             </Badge>}
+                                            {bookingDetails.options?.map(opt => {
+                                                const Icon = optionIcons[opt];
+                                                return <Badge key={opt} variant="secondary" className="text-base">
+                                                    <Icon className="h-4 w-4 mr-2" /> {opt}
+                                                </Badge>
+                                            })}
                                         </div>
                                     </>
                                 )}
@@ -371,7 +383,7 @@ function VehicleSelectionComponent() {
                             <Info className="h-4 w-4" />
                             <AlertTitle>Aucune gamme disponible</AlertTitle>
                             <AlertDescription>
-                                Aucun de nos véhicules ne correspond à votre demande de {bookingDetails.passengers} passagers et {bookingDetails.suitcases} valises. Veuillez modifier votre demande ou nous contacter.
+                                Aucun de nos véhicules ne correspond à votre demande de {bookingDetails.passengers || 'passagers'} et {bookingDetails.suitcases || 'valises'}. Veuillez modifier votre demande ou nous contacter.
                             </AlertDescription>
                         </Alert>
                       )}
@@ -390,6 +402,7 @@ function VehicleSelectionComponent() {
                 tierId: selectedTierId!, 
                 stops: bookingDetails.stops.map(s => s.address),
                 routeInfo: routeInfo,
+                options: bookingDetails.options || [],
             }}
         />
       )}

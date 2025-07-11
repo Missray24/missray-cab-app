@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
@@ -18,7 +19,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { db, auth } from '@/lib/firebase';
-import type { ServiceTier, PaymentMethod } from '@/lib/types';
+import type { ServiceTier, PaymentMethod, ReservationOption } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY } from '@/lib/config';
 import { createPaymentIntent } from '@/ai/flows/create-payment-intent-flow';
@@ -81,6 +82,7 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                     passengers: bookingDetails.passengers,
                     suitcases: bookingDetails.suitcases,
                     carryOnLuggage: bookingDetails.carryOnLuggage,
+                    options: bookingDetails.options,
                 };
 
                 const docRef = await addDoc(collection(db, "reservations"), reservationData);
@@ -180,6 +182,7 @@ const useBookingDetails = () => {
         const passengers = params.get('passengers');
         const suitcases = params.get('suitcases');
         const carryOnLuggage = params.get('carryOnLuggage');
+        const options = params.getAll('option') as ReservationOption[];
 
         if (!pickup || !dropoff || !tierId) return null;
 
@@ -194,6 +197,7 @@ const useBookingDetails = () => {
             passengers: passengers ? parseInt(passengers) : undefined,
             suitcases: suitcases ? parseInt(suitcases) : undefined,
             carryOnLuggage: carryOnLuggage ? parseInt(carryOnLuggage) : undefined,
+            options,
         };
     }, [searchParams]);
 };
