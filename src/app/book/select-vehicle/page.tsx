@@ -346,8 +346,6 @@ function VehicleSelectionComponent() {
                                   dropoff={bookingDetails.dropoff}
                                   stops={bookingDetails.stops.map(s => s.address)}
                                   onRouteInfoFetched={setRouteInfo}
-                                  isLoaded={isLoaded}
-                                  loadError={loadError}
                                />
                             </div>
         
@@ -472,7 +470,7 @@ function VehicleSelectionComponent() {
                                 })}
                             </div>
                             {isChildSeatLimitExceeded && (
-                                <Alert className="mt-4">
+                                <Alert className="mt-4" variant="destructive">
                                     <AlertCircle className="h-4 w-4" />
                                     <AlertTitle>Trop d'options sélectionnées</AlertTitle>
                                     <AlertDescription>
@@ -573,5 +571,3 @@ export default function SelectVehiclePage() {
     </Suspense>
   )
 }
-
-    
