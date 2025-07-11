@@ -4,11 +4,15 @@
 import { Suspense, useEffect, useState } from 'react';
 import type { User } from 'firebase/auth';
 import { onAuthStateChanged } from 'firebase/auth';
-import Head from 'next/head';
 import { useRouter } from 'next/navigation';
+import type { Metadata } from 'next';
 
 import { Skeleton } from '@/components/ui/skeleton';
 import { auth } from '@/lib/firebase';
+
+export const metadata: Metadata = {
+  manifest: '/manifest-client.json',
+};
 
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -55,15 +59,10 @@ export default function AppLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
-      <Head>
-          <link rel="manifest" href="/manifest-client.json" />
-      </Head>
-      <Suspense>
+    <Suspense>
         <AuthProvider>
           {children}
         </AuthProvider>
-      </Suspense>
-    </>
+    </Suspense>
   );
 }
