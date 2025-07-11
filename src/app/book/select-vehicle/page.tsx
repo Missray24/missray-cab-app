@@ -46,14 +46,14 @@ const NumberSelect = ({
     max,
     min = 0,
     icon,
-    placeholder
+    label
 }: {
     value: number | undefined;
     onValueChange: (value: number) => void;
     max: number;
     min?: number;
     icon: React.ReactNode;
-    placeholder: string;
+    label: string;
 }) => (
     <Select
         value={value !== undefined ? String(value) : ""}
@@ -62,7 +62,8 @@ const NumberSelect = ({
         <SelectTrigger className="h-9 bg-white w-full">
              <div className="flex items-center gap-2">
                 <div className="text-primary">{icon}</div>
-                <SelectValue placeholder={placeholder} />
+                <span className="truncate">{label}</span>
+                {value !== undefined && value > 0 && <span className="ml-auto font-bold text-primary">{value}</span>}
             </div>
         </SelectTrigger>
         <SelectContent>
@@ -406,8 +407,8 @@ function VehicleSelectionComponent() {
                                             value={quantity}
                                             onValueChange={(val) => handleOptionQuantityChange(option.name, val)}
                                             min={0}
-                                            max={3}
-                                            placeholder={option.name}
+                                            max={2}
+                                            label={option.name}
                                         />
                                     );
                                 })}
