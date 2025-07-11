@@ -207,12 +207,12 @@ export default function DriverDashboardPage() {
                                     <div className="flex flex-col sm:flex-row gap-4 justify-between">
                                         <div className="space-y-3 flex-grow">
                                             <div className="font-semibold">{format(new Date(ride.date), "EEEE d MMM yyyy 'à' HH:mm", { locale: fr })}</div>
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <Milestone className="h-4 w-4 text-muted-foreground" />
-                                                <span>{ride.distance}</span>
-                                                <Timer className="h-4 w-4 text-muted-foreground ml-2" />
-                                                <span>{ride.duration}</span>
-                                            </div>
+                                            {(ride.distance || ride.duration) && (
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    {ride.distance && <span className="flex items-center gap-1.5"><Milestone className="h-4 w-4 text-muted-foreground" />{ride.distance}</span>}
+                                                    {ride.duration && <span className="flex items-center gap-1.5"><Timer className="h-4 w-4 text-muted-foreground" />{ride.duration}</span>}
+                                                </div>
+                                            )}
                                             <div className="flex items-start gap-2">
                                                 <MapPin className="h-5 w-5 mt-0.5 text-primary" />
                                                 <div className="text-sm">
@@ -225,7 +225,7 @@ export default function DriverDashboardPage() {
                                                 {ride.passengers && <span className="flex items-center gap-1.5"><Users className="h-4 w-4" />{ride.passengers}</span>}
                                                 {ride.suitcases !== undefined && <span className="flex items-center gap-1.5"><Briefcase className="h-4 w-4" />{ride.suitcases}</span>}
                                                 {ride.backpacks !== undefined && <span className="flex items-center gap-1.5"><Backpack className="h-4 w-4" />{ride.backpacks}</span>}
-                                                <Badge variant="secondary" className="capitalize">{ride.paymentMethod}</Badge>
+                                                <Badge variant="secondary" className="capitalize flex items-center gap-1.5"><CreditCard className="h-4 w-4" />{ride.paymentMethod}</Badge>
                                             </div>
                                             {ride.options && ride.options.length > 0 && (
                                                 <div className="flex flex-wrap gap-2">

@@ -34,6 +34,7 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
   
   const mapRef = useRef<google.maps.Map | null>(null);
   const [directions, setDirections] = useState<google.maps.DirectionsResult | null>(null);
+  const [isCalculating, setIsCalculating] = useState(true);
   
   const mapOptions = isInteractive ? {} : {
     disableDefaultUI: true,
@@ -43,8 +44,12 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
 
 
   useEffect(() => {
-    if (!isLoaded || !pickup || !dropoff) return;
+    if (!isLoaded || !pickup || !dropoff) {
+        setIsCalculating(false);
+        return;
+    };
 
+    setIsCalculating(true);
     const directionsService = new google.maps.DirectionsService();
 
     const waypoints = stops
@@ -77,6 +82,7 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
         } else {
           console.error(`error fetching directions ${result}`);
         }
+        setIsCalculating(false);
       }
     );
   }, [isLoaded, pickup, dropoff, stops, onRouteInfoFetched]);
@@ -94,8 +100,8 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
     }
   }, [directions]);
 
-  if (loadError) return <div>Error loading maps</div>;
-  if (!isLoaded) return <Skeleton className="h-full w-full" />;
+  if (loadError) return <div className="flex items-center justify-center h-full w-full bg-destructive/10 text-destructive text-sm p-4">Erreur de chargement de la carte.</div>;
+  if (!isLoaded || isCalculating) return <Skeleton className="h-full w-full" />;
 
   const route = directions?.routes[0];
   const startLocation = route?.legs[0]?.start_location;
@@ -121,7 +127,7 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
         options={mapOptions}
         onLoad={map => { mapRef.current = map; }}
     >
-      {directions && (
+      {directions ? (
         <>
           <DirectionsRenderer
             directions={directions}
@@ -139,6 +145,8 @@ export function RouteMap({ pickup, dropoff, stops = [], onRouteInfoFetched, isIn
           ))}
           {endLocation && <MarkerF position={endLocation} icon={endIcon} />}
         </>
+      ) : (
+        <div className="flex items-center justify-center h-full w-full bg-muted/50 text-muted-foreground text-sm p-4">Impossible de calculer le trajet.</div>
       )}
     </GoogleMap>
   );
