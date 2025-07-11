@@ -150,6 +150,11 @@ export default function ReservationsPage() {
         driverPayout: parseFloat(addFormData.driverPayout) || 0,
         date: new Date().toLocaleDateString('fr-CA'),
         statusHistory: [{ status: addFormData.status, timestamp: new Date().toLocaleString('fr-FR') }],
+        stops: [],
+        passengers: null,
+        suitcases: null,
+        backpacks: null,
+        options: [],
       };
       const docRef = await addDoc(collection(db, "reservations"), newReservationData);
       setReservations(prev => [...prev, { id: docRef.id, ...newReservationData }]);

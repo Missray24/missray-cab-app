@@ -92,9 +92,9 @@ function CheckoutForm({ onPaymentSuccess, bookingDetails, tier, user, finalPrice
                     paymentMethod,
                     serviceTierId: tier.id,
                     stripePaymentId: stripePaymentId || null,
-                    passengers: bookingDetails.passengers,
-                    suitcases: bookingDetails.suitcases,
-                    backpacks: bookingDetails.backpacks,
+                    passengers: bookingDetails.passengers || null,
+                    suitcases: bookingDetails.suitcases || null,
+                    backpacks: bookingDetails.backpacks || null,
                     options: bookingDetails.options,
                     distance: bookingDetails.distance,
                     duration: bookingDetails.duration,
@@ -386,7 +386,3 @@ export default function PaymentPage() {
         </Suspense>
     );
 }
-
-    
-
-    
