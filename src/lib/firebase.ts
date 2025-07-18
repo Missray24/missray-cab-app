@@ -1,25 +1,25 @@
 
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
-import { getStorage } from 'firebase/storage';
+// Legacy Firebase exports for backward compatibility during migration
+// TODO: Remove these once migration is complete
 
-// Your web app's Firebase configuration.
-// This configuration will be loaded from your .env.local file.
-const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
-};
+import { supabase } from './supabase'
+import { signIn, signOut, signUp, onAuthStateChange, getCurrentUser } from './supabase-auth'
 
-// Initialize Firebase
-// We check if an app is already initialized to prevent errors during hot-reloading.
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const db = getFirestore(app);
-const auth = getAuth(app);
-const storage = getStorage(app);
+// Compatibility layer for Firebase Auth
+export const auth = {
+  signInWithEmailAndPassword: (email: string, password: string) => signIn(email, password),
+  createUserWithEmailAndPassword: (email: string, password: string) => 
+    signUp(email, password, { name: '', firstName: '', lastName: '', phone: '', role: 'client' }),
+  signOut,
+  onAuthStateChanged: onAuthStateChange,
+  currentUser: null as any,
+}
 
-export { app, db, auth, storage };
+// Compatibility layer for Firestore
+export const db = supabase
+
+// Compatibility layer for Storage
+export const storage = supabase.storage
+
+// Legacy exports
+export const app = null
